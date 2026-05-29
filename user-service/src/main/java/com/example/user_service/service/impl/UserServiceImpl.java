@@ -1,0 +1,134 @@
+package com.example.user_service.service.impl;
+
+import com.example.user_service.dto.AuthResponse;
+import com.example.user_service.dto.EmployeeResponse;
+import com.example.user_service.dto.LoginRequest;
+import com.example.user_service.dto.RegisterRequest;
+import com.example.user_service.entity.Employee;
+import com.example.user_service.entity.Role;
+import com.example.user_service.exception.ResourceNotFoundException;
+import com.example.user_service.feign.DeviceServiceClient;
+import com.example.user_service.repository.EmployeeRepository;
+import com.example.user_service.security.JwtUtil;
+import com.example.user_service.service.UserService;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+    private final EmployeeRepository employeeRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final DeviceServiceClient deviceServiceClient;
+
+    public UserServiceImpl(EmployeeRepository employeeRepository,
+                           PasswordEncoder passwordEncoder,
+                           JwtUtil jwtUtil,
+                           DeviceServiceClient deviceServiceClient) {
+        this.employeeRepository = employeeRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.deviceServiceClient = deviceServiceClient;
+    }
+
+    @Override
+    public AuthResponse register(RegisterRequest request) {
+        if (employeeRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered: " + request.getEmail());
+        }
+
+        Role role = request.getRole() != null
+                ? Role.valueOf(request.getRole().toUpperCase())
+                : Role.EMPLOYEE;
+
+        Employee employee = new Employee();
+        employee.setName(request.getName());
+        employee.setEmail(request.getEmail());
+        employee.setPassword(passwordEncoder.encode(request.getPassword()));
+        employee.setDepartment(request.getDepartment());
+        employee.setRole(role);
+
+        Employee saved = employeeRepository.save(employee);
+        String token = jwtUtil.generateToken(saved.getEmail(), saved.getRole().name());
+
+        return buildAuthResponse(saved, token);
+    }
+
+    @Override
+    public AuthResponse login(LoginRequest request) {
+        Employee employee = employeeRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No account found for: " + request.getEmail()));
+
+        if (!passwordEncoder.matches(request.getPassword(), employee.getPassword())) {
+            throw new BadCredentialsException("Incorrect password");
+        }
+
+        String token = jwtUtil.generateToken(employee.getEmail(), employee.getRole().name());
+        return buildAuthResponse(employee, token);
+    }
+
+    @Override
+    public EmployeeResponse getById(Long id) {
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+        return toResponse(emp);
+    }
+
+    @Override
+    public List<EmployeeResponse> getAll() {
+        return employeeRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public EmployeeResponse updateRole(Long id, String role) {
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+        emp.setRole(Role.valueOf(role.toUpperCase()));
+        return toResponse(employeeRepository.save(emp));
+    }
+
+    @Override
+    public void deleteEmployee(Long id) {
+        if (!employeeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Employee not found with id: " + id);
+        }
+        employeeRepository.deleteById(id);
+    }
+
+    @Override
+    public List<?> getAssignedDevices(Long employeeId) {
+        return deviceServiceClient.getDevicesByEmployee(employeeId);
+    }
+
+    // ── helpers ──────────────────────────────────────────────
+
+    private AuthResponse buildAuthResponse(Employee emp, String token) {
+        AuthResponse response = new AuthResponse();
+        response.setToken(token);
+        response.setId(emp.getId());
+        response.setName(emp.getName());
+        response.setEmail(emp.getEmail());
+        response.setRole(emp.getRole().name());
+        response.setDepartment(emp.getDepartment());
+        return response;
+    }
+
+    private EmployeeResponse toResponse(Employee emp) {
+        EmployeeResponse response = new EmployeeResponse();
+        response.setId(emp.getId());
+        response.setName(emp.getName());
+        response.setEmail(emp.getEmail());
+        response.setDepartment(emp.getDepartment());
+        response.setRole(emp.getRole().name());
+        response.setJoinedDate(emp.getJoinedDate());
+        return response;
+    }
+}
