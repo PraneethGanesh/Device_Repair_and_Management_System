@@ -2,6 +2,16 @@ spring:
   application:
     name: vendor-service
 
+  datasource:
+    url: jdbc:mysql://localhost:3306/device_db
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
 server:
   port: 8082
 
@@ -9,3 +19,5 @@ eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
+    service-url:
+     defaultZone: http://localhost:8761/eureka

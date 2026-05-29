@@ -27,9 +27,19 @@ public class DeviceController {
     }
 
     @PostMapping
-    public ResponseEntity<Device> addDevice(@RequestBody DeviceDTO deviceDTO) {
+    public ResponseEntity<DeviceDTO> addDevice(@RequestBody DeviceDTO deviceDTO) {
         Device savedDevice = deviceService.addDevice(deviceDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedDevice);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ToDeviceDTO(savedDevice));
+
+    }
+
+    private DeviceDTO ToDeviceDTO(Device device){
+        DeviceDTO deviceDTO=new DeviceDTO();
+        deviceDTO.setDeviceName(device.getDeviceName());
+        deviceDTO.setDeviceType(device.getDeviceType());
+        deviceDTO.setVendorId(device.getVendorId());
+        deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
+        return deviceDTO;
     }
 
     @PostMapping("/assign")
