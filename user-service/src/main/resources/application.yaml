@@ -3,8 +3,8 @@ spring:
     name: user-service
   datasource:
     url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
-    username: root
-    password: your_password
+    username: ${USER_NAME}
+    password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
