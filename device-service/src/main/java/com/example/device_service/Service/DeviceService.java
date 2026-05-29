@@ -8,6 +8,7 @@ import com.example.device_service.Enum.DeviceStatus;
 import com.example.device_service.Repository.DeviceRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,7 +21,7 @@ public class DeviceService {
 
     public Device addDevice(DeviceDTO deviceDTO){
         Device device=new Device();
-        device.setDeviceName(device.getDeviceName());
+        device.setDeviceName(deviceDTO.getDeviceName());
         device.setDeviceType(deviceDTO.getDeviceType());
         device.setDeviceStatus(DeviceStatus.AVAILABLE);
         device.setSerialNumber(UUID.randomUUID().toString());
@@ -34,8 +35,31 @@ public class DeviceService {
                 .orElseThrow(() -> new DeviceNotFoundException(
                         "Device not found with id: " + assignmentRequest.getDeviceId()));
         device.setAssignedToId(assignmentRequest.getUserId());
+        device.setDeviceStatus(DeviceStatus.ASSIGNED);
         return deviceRepository.save(device);
     }
 
+    public List<Device> getAllDevices() {
+        return deviceRepository.findAll();
+    }
+
+    public Device getDeviceById(long deviceId) {
+        return deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new DeviceNotFoundException("Device not found with id: " + deviceId));
+    }
+
+    public Device updateDevice(long deviceId, DeviceDTO deviceDTO) {
+        Device existingDevice = getDeviceById(deviceId);
+        existingDevice.setDeviceName(deviceDTO.getDeviceName());
+        existingDevice.setDeviceType(deviceDTO.getDeviceType());
+        existingDevice.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
+        existingDevice.setVendorId(deviceDTO.getVendorId());
+        return deviceRepository.save(existingDevice);
+    }
+
+    public void deleteDevice(long deviceId) {
+        Device existingDevice = getDeviceById(deviceId);
+        deviceRepository.delete(existingDevice);
+    }
 
 }
