@@ -3,7 +3,14 @@ spring:
     name: device-service
 
   datasource:
-    url: jdbc:mysql://localhost:3036:
+    url: jdbc:mysql://localhost:3306/device_db
+    username: root
+    password: Vnb@1947
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 
 server:
