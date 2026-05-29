@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://localhost:3306/device_db
-    username: root
-    password: Vnb@1947
+    username: ${USER_NAME}
+    password: ${PASSWORD}
 
   jpa:
     hibernate:
