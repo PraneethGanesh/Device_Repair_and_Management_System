@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class DeviceService {
@@ -48,6 +49,14 @@ public class DeviceService {
                 .orElseThrow(() -> new DeviceNotFoundException("Device not found with id: " + deviceId));
     }
 
+    public List<DeviceDTO> getDeviceByVendor(long vendorId) {
+        List<Device> devices = deviceRepository.findByVendorId(vendorId);
+        return devices.stream()
+                .map(this::toDeviceDto)
+                .collect(Collectors.toList());
+    }
+
+
     public Device updateDevice(long deviceId, DeviceDTO deviceDTO) {
         Device existingDevice = getDeviceById(deviceId);
         existingDevice.setDeviceName(deviceDTO.getDeviceName());
@@ -60,6 +69,15 @@ public class DeviceService {
     public void deleteDevice(long deviceId) {
         Device existingDevice = getDeviceById(deviceId);
         deviceRepository.delete(existingDevice);
+    }
+
+    private DeviceDTO toDeviceDto(Device device) {
+        DeviceDTO deviceDTO = new DeviceDTO();
+        deviceDTO.setDeviceName(device.getDeviceName());
+        deviceDTO.setDeviceType(device.getDeviceType());
+        deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
+        deviceDTO.setVendorId(device.getVendorId());
+        return deviceDTO;
     }
 
 }

@@ -1,37 +1,61 @@
-package com.example.vendor_service.Service;
+    package com.example.vendor_service.Service;
 
-import com.example.vendor_service.DTO.DeviceDTO;
-import com.example.vendor_service.Entity.Vendor;
-import com.example.vendor_service.Repository.VendorRepository;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+    import com.example.vendor_service.DTO.DeviceDTO;
+    import com.example.vendor_service.DTO.NotificationDTO;
+    import com.example.vendor_service.Entity.Role;
+    import com.example.vendor_service.Entity.Vendor;
+    import com.example.vendor_service.Repository.VendorRepository;
+    import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.stereotype.Service;
+    import org.springframework.web.client.RestClient;
 
-@Service
-public class VendorService {
-    private final VendorRepository vendorRepository;
-    private final RestClient restClient;
+    import java.util.List;
+
+    @Service
+    public class VendorService {
+        private final VendorRepository vendorRepository;
+        private final RestClient deviceClient;
+        private final RestClient notificationClient;
 
 
-    public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder) {
-        this.vendorRepository = vendorRepository;
-        this.restClient = restClientBuilder.baseUrl("http://DEVICE-SERVICE").build();
+        public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder) {
+            this.vendorRepository = vendorRepository;
+            this.deviceClient = restClientBuilder.clone().baseUrl("http://DEVICE-SERVICE").build();
+            this.notificationClient = restClientBuilder.clone().baseUrl("http://NOTIFICATION-SERVICE").build();
+        }
+
+        public Vendor createVendor(Vendor vendor){
+           return vendorRepository.save(vendor);
+        }
+
+        public ResponseEntity<DeviceDTO> addDevice(DeviceDTO deviceDTO){
+          ResponseEntity<DeviceDTO> deviceDTOResponseEntity=deviceClient.post()
+                  .uri("/api/devices")
+                  .body(deviceDTO)
+                  .retrieve()
+                  .toEntity(DeviceDTO.class);
+          NotificationDTO notificationDTO=new NotificationDTO(deviceDTO.getVendorId(),
+                  Role.VENDOR,
+                  Role.ADMIN,
+                  "Device:"+deviceDTO.getDeviceName()+" is added");
+          ResponseEntity responseEntity=notificationClient.post()
+                  .uri("/api/notifications")
+                  .body(notificationDTO)
+                  .retrieve()
+                  .toBodilessEntity();
+            System.out.println("Notification status:"+responseEntity.getStatusCode());
+          return deviceDTOResponseEntity;
+        }
+
+        public List<DeviceDTO> getDevices(long vendorId){
+          List<DeviceDTO> deviceDTOS= deviceClient.get()
+                  .uri("/api/devices/vendor/{vendorId}",vendorId)
+                  .retrieve()
+                  .body(List.class);
+          return deviceDTOS;
+        }
+
+
+
     }
-
-    public Vendor createVendor(Vendor vendor){
-       return vendorRepository.save(vendor);
-    }
-
-    public ResponseEntity<DeviceDTO> addDevice(DeviceDTO deviceDTO){
-      ResponseEntity<DeviceDTO> deviceDTOResponseEntity=restClient.post()
-              .uri("/api/devices")
-              .body(deviceDTO)
-              .retrieve()
-              .toEntity(DeviceDTO.class);
-      return deviceDTOResponseEntity;
-    }
-
-
-
-}

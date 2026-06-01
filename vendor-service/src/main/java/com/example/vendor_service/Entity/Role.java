@@ -1,4 +1,4 @@
-package com.example.user_service.entity;
+package com.example.vendor_service.Entity;
 
 public enum Role {
     ADMIN,

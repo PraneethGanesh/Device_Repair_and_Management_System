@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: notification-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/device_db
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+rabbitmq:
+  exchange:
+    name: notification_exchange
+  device:
+    added:
+      routing:
+        key: device_added_key
+    assigned:
+      routing:
+        key: device_assigned_key
+
+
+server:
+  port: 8083

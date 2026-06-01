@@ -18,6 +18,7 @@ public class Vendor {
     @Email
     private String email;
     private int number;
+    private Role role=Role.VENDOR;
 
     public long getVendorId() {
         return vendorId;

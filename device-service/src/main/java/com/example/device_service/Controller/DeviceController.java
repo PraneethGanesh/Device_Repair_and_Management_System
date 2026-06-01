@@ -70,4 +70,9 @@ public class DeviceController {
         deviceService.deleteDevice(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/vendor/{vendorId}")
+    public ResponseEntity<List<DeviceDTO>> getDevicesByVendor(@PathVariable long vendorId){
+        return ResponseEntity.ok(deviceService.getDeviceByVendor(vendorId));
+    }
 }
