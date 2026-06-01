@@ -41,7 +41,7 @@ eureka:
   instance:
     prefer-ip-address: true
 
-# JWT secret (Base64-encoded, min 256-bit for HS256)
+# JWT secret
 jwt:
   secret: drmsSuperSecretKeyForJwtTokenGenerationMustBe32CharsLong
 
