@@ -19,13 +19,13 @@ public class GatewayConfig {
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
 
-                // Auth service - PUBLIC (no JWT filter)
+                // Auth / User login+register - PUBLIC
                 .route("auth-service", r -> r
                         .path("/api/auth/**")
                         .filters(f -> f.stripPrefix(1))
-                        .uri("lb://auth-service"))
+                        .uri("lb://user-service"))
 
-                // User service - PROTECTED
+                // User Service - PROTECTED
                 .route("user-service", r -> r
                         .path("/api/users/**")
                         .filters(f -> f
@@ -33,21 +33,29 @@ public class GatewayConfig {
                                 .stripPrefix(1))
                         .uri("lb://user-service"))
 
-                // Order service - PROTECTED
-                .route("order-service", r -> r
-                        .path("/api/orders/**")
+                // Device Service - PROTECTED
+                .route("device-service", r -> r
+                        .path("/api/devices/**")
                         .filters(f -> f
                                 .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
                                 .stripPrefix(1))
-                        .uri("lb://order-service"))
+                        .uri("lb://device-service"))
 
-                // Product service - PROTECTED
-                .route("product-service", r -> r
-                        .path("/api/products/**")
+                // Vendor Service - PROTECTED
+                .route("vendor-service", r -> r
+                        .path("/api/vendors/**")
                         .filters(f -> f
                                 .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
                                 .stripPrefix(1))
-                        .uri("lb://product-service"))
+                        .uri("lb://vendor-service"))
+
+                // Repair Request Service - PROTECTED
+                .route("repair-service", r -> r
+                        .path("/api/repairs/**")
+                        .filters(f -> f
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
+                                .stripPrefix(1))
+                        .uri("lb://repair-service"))
 
                 .build();
     }
