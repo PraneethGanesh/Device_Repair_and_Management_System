@@ -2,6 +2,7 @@ package com.example.device_service.Controller;
 
 import com.example.device_service.DTO.AssignmentRequest;
 import com.example.device_service.DTO.DeviceDTO;
+import com.example.device_service.DTO.DeviceStatusDTO;
 import com.example.device_service.Entity.Device;
 import com.example.device_service.Service.DeviceService;
 import org.springframework.http.HttpStatus;
@@ -74,5 +75,16 @@ public class DeviceController {
     @GetMapping("/vendor/{vendorId}")
     public ResponseEntity<List<DeviceDTO>> getDevicesByVendor(@PathVariable long vendorId){
         return ResponseEntity.ok(deviceService.getDeviceByVendor(vendorId));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Device> updateDeviceStatus(
+            @PathVariable long id,
+            @RequestBody DeviceStatusDTO statusDTO) {
+        return ResponseEntity.ok(deviceService.updateDeviceStatus(id, statusDTO));
+    }
+    @GetMapping("/employee/{employeeId}")
+    public ResponseEntity<List<DeviceDTO>> getDevicesByEmployee(@PathVariable long employeeId) {
+        return ResponseEntity.ok(deviceService.getDevicesByEmployee(employeeId));
     }
 }

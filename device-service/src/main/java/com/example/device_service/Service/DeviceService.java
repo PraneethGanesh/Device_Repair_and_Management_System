@@ -2,6 +2,7 @@ package com.example.device_service.Service;
 
 import com.example.device_service.DTO.AssignmentRequest;
 import com.example.device_service.DTO.DeviceDTO;
+import com.example.device_service.DTO.DeviceStatusDTO;
 import com.example.device_service.Entity.Device;
 import com.example.device_service.Exception.DeviceNotFoundException;
 import com.example.device_service.Enum.DeviceStatus;
@@ -84,4 +85,16 @@ public class DeviceService {
         return deviceRepository.findByAssignedToId(employeeId);
     }
 
+    public Device updateDeviceStatus(long deviceId, DeviceStatusDTO statusDTO) {
+        Device device = getDeviceById(deviceId);
+        device.setDeviceStatus(DeviceStatus.valueOf(statusDTO.getStatus()));
+        return deviceRepository.save(device);
+    }
+
+    public List<DeviceDTO> getDevicesByEmployee(long employeeId) {
+        return deviceRepository.findByAssignedToId(employeeId)
+                .stream()
+                .map(this::toDeviceDto)
+                .toList();
+    }
 }

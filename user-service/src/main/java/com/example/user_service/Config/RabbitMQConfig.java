@@ -21,6 +21,18 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.employee.queue}")
     private String employeeQueue;
 
+    @Value("${rabbitmq.repair.raised.routing.key}")
+    private String repairRaisedKey;
+
+    @Value("${rabbitmq.repair.acknowledged.routing.key}")
+    private String repairAcknowledgedKey;
+
+    @Value("${rabbitmq.repair.completed.routing.key}")
+    private String repairCompletedKey;
+
+    @Value("${rabbitmq.repair.closed.routing.key}")
+    private String repairClosedKey;
+
     @Bean
     public TopicExchange exchange() {
         return new TopicExchange(exchangeName);
@@ -58,5 +70,25 @@ public class RabbitMQConfig {
     @Bean
     public Binding employeeBinding() {
         return BindingBuilder.bind(employeeQueue()).to(exchange()).with(deviceAssignedkey);
+    }
+
+    @Bean
+    public Binding repairRaisedAdminBinding() {
+        return BindingBuilder.bind(adminQueue()).to(exchange()).with(repairRaisedKey);
+    }
+
+    @Bean
+    public Binding repairAcknowledgedAdminBinding() {
+        return BindingBuilder.bind(adminQueue()).to(exchange()).with(repairAcknowledgedKey);
+    }
+
+    @Bean
+    public Binding repairCompletedAdminBinding() {
+        return BindingBuilder.bind(adminQueue()).to(exchange()).with(repairCompletedKey);
+    }
+
+    @Bean
+    public Binding repairClosedEmployeeBinding() {
+        return BindingBuilder.bind(employeeQueue()).to(exchange()).with(repairClosedKey);
     }
 }
