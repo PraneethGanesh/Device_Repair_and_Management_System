@@ -18,15 +18,18 @@ public class LoggingFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        long startTime = System.currentTimeMillis();
+        exchange.getAttributes().put("startTime", System.currentTimeMillis());
 
-        log.info("[REQUEST]  {} {} from {}",
-                request.getMethod(),
-                request.getURI(),
-                request.getRemoteAddress());
+        String clientIp = request.getHeaders().getFirst("X-Forwarded-For");
+        if (clientIp == null && request.getRemoteAddress() != null) {
+            clientIp = request.getRemoteAddress().getAddress().getHostAddress();
+        }
+
+        log.info("[REQUEST]  {} {} from {}", request.getMethod(), request.getURI(), clientIp);
 
         return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            long duration = System.currentTimeMillis() - startTime;
+            Long start = exchange.getAttribute("startTime");
+            long duration = start != null ? System.currentTimeMillis() - start : 0;
             log.info("[RESPONSE] {} {} -> Status: {} | Duration: {}ms",
                     request.getMethod(),
                     request.getURI(),
