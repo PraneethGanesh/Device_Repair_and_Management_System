@@ -10,6 +10,8 @@
     import org.springframework.stereotype.Service;
     import org.springframework.web.client.RestClient;
 
+    import java.util.List;
+
     @Service
     public class VendorService {
         private final VendorRepository vendorRepository;
@@ -19,8 +21,8 @@
 
         public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder) {
             this.vendorRepository = vendorRepository;
-            this.deviceClient = restClientBuilder.baseUrl("http://DEVICE-SERVICE").build();
-            this.notificationClient = restClientBuilder.baseUrl("http://NOTIFICATION-SERVICE").build();
+            this.deviceClient = restClientBuilder.clone().baseUrl("http://DEVICE-SERVICE").build();
+            this.notificationClient = restClientBuilder.clone().baseUrl("http://NOTIFICATION-SERVICE").build();
         }
 
         public Vendor createVendor(Vendor vendor){
@@ -44,6 +46,14 @@
                   .toBodilessEntity();
             System.out.println("Notification status:"+responseEntity.getStatusCode());
           return deviceDTOResponseEntity;
+        }
+
+        public List<DeviceDTO> getDevices(long vendorId){
+          List<DeviceDTO> deviceDTOS= deviceClient.get()
+                  .uri("/api/devices/vendor/{vendorId}",vendorId)
+                  .retrieve()
+                  .body(List.class);
+          return deviceDTOS;
         }
 
 
