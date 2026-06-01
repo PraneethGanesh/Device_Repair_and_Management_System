@@ -1,11 +1,13 @@
 spring:
   application:
-    name: user-service
+    name: repair-service
+
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/repairdb?createDatabaseIfNotExist=true
     username: ${USER_NAME}
     password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,9 +16,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
-
 server:
-  port: 8080
+  port: 8084
 
 eureka:
   client:
@@ -26,31 +27,10 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-jwt:
-  secret: drmsSuperSecretKeyForJwtTokenGenerationMustBe32CharsLong
-  expiration: 86400000
-
-feign:
-  circuitbreaker:
-    enabled: true
 
 rabbitmq:
   exchange:
     name: notification_exchange
-  device:
-    added:
-      routing:
-        key:
-          device_added_key
-    assigned:
-      routing:
-        key:
-          device_assigned_key
-  admin:
-    queue: admin_queue
-  employee:
-    queue: employee_queue
-
   repair:
     raised:
       routing:
@@ -64,3 +44,7 @@ rabbitmq:
     closed:
       routing:
         key: repair_closed_key
+
+feign:
+  circuitbreaker:
+    enabled: true

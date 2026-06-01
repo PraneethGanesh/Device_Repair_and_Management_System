@@ -29,42 +29,36 @@ public class GatewayConfig {
                 .route("user-service", r -> r
                         .path("/api/users/**")
                         .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-                                .stripPrefix(1))
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://user-service"))
 
                 // Device Service - PROTECTED
                 .route("device-service", r -> r
                         .path("/api/devices/**")
                         .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-                                .stripPrefix(1))
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://device-service"))
 
                 // Vendor Service - PROTECTED
                 .route("vendor-service", r -> r
                         .path("/api/vendors/**")
                         .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-                                .stripPrefix(1))
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://vendor-service"))
 
                 // Notification Service - PROTECTED
                 .route("notification-service", r -> r
                         .path("/api/notifications/**")
                         .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-                                .stripPrefix(1))
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://notification-service"))
 
-
                 // Repair Request Service - PROTECTED
-//                .route("repair-service", r -> r
-//                        .path("/api/repairs/**")
-//                        .filters(f -> f
-//                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-//                                .stripPrefix(1))
-//                        .uri("lb://repair-service"))
+                .route("repair-service", r -> r
+                        .path("/api/repairs/**")
+                        .filters(f -> f
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
+                        .uri("lb://repair-service"))
                 .build();
     }
 }
