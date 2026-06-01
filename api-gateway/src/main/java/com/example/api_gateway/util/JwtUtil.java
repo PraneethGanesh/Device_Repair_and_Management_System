@@ -14,9 +14,9 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
+    // api-gateway JwtUtil — fix getSigningKey()
     private Key getSigningKey() {
-        byte[] keyBytes = Base64.getDecoder().decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(secret.getBytes()); // same as user-service
     }
 
     public Claims extractAllClaims(String token) {

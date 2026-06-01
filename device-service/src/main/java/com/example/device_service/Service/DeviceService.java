@@ -80,4 +80,8 @@ public class DeviceService {
         return deviceDTO;
     }
 
+    public List<Device> getDevicesByEmployeeId(long employeeId) {
+        return deviceRepository.findByAssignedToId(employeeId);
+    }
+
 }

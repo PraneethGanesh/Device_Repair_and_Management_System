@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface DeviceRepository extends JpaRepository<Device,Long> {
     List<Device> findByVendorId(long id);
+    List<Device> findByAssignedToId(long employeeId);
 }
