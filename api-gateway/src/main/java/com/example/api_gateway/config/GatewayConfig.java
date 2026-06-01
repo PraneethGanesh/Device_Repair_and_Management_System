@@ -49,13 +49,6 @@ public class GatewayConfig {
                                 .stripPrefix(1))
                         .uri("lb://vendor-service"))
 
-                // Repair Request Service - PROTECTED
-                .route("repair-service", r -> r
-                        .path("/api/repairs/**")
-                        .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
-                                .stripPrefix(1))
-                        .uri("lb://repair-service"))
                 // Notification Service - PROTECTED
                 .route("notification-service", r -> r
                         .path("/api/notifications/**")
@@ -64,6 +57,14 @@ public class GatewayConfig {
                                 .stripPrefix(1))
                         .uri("lb://notification-service"))
 
+
+                // Repair Request Service - PROTECTED
+//                .route("repair-service", r -> r
+//                        .path("/api/repairs/**")
+//                        .filters(f -> f
+//                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config()))
+//                                .stripPrefix(1))
+//                        .uri("lb://repair-service"))
                 .build();
     }
 }
