@@ -72,9 +72,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public EmployeeResponse getMyProfile(String username,String role) {
-        if(role.equals(Role.VENDOR.name())){
-            throw new BadCredentialsException("vendor doesn't have access to user service");
-        }
+
         Employee emp = employeeRepository.findByEmail(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
         return toResponse(emp);
