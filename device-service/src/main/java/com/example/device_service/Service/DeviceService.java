@@ -21,14 +21,14 @@ public class DeviceService {
         this.deviceRepository = deviceRepository;
     }
 
-    public Device addDevice(DeviceDTO deviceDTO){
+    public Device addDevice(DeviceDTO deviceDTO,long vendorId){
         Device device=new Device();
         device.setDeviceName(deviceDTO.getDeviceName());
         device.setDeviceType(deviceDTO.getDeviceType());
         device.setDeviceStatus(DeviceStatus.AVAILABLE);
         device.setSerialNumber(UUID.randomUUID().toString());
         device.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
-        device.setVendorId(deviceDTO.getVendorId());
+        device.setVendorId(vendorId);
         return deviceRepository.save(device);
     }
 
@@ -63,7 +63,6 @@ public class DeviceService {
         existingDevice.setDeviceName(deviceDTO.getDeviceName());
         existingDevice.setDeviceType(deviceDTO.getDeviceType());
         existingDevice.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
-        existingDevice.setVendorId(deviceDTO.getVendorId());
         return deviceRepository.save(existingDevice);
     }
 
@@ -77,7 +76,6 @@ public class DeviceService {
         deviceDTO.setDeviceName(device.getDeviceName());
         deviceDTO.setDeviceType(device.getDeviceType());
         deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
-        deviceDTO.setVendorId(device.getVendorId());
         return deviceDTO;
     }
 

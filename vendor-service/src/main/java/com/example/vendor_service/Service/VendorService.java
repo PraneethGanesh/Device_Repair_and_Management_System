@@ -3,6 +3,7 @@
     import com.example.vendor_service.DTO.*;
     import com.example.vendor_service.Entity.Role;
     import com.example.vendor_service.Entity.Vendor;
+    import com.example.vendor_service.Exception.VendorNotFoundException;
     import com.example.vendor_service.Repository.VendorRepository;
     import com.example.vendor_service.Util.JwtUtil;
     import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -65,13 +66,20 @@
             return token;
         }
 
-        public ResponseEntity<DeviceDTO> addDevice(DeviceDTO deviceDTO){
+        public ResponseEntity<?> addDevice(DeviceDTO deviceDTO,String username,String role){
+            if(!role.equals(Role.VENDOR.name())){
+                return ResponseEntity.badRequest().body("only vendor has the access to add the device");
+            }
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
+
           ResponseEntity<DeviceDTO> deviceDTOResponseEntity=deviceClient.post()
-                  .uri("/api/devices")
+                  .uri("/api/devices/{vendorId}",vendor.getVendorId())
                   .body(deviceDTO)
                   .retrieve()
                   .toEntity(DeviceDTO.class);
-          NotificationDTO notificationDTO=new NotificationDTO(deviceDTO.getVendorId(),
+          NotificationDTO notificationDTO=new NotificationDTO(vendor.getVendorId(),
                   Role.VENDOR,
                   Role.ADMIN,
                   "Device:"+deviceDTO.getDeviceName()+" is added");
@@ -84,12 +92,18 @@
           return deviceDTOResponseEntity;
         }
 
-        public List<DeviceDTO> getDevices(long vendorId){
+        public ResponseEntity<?> getDevices(String username,String role){
+            if(!role.equals(Role.VENDOR.name())){
+                return ResponseEntity.badRequest().body("only vendor has the access to add the device");
+            }
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
           List<DeviceDTO> deviceDTOS= deviceClient.get()
-                  .uri("/api/devices/vendor/{vendorId}",vendorId)
+                  .uri("/api/devices/vendor/{vendorId}",vendor.getVendorId())
                   .retrieve()
                   .body(List.class);
-          return deviceDTOS;
+          return ResponseEntity.ok(deviceDTOS);
         }
 
 

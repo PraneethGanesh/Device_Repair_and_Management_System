@@ -6,7 +6,6 @@ public class DeviceDTO {
     private String DeviceName;
     private DeviceType deviceType;
     private LocalDate warrantyExpiry;
-    private long vendorId;
 
     public String getDeviceName() {
         return DeviceName;
@@ -32,11 +31,4 @@ public class DeviceDTO {
         this.warrantyExpiry = warrantyExpiry;
     }
 
-    public long getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(long vendorId) {
-        this.vendorId = vendorId;
-    }
 }
