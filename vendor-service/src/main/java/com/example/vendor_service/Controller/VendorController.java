@@ -35,12 +35,15 @@ public class VendorController {
     }
 
     @PostMapping("/devices")
-    public ResponseEntity<DeviceDTO> addDevice(@RequestBody DeviceDTO deviceDTO) {
-        return vendorService.addDevice(deviceDTO);
+    public ResponseEntity<?> addDevice(@RequestBody DeviceDTO deviceDTO,
+                                               @RequestHeader("X-Auth-User") String username,
+                                               @RequestHeader("X-Auth-Role") String role) {
+        return vendorService.addDevice(deviceDTO,username,role);
     }
 
-    @GetMapping("/{vendorId}")
-    public ResponseEntity<List<DeviceDTO>> getDevices(@PathVariable int vendorId){
-       return ResponseEntity.ok(vendorService.getDevices(vendorId));
+    @GetMapping("/devices")
+    public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
+                                                      @RequestHeader("X-Auth-Role") String role){
+       return vendorService.getDevices(username,role);
     }
 }
