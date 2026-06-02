@@ -46,4 +46,9 @@ public class VendorController {
                                                       @RequestHeader("X-Auth-Role") String role){
        return vendorService.getDevices(username,role);
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
+        return vendorService.getMyprofile(username);
+    }
 }

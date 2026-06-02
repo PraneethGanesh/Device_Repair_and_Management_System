@@ -1,9 +1,6 @@
 package com.example.user_service.service.impl;
 
-import com.example.user_service.dto.AuthResponse;
-import com.example.user_service.dto.EmployeeResponse;
-import com.example.user_service.dto.LoginRequest;
-import com.example.user_service.dto.RegisterRequest;
+import com.example.user_service.dto.*;
 import com.example.user_service.entity.Employee;
 import com.example.user_service.entity.Role;
 import com.example.user_service.exception.ResourceNotFoundException;
@@ -11,6 +8,7 @@ import com.example.user_service.feign.DeviceServiceClient;
 import com.example.user_service.repository.EmployeeRepository;
 import com.example.user_service.security.JwtUtil;
 import com.example.user_service.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,9 +71,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public EmployeeResponse getById(Long id) {
-        Employee emp = employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+    public EmployeeResponse getMyProfile(String username,String role) {
+        if(role.equals(Role.VENDOR.name())){
+            throw new BadCredentialsException("vendor doesn't have access to user service");
+        }
+        Employee emp = employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
         return toResponse(emp);
     }
 
@@ -104,8 +105,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<?> getAssignedDevices(Long employeeId) {
-        return deviceServiceClient.getDevicesByEmployee(employeeId);
+    public List<?> getAssignedDevices(String username) {
+        Employee emp = employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        return deviceServiceClient.getDevicesByEmployee(emp.getId());
+    }
+
+    @Override
+    public ResponseEntity<?> assigndevices(AssignmentRequest assignmentRequest, String username) {
+        Employee admin = employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + username));
+        Employee employee=employeeRepository.findById(assignmentRequest.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + assignmentRequest.getUserId()));
+
+        if(!admin.getRole().equals(Role.ADMIN)){
+            return ResponseEntity.badRequest().body("only admin can assign devices");
+        }
+        ResponseEntity<DeviceDTO> response=deviceServiceClient.assignDevice(assignmentRequest);
+        DeviceDTO deviceDTO= response.getBody();
+        return ResponseEntity.ok("Device:"+ deviceDTO.getDeviceName()+" is assigned to employee:"+employee.getEmail());
     }
 
     // ── helpers ──────────────────────────────────────────────

@@ -94,7 +94,7 @@
 
         public ResponseEntity<?> getDevices(String username,String role){
             if(!role.equals(Role.VENDOR.name())){
-                return ResponseEntity.badRequest().body("only vendor has the access to add the device");
+                return ResponseEntity.badRequest().body("only vendor has the access to see his device");
             }
             Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
                     ()-> new VendorNotFoundException("vendor not found:"+username)
@@ -107,5 +107,20 @@
         }
 
 
+        public ResponseEntity<?> getMyprofile(String username) {
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
 
+            return ResponseEntity.ok(vendorResponseDTO(vendor));
+
+        }
+
+        private VendorResponseDTO vendorResponseDTO(Vendor vendor){
+            VendorResponseDTO vendorResponseDTO=new VendorResponseDTO();
+            vendorResponseDTO.setVendorName(vendor.getVendorName());
+            vendorResponseDTO.setEmail(vendor.getEmail());
+            vendorResponseDTO.setNumber(vendor.getNumber());
+            return vendorResponseDTO;
+        }
     }
