@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Device Service</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Device repair and management</p>
+      <h1>Device Inventory</h1>
+    </div>
+    <button class="primary-button" id="refreshButton" type="button">
+      <span aria-hidden="true">↻</span>
+      Refresh
+    </button>
+  </header>
+
+  <main class="shell">
+    <section class="metrics" aria-label="Device summary">
+      <div class="metric">
+        <span>Total</span>
+        <strong id="totalCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Available</span>
+        <strong id="availableCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Assigned</span>
+        <strong id="assignedCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Repair / Retired</span>
+        <strong id="attentionCount">0</strong>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="panel">
+        <div class="panel-header">
+          <h2 id="formTitle">Add device</h2>
+          <button class="ghost-button hidden" id="cancelEditButton" type="button">Cancel edit</button>
+        </div>
+
+        <form id="deviceForm" class="stack">
+          <input id="deviceId" type="hidden">
+          <label>
+            Device name
+            <input id="deviceName" name="deviceName" type="text" placeholder="Dell Latitude 7420" required>
+          </label>
+          <label>
+            Device type
+            <select id="deviceType" name="deviceType" required></select>
+          </label>
+          <label>
+            Warranty expiry
+            <input id="warrantyExpiry" name="warrantyExpiry" type="date" required>
+          </label>
+          <label>
+            Vendor ID
+            <input id="vendorId" name="vendorId" type="number" min="1" step="1" placeholder="1001" required>
+          </label>
+          <button class="primary-button full" type="submit">Save device</button>
+        </form>
+
+        <div class="divider"></div>
+
+        <form id="assignForm" class="stack">
+          <h2>Assign device</h2>
+          <label>
+            Device ID
+            <input id="assignDeviceId" type="number" min="1" step="1" required>
+          </label>
+          <label>
+            Employee ID
+            <input id="assignUserId" type="number" min="1" step="1" required>
+          </label>
+          <button class="secondary-button full" type="submit">Assign</button>
+        </form>
+      </aside>
+
+      <section class="panel table-panel">
+        <div class="toolbar">
+          <div>
+            <h2>Devices</h2>
+            <p id="resultHint">Showing all devices</p>
+          </div>
+          <div class="filters">
+            <input id="searchInput" type="search" placeholder="Search name, serial, id">
+            <select id="statusFilter">
+              <option value="">All statuses</option>
+            </select>
+            <select id="typeFilter">
+              <option value="">All types</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="quick-filters">
+          <form id="vendorFilterForm">
+            <input id="vendorFilterId" type="number" min="1" step="1" placeholder="Vendor ID">
+            <button class="ghost-button" type="submit">Vendor lookup</button>
+          </form>
+          <form id="employeeFilterForm">
+            <input id="employeeFilterId" type="number" min="1" step="1" placeholder="Employee ID">
+            <button class="ghost-button" type="submit">Employee lookup</button>
+          </form>
+          <button class="ghost-button" id="clearFiltersButton" type="button">Clear</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Device</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Assigned</th>
+                <th>Vendor</th>
+                <th>Warranty</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="deviceRows">
+              <tr>
+                <td colspan="8" class="empty">Loading devices...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

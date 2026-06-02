@@ -4,7 +4,7 @@ public class VendorDTO {
     private String vendorName;
     private String email;
     private String password;
-    private int number;
+    private String phoneNumber;
 
     public String getEmail() {
         return email;
@@ -22,12 +22,12 @@ public class VendorDTO {
         this.password = password;
     }
 
-    public int getNumber() {
-        return number;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getVendorName() {
