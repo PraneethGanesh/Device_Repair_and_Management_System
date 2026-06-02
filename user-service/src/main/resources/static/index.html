@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Service Console</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-mark">DR</span>
+                <div>
+                    <strong>User Service</strong>
+                    <span>Device Repair Management</span>
+                </div>
+            </div>
+
+            <nav class="nav-list" aria-label="Primary">
+                <button class="nav-item active" data-view="dashboard" type="button">
+                    <span aria-hidden="true">DB</span>
+                    Dashboard
+                </button>
+                <button class="nav-item" data-view="auth" type="button">
+                    <span aria-hidden="true">IN</span>
+                    Sign In
+                </button>
+                <button class="nav-item" data-view="employees" type="button">
+                    <span aria-hidden="true">EM</span>
+                    Employees
+                </button>
+                <button class="nav-item" data-view="devices" type="button">
+                    <span aria-hidden="true">DV</span>
+                    Devices
+                </button>
+            </nav>
+
+            <div class="session-card">
+                <span class="label">Current Session</span>
+                <strong id="sessionName">Not signed in</strong>
+                <span id="sessionMeta">Use login or register</span>
+                <button id="logoutBtn" class="ghost-button hidden" type="button">Log out</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Employee access workspace</p>
+                    <h1 id="viewTitle">Dashboard</h1>
+                </div>
+                <div class="api-config">
+                    <label for="apiBase">API Base</label>
+                    <input id="apiBase" type="text" value="/api/users" aria-label="API base path">
+                </div>
+            </header>
+
+            <section id="status" class="status hidden" role="status" aria-live="polite"></section>
+
+            <section class="view active" id="dashboardView">
+                <div class="metric-grid">
+                    <article class="metric">
+                        <span>Signed In As</span>
+                        <strong id="metricUser">Guest</strong>
+                    </article>
+                    <article class="metric">
+                        <span>Role</span>
+                        <strong id="metricRole">None</strong>
+                    </article>
+                    <article class="metric">
+                        <span>Department</span>
+                        <strong id="metricDept">None</strong>
+                    </article>
+                </div>
+
+                <div class="two-column">
+                    <section class="panel">
+                        <div class="panel-heading">
+                            <h2>Profile Lookup</h2>
+                            <button id="loadCurrentProfileBtn" type="button">Load Mine</button>
+                        </div>
+                        <form id="profileForm" class="inline-form">
+                            <label for="profileId">Employee ID</label>
+                            <input id="profileId" type="number" min="1" placeholder="1" required>
+                            <button type="submit">Find</button>
+                        </form>
+                        <div id="profileResult" class="result-box empty">No profile loaded.</div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-heading">
+                            <h2>Token</h2>
+                            <button id="copyTokenBtn" type="button">Copy</button>
+                        </div>
+                        <pre id="tokenPreview" class="token-box">No token available.</pre>
+                    </section>
+                </div>
+            </section>
+
+            <section class="view" id="authView">
+                <div class="auth-grid">
+                    <section class="panel">
+                        <h2>Login</h2>
+                        <form id="loginForm" class="stack-form">
+                            <label for="loginEmail">Email</label>
+                            <input id="loginEmail" type="email" required autocomplete="email">
+                            <label for="loginPassword">Password</label>
+                            <input id="loginPassword" type="password" required autocomplete="current-password">
+                            <button type="submit">Login</button>
+                        </form>
+                    </section>
+
+                    <section class="panel">
+                        <h2>Register Employee</h2>
+                        <form id="registerForm" class="stack-form">
+                            <label for="registerName">Name</label>
+                            <input id="registerName" type="text" required autocomplete="name">
+                            <label for="registerEmail">Email</label>
+                            <input id="registerEmail" type="email" required autocomplete="email">
+                            <label for="registerPassword">Password</label>
+                            <input id="registerPassword" type="password" required autocomplete="new-password">
+                            <label for="registerDepartment">Department</label>
+                            <input id="registerDepartment" type="text" placeholder="Repairs">
+                            <label for="registerRole">Role</label>
+                            <select id="registerRole">
+                                <option value="EMPLOYEE">Employee</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                            <button type="submit">Create Account</button>
+                        </form>
+                    </section>
+                </div>
+            </section>
+
+            <section class="view" id="employeesView">
+                <section class="panel">
+                    <div class="panel-heading">
+                        <h2>Employees</h2>
+                        <button id="loadEmployeesBtn" type="button">Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTable">
+                                <tr>
+                                    <td colspan="7" class="empty-row">No employees loaded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section class="view" id="devicesView">
+                <section class="panel">
+                    <div class="panel-heading">
+                        <h2>Assigned Devices</h2>
+                        <button id="loadCurrentDevicesBtn" type="button">Load Mine</button>
+                    </div>
+                    <form id="devicesForm" class="inline-form">
+                        <label for="devicesEmployeeId">Employee ID</label>
+                        <input id="devicesEmployeeId" type="number" min="1" placeholder="1" required>
+                        <button type="submit">Fetch</button>
+                    </form>
+                    <div id="devicesResult" class="device-grid empty">No devices loaded.</div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
