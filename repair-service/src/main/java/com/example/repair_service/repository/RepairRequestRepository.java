@@ -21,7 +21,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
     List<RepairRequest> findByStatus(RepairStatus status);
 
     // Vendor sees: ACKNOWLEDGED requests OR (PENDING + urgent)
-    @Query("SELECT r FROM RepairRequest r WHERE r.status = 'ACKNOWLEDGED' " +
-           "OR (r.status = 'PENDING' AND r.urgent = true)")
+    @Query("SELECT r FROM RepairRequest r WHERE r.status = com.example.repair_service.enums.RepairStatus.ACKNOWLEDGED " +
+           "OR (r.status = com.example.repair_service.enums.RepairStatus.PENDING AND r.urgent = true)")
     List<RepairRequest> findAvailableForVendor();
 }

@@ -9,6 +9,6 @@ public class DeviceStatusDTO {
         this.status = status;
     }
 
-    public String getDeviceStatus() { return status; }
-    public void setDeviceStatus(String status) { this.status = status; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

@@ -11,6 +11,26 @@ spring:
         locator:
           enabled: true              # Auto-discover services from Eureka
           lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+
+        - id: vendor-service
+          uri: lb://VENDOR-SERVICE
+          predicates:
+            - Path=/api/vendors/**
+
+        - id: device-service
+          uri: lb://DEVICE-SERVICE
+          predicates:
+            - Path=/api/devices/**
+
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notifications/**
 
       # Global CORS config
       globalcors:

@@ -10,6 +10,7 @@ import com.example.repair_service.repository.RepairRequestRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class RepairService {
@@ -155,14 +156,14 @@ public class RepairService {
                 "Only COMPLETED requests can be closed. Current status: " + request.getStatus());
         }
 
+        // Reassigning in device-service also marks the device ASSIGNED.
+        deviceServiceClient.assignDevice(new AssignmentRequestDTO(
+                request.getDeviceId(),
+                dto.getAssignToEmployeeId()
+        ));
+
         request.setStatus(RepairStatus.CLOSED);
         RepairRequest saved = repairRepository.save(request);
-
-        // Update device status to ASSIGNED and link to new/same employee
-        deviceServiceClient.updateDeviceStatus(
-                request.getDeviceId(),
-                new DeviceStatusDTO("ASSIGNED")
-        );
 
         // Notify EMPLOYEE — device is back and assigned to them
         notificationPublisher.publishRepairClosed(new NotificationDTO(
@@ -181,7 +182,7 @@ public class RepairService {
 
     public RepairRequest getById(long requestId) {
         return repairRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Repair request not found: " + requestId));
+                .orElseThrow(() -> new NoSuchElementException("Repair request not found: " + requestId));
     }
 
     public List<RepairRequest> getAllByEmployee(long employeeId) {
