@@ -127,15 +127,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO, String UserName) {
-        Employee employee=employeeRepository.findByEmail(UserName)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + UserName));
+    public ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO, String username) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
         DeviceResponseDTO deviceResponseDTO=deviceServiceClient.deviceOwner(repairRequestDTO.getDeviceId());
         if(deviceResponseDTO.getAssignedtoId()!=employee.getId()){
             return ResponseEntity.badRequest().body("Employee should own the device raise a request");
         }
         repairserviceClient.raiseRequest(repairRequestDTO,employee.getId(),deviceResponseDTO.getVendorId());
         return ResponseEntity.ok("rasied a repair request for device with id:"+repairRequestDTO.getDeviceId());
+    }
+
+    @Override
+    public ResponseEntity<?> acknwoledgeRequest(String username, long id) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        if(!employee.getRole().equals(Role.ADMIN)){
+            return ResponseEntity.badRequest().body("only admin can acknoledge the request");
+        }
+        repairserviceClient.acknowledge(id, employee.getId());
+        return ResponseEntity.ok("Repairequest with id:"+id+" is acknowledged by admin:"+username);
+    }
+
+    @Override
+    public ResponseEntity<?> closeRequest(String username, long id) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        if(!employee.getRole().equals(Role.ADMIN)){
+            return ResponseEntity.badRequest().body("only admin can close the request");
+        }
+        repairserviceClient.close(id);
+        return ResponseEntity.ok("Repair request:"+id+"is closed");
     }
 
     // ── helpers ──────────────────────────────────────────────

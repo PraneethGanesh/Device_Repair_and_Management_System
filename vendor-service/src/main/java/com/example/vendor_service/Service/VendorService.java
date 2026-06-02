@@ -20,6 +20,7 @@
         private final VendorRepository vendorRepository;
         private final RestClient deviceClient;
         private final RestClient notificationClient;
+        private final RestClient repairClient;
         private final PasswordEncoder passwordEncoder;
         private final JwtUtil jwtUtil;
 
@@ -28,6 +29,7 @@
             this.vendorRepository = vendorRepository;
             this.deviceClient = restClientBuilder.clone().baseUrl("http://DEVICE-SERVICE").build();
             this.notificationClient = restClientBuilder.clone().baseUrl("http://NOTIFICATION-SERVICE").build();
+            this.repairClient = restClientBuilder.clone().baseUrl("http://REPAIR-SERVICE").build();
             this.passwordEncoder = passwordEncoder;
             this.jwtUtil = jwtUtil;
         }
@@ -122,5 +124,38 @@
             vendorResponseDTO.setEmail(vendor.getEmail());
             vendorResponseDTO.setNumber(vendor.getNumber());
             return vendorResponseDTO;
+        }
+
+        public ResponseEntity<?> markInProgress(String username, long repairId) {
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
+            UpdateRepairStatusRequest updateRepairStatusRequest=new UpdateRepairStatusRequest();
+            updateRepairStatusRequest.setRepairId(repairId);
+            updateRepairStatusRequest.setVendorId(vendor.getVendorId());
+            ResponseEntity responseEntity=repairClient.put()
+                    .uri("/api/repairs/progress")
+                    .body(updateRepairStatusRequest)
+                    .retrieve()
+                    .toBodilessEntity();
+            System.out.println(responseEntity.getStatusCode());
+            return ResponseEntity.ok("Repair request:"+repairId+" marked as in progress");
+
+        }
+
+        public ResponseEntity<?> markCompleted(String username, long repairId) {
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
+            UpdateRepairStatusRequest updateRepairStatusRequest=new UpdateRepairStatusRequest();
+            updateRepairStatusRequest.setRepairId(repairId);
+            updateRepairStatusRequest.setVendorId(vendor.getVendorId());
+            ResponseEntity responseEntity=repairClient.put()
+                    .uri("/api/repairs/complete")
+                    .body(updateRepairStatusRequest)
+                    .retrieve()
+                    .toBodilessEntity();
+            System.out.println(responseEntity.getStatusCode());
+            return ResponseEntity.ok("Repair request:"+repairId+" marked as in completed");
         }
     }

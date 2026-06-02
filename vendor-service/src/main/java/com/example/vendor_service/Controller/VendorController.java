@@ -51,4 +51,17 @@ public class VendorController {
     public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
         return vendorService.getMyprofile(username);
     }
+
+
+    @PutMapping("/mark/progress/{repairId}")
+    public ResponseEntity<?> markInProgress(@RequestHeader("X-Auth-User") String username,
+                                          @PathVariable long repairId){
+        return vendorService.markInProgress(username,repairId);
+    }
+
+    @PutMapping("/mark/progress/{repairId}")
+    public ResponseEntity<?> markCompleted(@RequestHeader("X-Auth-User") String username,
+                                            @PathVariable long repairId){
+        return vendorService.markCompleted(username,repairId);
+    }
 }
