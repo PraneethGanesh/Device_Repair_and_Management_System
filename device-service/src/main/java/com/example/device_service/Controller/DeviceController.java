@@ -36,8 +36,8 @@ public class DeviceController {
     }
 
     @PostMapping("/assign")
-    public ResponseEntity<Device> assignDevice(@RequestBody AssignmentRequest assignmentRequest) {
-        Device assignedDevice = deviceService.assignDevice(assignmentRequest);
+    public ResponseEntity<DeviceDTO> assignDevice(@RequestBody AssignmentRequest assignmentRequest) {
+        DeviceDTO assignedDevice = deviceService.assignDevice(assignmentRequest);
         return ResponseEntity.ok(assignedDevice);
     }
 

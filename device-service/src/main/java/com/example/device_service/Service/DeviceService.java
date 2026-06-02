@@ -32,13 +32,14 @@ public class DeviceService {
         return deviceRepository.save(device);
     }
 
-    public Device assignDevice(AssignmentRequest assignmentRequest){
+    public DeviceDTO assignDevice(AssignmentRequest assignmentRequest){
         Device device=deviceRepository.findById(assignmentRequest.getDeviceId())
                 .orElseThrow(() -> new DeviceNotFoundException(
                         "Device not found with id: " + assignmentRequest.getDeviceId()));
         device.setAssignedToId(assignmentRequest.getUserId());
         device.setDeviceStatus(DeviceStatus.ASSIGNED);
-        return deviceRepository.save(device);
+        Device saved=deviceRepository.save(device);
+        return toDeviceDto(saved);
     }
 
     public List<Device> getAllDevices() {

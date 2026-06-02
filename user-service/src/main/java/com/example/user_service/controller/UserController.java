@@ -1,9 +1,6 @@
 package com.example.user_service.controller;
 
-import com.example.user_service.dto.AuthResponse;
-import com.example.user_service.dto.EmployeeResponse;
-import com.example.user_service.dto.LoginRequest;
-import com.example.user_service.dto.RegisterRequest;
+import com.example.user_service.dto.*;
 import com.example.user_service.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -38,19 +35,27 @@ public class UserController {
 
     // ── Protected endpoints ───────────────────────────────────
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EmployeeResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getById(id));
+    @GetMapping("/profile")
+    public ResponseEntity<EmployeeResponse> getMyProfile(@RequestHeader("X-Auth-User") String username,
+                                                    @RequestHeader("X-Auth-Role") String role) {
+        return ResponseEntity.ok(userService.getMyProfile(username,role));
     }
 
+    @PutMapping("/assign")
+    public ResponseEntity<?> assigndevices(@RequestBody AssignmentRequest assignmentRequest,
+                                           @RequestHeader("X-Auth-User") String username)
+    {
+        return userService.assigndevices(assignmentRequest,username);
+    }
+
+
+
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<EmployeeResponse>> getAll() {
         return ResponseEntity.ok(userService.getAll());
     }
 
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeResponse> updateRole(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
@@ -58,14 +63,13 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/devices")
-    public ResponseEntity<List<?>> getDevices(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getAssignedDevices(id));
+    @GetMapping("/devices")
+    public ResponseEntity<List<?>> getDevices(@RequestHeader("X-Auth-User") String username) {
+        return ResponseEntity.ok(userService.getAssignedDevices(username));
     }
 }
