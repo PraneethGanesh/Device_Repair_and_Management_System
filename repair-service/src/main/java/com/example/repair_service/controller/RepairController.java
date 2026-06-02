@@ -2,6 +2,8 @@ package com.example.repair_service.controller;
 
 import com.example.repair_service.dto.CloseRepairDTO;
 import com.example.repair_service.dto.RepairRequestDTO;
+import com.example.repair_service.dto.ResponseDTO;
+import com.example.repair_service.dto.UpdateRepairStatusRequest;
 import com.example.repair_service.entity.RepairRequest;
 import com.example.repair_service.service.RepairService;
 import jakarta.validation.Valid;
@@ -60,11 +62,9 @@ public class RepairController {
     }
 
     // Admin closes ticket and reassigns device
-    @PutMapping("/{id}/close")
-    public ResponseEntity<RepairRequest> close(
-            @PathVariable long id,
-            @Valid @RequestBody CloseRepairDTO dto) {
-        return ResponseEntity.ok(repairService.closeRequest(id, dto));
+    @PutMapping("/{repairId}/close")
+    public ResponseEntity<RepairRequest> close(@PathVariable long repairId) {
+        return ResponseEntity.ok(repairService.closeRequest(repairId));
     }
 
     // ─── VENDOR ───────────────────────────────────────────────────────────────
@@ -90,18 +90,24 @@ public class RepairController {
     }
 
     // Vendor marks IN_PROGRESS
-    @PutMapping("/{id}/progress")
+    @PutMapping("/progress")
     public ResponseEntity<RepairRequest> markInProgress(
-            @PathVariable long id,
-            @RequestParam long vendorId) {
-        return ResponseEntity.ok(repairService.markInProgress(id, vendorId));
+            @RequestBody UpdateRepairStatusRequest updateRepairStatusRequest) {
+        return ResponseEntity.ok(repairService.markInProgress(updateRepairStatusRequest));
     }
 
     // Vendor marks COMPLETED
-    @PutMapping("/{id}/complete")
+    @PutMapping("/complete")
     public ResponseEntity<RepairRequest> markCompleted(
-            @PathVariable long id,
-            @RequestParam long vendorId) {
-        return ResponseEntity.ok(repairService.markCompleted(id, vendorId));
+            @RequestBody UpdateRepairStatusRequest updateRepairStatusRequest) {
+        return ResponseEntity.ok(repairService.markCompleted(updateRepairStatusRequest));
     }
+
+
+    @GetMapping("/acknowledge/{vendorId}")
+    public ResponseEntity<List<ResponseDTO>> getAcknowledgedRepairRequestByVendor(@PathVariable long vendorId){
+        return ResponseEntity.ok(repairService.getAcknowledgedRepairRequestByVendor(vendorId));
+    }
+
+
 }

@@ -3,7 +3,7 @@ package com.example.vendor_service.DTO;
 public class VendorResponseDTO {
     private String vendorName;
     private String email;
-    private int number;
+    private String number;
 
     public String getVendorName() {
         return vendorName;
@@ -13,11 +13,11 @@ public class VendorResponseDTO {
         this.vendorName = vendorName;
     }
 
-    public int getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 
