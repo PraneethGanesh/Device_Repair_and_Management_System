@@ -25,6 +25,11 @@ public class GatewayConfig {
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://user-service"))
 
+
+                .route("user-auth", r -> r
+                        .path("/api/users/register","/api/users/login")
+                        .uri("lb://user-service"))
+
                 // User Service - PROTECTED
                 .route("user-service", r -> r
                         .path("/api/users/**")
