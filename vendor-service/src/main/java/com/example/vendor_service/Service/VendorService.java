@@ -37,7 +37,7 @@
             vendor.setVendorName(vendorDTO.getVendorName());
             vendor.setPassword(passwordEncoder.encode(vendorDTO.getPassword()));
             vendor.setEmail(vendorDTO.getEmail());
-            vendor.setNumber(vendorDTO.getNumber());
+            vendor.setNumber(vendorDTO.getPhoneNumber());
             Vendor saved=vendorRepository.save(vendor);
 
             String token= jwtUtil.generate(saved.getEmail(), saved.getRole().name());
