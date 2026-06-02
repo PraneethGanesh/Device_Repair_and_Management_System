@@ -2,6 +2,7 @@ package com.example.user_service.feign;
 
 import com.example.user_service.dto.AssignmentRequest;
 import com.example.user_service.dto.DeviceDTO;
+import com.example.user_service.dto.DeviceResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import java.util.Collections;
@@ -18,6 +19,11 @@ public class DeviceFallback implements DeviceServiceClient {
 
     @Override
     public ResponseEntity<DeviceDTO> assignDevice(AssignmentRequest assignmentRequest) {
+        return null;
+    }
+
+    @Override
+    public DeviceResponseDTO deviceOwner(long id) {
         return null;
     }
 }

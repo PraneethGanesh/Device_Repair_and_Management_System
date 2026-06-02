@@ -84,8 +84,8 @@ public class DeviceService {
         return deviceRepository.findByAssignedToId(employeeId);
     }
 
-    public Device updateDeviceStatus(long deviceId, DeviceStatusDTO statusDTO) {
-        Device device = getDeviceById(deviceId);
+    public Device updateDeviceStatus(DeviceStatusDTO statusDTO) {
+        Device device = getDeviceById(statusDTO.getDeviceId());
         device.setDeviceStatus(DeviceStatus.valueOf(statusDTO.getStatus()));
         return deviceRepository.save(device);
     }
