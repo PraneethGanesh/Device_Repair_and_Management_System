@@ -24,9 +24,9 @@ public class RepairController {
     // ─── EMPLOYEE / ADMIN ─────────────────────────────────────────────────────
 
     // Raise a new repair request
-    @PostMapping
-    public ResponseEntity<RepairRequest> raiseRequest(@Valid @RequestBody RepairRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(repairService.raiseRequest(dto));
+    @PostMapping("{userId}")
+    public ResponseEntity<?> raiseRequest(@Valid @RequestBody RepairRequestDTO dto,@PathVariable long userId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(repairService.raiseRequest(dto,userId));
     }
 
     // Get repair request by ID

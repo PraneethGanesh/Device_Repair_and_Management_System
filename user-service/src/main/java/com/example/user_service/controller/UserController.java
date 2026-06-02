@@ -48,6 +48,11 @@ public class UserController {
         return userService.assigndevices(assignmentRequest,username);
     }
 
+    @PostMapping("/request/raise")
+    public ResponseEntity<?> raiseRepairRequest(@RequestBody RepairRequestDTO repairRequestDTO,
+                                                @RequestHeader("X-Auth-User") String username){
+       return userService.raiseRepairRequest(repairRequestDTO,username);
+    }
 
 
     @GetMapping("/all")

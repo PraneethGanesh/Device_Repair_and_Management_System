@@ -27,25 +27,19 @@ public class RepairService {
     }
 
     // ─── 1. Employee/Admin raises a repair request ────────────────────────────
-    public RepairRequest raiseRequest(RepairRequestDTO dto) {
+    public RepairRequest raiseRequest(RepairRequestDTO dto,long userId) {
         RepairRequest request = new RepairRequest();
         request.setDeviceId(dto.getDeviceId());
-        request.setRaisedBy(dto.getRaisedBy());
+        request.setRaisedBy(userId);
         request.setIssueDescription(dto.getIssueDescription());
         request.setUrgent(dto.isUrgent());
         request.setStatus(RepairStatus.PENDING);
 
         RepairRequest saved = repairRepository.save(request);
 
-        // Update device status to UNDER_REPAIR
-        deviceServiceClient.updateDeviceStatus(
-                dto.getDeviceId(),
-                new DeviceStatusDTO("UNDER_REPAIR")
-        );
-
         // Notify ADMIN — repair request raised
         notificationPublisher.publishRepairRaised(new NotificationDTO(
-                dto.getRaisedBy(),
+                userId,
                 RecipientRole.EMPLOYEE,
                 RecipientRole.ADMIN,
                 "Repair request #" + saved.getRequestId() +

@@ -20,4 +20,9 @@ public class DeviceFallback implements DeviceServiceClient {
     public ResponseEntity<DeviceDTO> assignDevice(AssignmentRequest assignmentRequest) {
         return null;
     }
+
+    @Override
+    public long deviceOwner(long id) {
+        return 0;
+    }
 }

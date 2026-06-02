@@ -23,4 +23,7 @@ public interface DeviceServiceClient {
     @PostMapping("/api/devices/assign")
     ResponseEntity<DeviceDTO> assignDevice(@RequestBody AssignmentRequest assignmentRequest);
 
+    @GetMapping("/api/devices/owner/{id}")
+    long deviceOwner(@PathVariable long id);
+
 }

@@ -79,4 +79,10 @@ public class DeviceController {
     public ResponseEntity<List<DeviceDTO>> getDevicesByEmployee(@PathVariable long employeeId) {
         return ResponseEntity.ok(deviceService.getDevicesByEmployee(employeeId));
     }
+
+    @GetMapping("/owner/{id}")
+    public long deviceOwner(@PathVariable long id){
+        Device device= deviceService.getDeviceById(id);
+        return device.getAssignedToId();
+    }
 }
