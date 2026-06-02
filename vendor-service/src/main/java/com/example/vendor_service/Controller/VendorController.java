@@ -1,6 +1,9 @@
 package com.example.vendor_service.Controller;
 
+import com.example.vendor_service.DTO.AuthRequest;
+import com.example.vendor_service.DTO.AuthResponse;
 import com.example.vendor_service.DTO.DeviceDTO;
+import com.example.vendor_service.DTO.VendorDTO;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
 import jakarta.validation.Valid;
@@ -20,10 +23,15 @@ public class VendorController {
         this.vendorService = vendorService;
     }
 
-    @PostMapping
-    public ResponseEntity<Vendor> createVendor(@Valid @RequestBody Vendor vendor) {
-        Vendor savedVendor = vendorService.createVendor(vendor);
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> createVendor(@RequestBody VendorDTO vendor) {
+        AuthResponse savedVendor = vendorService.createVendor(vendor);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedVendor);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody AuthRequest authRequest){
+        return ResponseEntity.ok(vendorService.login(authRequest));
     }
 
     @PostMapping("/devices")
