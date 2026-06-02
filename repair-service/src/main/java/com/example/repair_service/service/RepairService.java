@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class RepairService {
@@ -65,8 +66,6 @@ public class RepairService {
         request.setAdminId(adminId);
         request.setStatus(RepairStatus.ASSIGNED_TO_VENDOR);
         RepairRequest saved = repairRepository.save(request);
-
-
 
         // Notify vendors — new repair request available (broadcast to VENDOR role)
         notificationPublisher.publishRepairAcknowledged(new NotificationDTO(
@@ -162,6 +161,12 @@ public class RepairService {
                 "Only COMPLETED requests can be closed. Current status: " + request.getStatus());
         }
 
+        // Reassigning in device-service also marks the device ASSIGNED.
+        deviceServiceClient.assignDevice(new AssignmentRequestDTO(
+                request.getDeviceId(),
+                dto.getAssignToEmployeeId()
+        ));
+
         request.setStatus(RepairStatus.CLOSED);
         RepairRequest saved = repairRepository.save(request);
 
@@ -191,7 +196,7 @@ public class RepairService {
 
     public RepairRequest getById(long requestId) {
         return repairRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Repair request not found: " + requestId));
+                .orElseThrow(() -> new NoSuchElementException("Repair request not found: " + requestId));
     }
 
     public List<RepairRequest> getAllByEmployee(long employeeId) {
