@@ -59,7 +59,7 @@ public class VendorController {
         return vendorService.markInProgress(username,repairId);
     }
 
-    @PutMapping("/mark/progress/{repairId}")
+    @PutMapping("/mark/complete/{repairId}")
     public ResponseEntity<?> markCompleted(@RequestHeader("X-Auth-User") String username,
                                             @PathVariable long repairId){
         return vendorService.markCompleted(username,repairId);
