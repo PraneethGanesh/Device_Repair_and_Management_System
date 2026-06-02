@@ -63,8 +63,10 @@ public class RepairController {
 
     // Admin closes ticket and reassigns device
     @PutMapping("/{repairId}/close")
-    public ResponseEntity<RepairRequest> close(@PathVariable long repairId) {
-        return ResponseEntity.ok(repairService.closeRequest(repairId));
+    public ResponseEntity<RepairRequest> close(
+            @PathVariable long repairId,
+            @Valid @RequestBody CloseRepairDTO dto) {
+        return ResponseEntity.ok(repairService.closeRequest(repairId, dto));
     }
 
     // ─── VENDOR ───────────────────────────────────────────────────────────────

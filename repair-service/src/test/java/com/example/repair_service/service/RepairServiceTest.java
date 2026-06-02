@@ -4,6 +4,7 @@ import com.example.repair_service.dto.AssignmentRequestDTO;
 import com.example.repair_service.dto.CloseRepairDTO;
 import com.example.repair_service.dto.DeviceStatusDTO;
 import com.example.repair_service.dto.RepairRequestDTO;
+import com.example.repair_service.dto.UpdateRepairStatusRequest;
 import com.example.repair_service.entity.RepairRequest;
 import com.example.repair_service.enums.RepairStatus;
 import com.example.repair_service.feign.DeviceServiceClient;
@@ -43,10 +44,9 @@ class RepairServiceTest {
     private RepairService repairService;
 
     @Test
-    void raiseRequestCreatesPendingRepairAndMarksDeviceUnderRepair() {
+    void raiseRequestCreatesPendingRepair() {
         RepairRequestDTO dto = new RepairRequestDTO();
         dto.setDeviceId(10L);
-        dto.setRaisedBy(20L);
         dto.setIssueDescription("Screen flickers");
         dto.setUrgent(true);
 
@@ -56,14 +56,14 @@ class RepairServiceTest {
             return request;
         });
 
-        RepairRequest result = repairService.raiseRequest(dto);
+        RepairRequest result = repairService.raiseRequest(dto, 20L, 50L);
 
         assertThat(result.getStatus()).isEqualTo(RepairStatus.PENDING);
+        assertThat(result.getRaisedBy()).isEqualTo(20L);
+        assertThat(result.getVendorId()).isEqualTo(50L);
         assertThat(result.isUrgent()).isTrue();
 
-        ArgumentCaptor<DeviceStatusDTO> statusCaptor = ArgumentCaptor.forClass(DeviceStatusDTO.class);
-        verify(deviceServiceClient).updateDeviceStatus(eq(10L), statusCaptor.capture());
-        assertThat(statusCaptor.getValue().getStatus()).isEqualTo("UNDER_REPAIR");
+        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
         verify(notificationPublisher).publishRepairRaised(any());
     }
 
@@ -75,7 +75,7 @@ class RepairServiceTest {
 
         RepairRequest result = repairService.acknowledgeRequest(1L, 99L);
 
-        assertThat(result.getStatus()).isEqualTo(RepairStatus.ACKNOWLEDGED);
+        assertThat(result.getStatus()).isEqualTo(RepairStatus.ASSIGNED_TO_VENDOR);
         assertThat(result.getAdminId()).isEqualTo(99L);
         verify(notificationPublisher).publishRepairAcknowledged(any());
     }
@@ -99,9 +99,16 @@ class RepairServiceTest {
         when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
         when(repairRepository.save(request)).thenReturn(request);
 
-        RepairRequest result = repairService.markCompleted(1L, 50L);
+        UpdateRepairStatusRequest updateRequest = new UpdateRepairStatusRequest();
+        updateRequest.setRepairId(1L);
+        updateRequest.setVendorId(50L);
+
+        RepairRequest result = repairService.markCompleted(updateRequest);
 
         assertThat(result.getStatus()).isEqualTo(RepairStatus.COMPLETED);
+        ArgumentCaptor<DeviceStatusDTO> statusCaptor = ArgumentCaptor.forClass(DeviceStatusDTO.class);
+        verify(deviceServiceClient).updateDeviceStatus(eq(10L), statusCaptor.capture());
+        assertThat(statusCaptor.getValue().getStatus()).isEqualTo("REPAIR_DONE");
         verify(notificationPublisher).publishRepairCompleted(any());
     }
 

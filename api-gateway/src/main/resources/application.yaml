@@ -32,6 +32,11 @@ spring:
           predicates:
             - Path=/api/notifications/**
 
+        - id: repair-service
+          uri: lb://REPAIR-SERVICE
+          predicates:
+            - Path=/api/repairs/**
+
       # Global CORS config
       globalcors:
         cors-configurations:

@@ -13,5 +13,9 @@ public interface DeviceServiceClient {
 
     // Update device status e.g. UNDER_REPAIR, AVAILABLE, ASSIGNED
     @PutMapping("/api/devices/{id}/status")
-    void updateDeviceStatus(@RequestBody DeviceStatusDTO statusDTO);
+    void updateDeviceStatus(@PathVariable("id") long deviceId,
+                            @RequestBody DeviceStatusDTO statusDTO);
+
+    @PostMapping("/api/devices/assign")
+    void assignDevice(@RequestBody AssignmentRequestDTO assignmentRequest);
 }
