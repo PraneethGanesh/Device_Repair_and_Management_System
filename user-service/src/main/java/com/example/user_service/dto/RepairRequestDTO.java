@@ -4,7 +4,6 @@ package com.example.user_service.dto;
 public class RepairRequestDTO {
 
     private long deviceId;
-
     private String issueDescription;
 
     private boolean urgent = false;

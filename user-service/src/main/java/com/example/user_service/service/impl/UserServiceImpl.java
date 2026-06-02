@@ -130,11 +130,11 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO, String UserName) {
         Employee employee=employeeRepository.findByEmail(UserName)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + UserName));
-        long ownerId=deviceServiceClient.deviceOwner(repairRequestDTO.getDeviceId());
-        if(ownerId!=employee.getId()){
+        DeviceResponseDTO deviceResponseDTO=deviceServiceClient.deviceOwner(repairRequestDTO.getDeviceId());
+        if(deviceResponseDTO.getAssignedtoId()!=employee.getId()){
             return ResponseEntity.badRequest().body("Employee should own the device raise a request");
         }
-        repairserviceClient.raiseRequest(repairRequestDTO,employee.getId());
+        repairserviceClient.raiseRequest(repairRequestDTO,employee.getId(),deviceResponseDTO.getVendorId());
         return ResponseEntity.ok("rasied a repair request for device with id:"+repairRequestDTO.getDeviceId());
     }
 

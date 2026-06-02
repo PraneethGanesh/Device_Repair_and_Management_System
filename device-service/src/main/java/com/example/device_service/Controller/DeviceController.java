@@ -2,6 +2,7 @@ package com.example.device_service.Controller;
 
 import com.example.device_service.DTO.AssignmentRequest;
 import com.example.device_service.DTO.DeviceDTO;
+import com.example.device_service.DTO.DeviceResponseDTO;
 import com.example.device_service.DTO.DeviceStatusDTO;
 import com.example.device_service.Entity.Device;
 import com.example.device_service.Service.DeviceService;
@@ -69,11 +70,10 @@ public class DeviceController {
         return ResponseEntity.ok(deviceService.getDeviceByVendor(vendorId));
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/status")
     public ResponseEntity<Device> updateDeviceStatus(
-            @PathVariable long id,
             @RequestBody DeviceStatusDTO statusDTO) {
-        return ResponseEntity.ok(deviceService.updateDeviceStatus(id, statusDTO));
+        return ResponseEntity.ok(deviceService.updateDeviceStatus(statusDTO));
     }
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<DeviceDTO>> getDevicesByEmployee(@PathVariable long employeeId) {
@@ -81,8 +81,11 @@ public class DeviceController {
     }
 
     @GetMapping("/owner/{id}")
-    public long deviceOwner(@PathVariable long id){
+    public DeviceResponseDTO deviceOwner(@PathVariable long id){
         Device device= deviceService.getDeviceById(id);
-        return device.getAssignedToId();
+        DeviceResponseDTO deviceResponseDTO=new DeviceResponseDTO();
+        deviceResponseDTO.setVendorId(device.getVendorId());
+        deviceResponseDTO.setAssignedtoId(device.getAssignedToId());
+        return deviceResponseDTO;
     }
 }

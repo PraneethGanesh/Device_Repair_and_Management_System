@@ -27,9 +27,10 @@ public class RepairService {
     }
 
     // ─── 1. Employee/Admin raises a repair request ────────────────────────────
-    public RepairRequest raiseRequest(RepairRequestDTO dto,long userId) {
+    public RepairRequest raiseRequest(RepairRequestDTO dto,long userId,long vendorId) {
         RepairRequest request = new RepairRequest();
         request.setDeviceId(dto.getDeviceId());
+        request.setVendorId(vendorId);
         request.setRaisedBy(userId);
         request.setIssueDescription(dto.getIssueDescription());
         request.setUrgent(dto.isUrgent());
@@ -61,8 +62,10 @@ public class RepairService {
         }
 
         request.setAdminId(adminId);
-        request.setStatus(RepairStatus.ACKNOWLEDGED);
+        request.setStatus(RepairStatus.ASSIGNED_TO_VENDOR);
         RepairRequest saved = repairRepository.save(request);
+
+
 
         // Notify vendors — new repair request available (broadcast to VENDOR role)
         notificationPublisher.publishRepairAcknowledged(new NotificationDTO(

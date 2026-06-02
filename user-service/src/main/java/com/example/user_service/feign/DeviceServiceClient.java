@@ -2,6 +2,7 @@ package com.example.user_service.feign;
 
 import com.example.user_service.dto.AssignmentRequest;
 import com.example.user_service.dto.DeviceDTO;
+import com.example.user_service.dto.DeviceResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,6 @@ public interface DeviceServiceClient {
     ResponseEntity<DeviceDTO> assignDevice(@RequestBody AssignmentRequest assignmentRequest);
 
     @GetMapping("/api/devices/owner/{id}")
-    long deviceOwner(@PathVariable long id);
+    DeviceResponseDTO deviceOwner(@PathVariable long id);
 
 }

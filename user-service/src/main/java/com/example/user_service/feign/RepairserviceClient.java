@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "repair-service")
 public interface RepairserviceClient {
-    @PostMapping("/api/repairs/{userId}")
-    ResponseEntity<?> raiseRequest(@RequestBody RepairRequestDTO dto, @PathVariable long userId);
+    @PostMapping("/api/repairs/{userId}/{vendorId}")
+    ResponseEntity<?> raiseRequest(@RequestBody RepairRequestDTO dto, @PathVariable long userId, @PathVariable long vendorId);
 
 }
