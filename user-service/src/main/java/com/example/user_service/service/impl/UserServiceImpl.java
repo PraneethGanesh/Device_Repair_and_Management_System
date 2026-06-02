@@ -5,6 +5,7 @@ import com.example.user_service.entity.Employee;
 import com.example.user_service.entity.Role;
 import com.example.user_service.exception.ResourceNotFoundException;
 import com.example.user_service.feign.DeviceServiceClient;
+import com.example.user_service.feign.RepairserviceClient;
 import com.example.user_service.repository.EmployeeRepository;
 import com.example.user_service.security.JwtUtil;
 import com.example.user_service.service.UserService;
@@ -23,15 +24,16 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final DeviceServiceClient deviceServiceClient;
-
+    private final RepairserviceClient repairserviceClient;
     public UserServiceImpl(EmployeeRepository employeeRepository,
                            PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil,
-                           DeviceServiceClient deviceServiceClient) {
+                           DeviceServiceClient deviceServiceClient, RepairserviceClient repairserviceClient) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.deviceServiceClient = deviceServiceClient;
+        this.repairserviceClient = repairserviceClient;
     }
 
     @Override
@@ -122,6 +124,40 @@ public class UserServiceImpl implements UserService {
         ResponseEntity<DeviceDTO> response=deviceServiceClient.assignDevice(assignmentRequest);
         DeviceDTO deviceDTO= response.getBody();
         return ResponseEntity.ok("Device:"+ deviceDTO.getDeviceName()+" is assigned to employee:"+employee.getEmail());
+    }
+
+    @Override
+    public ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO, String username) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        DeviceResponseDTO deviceResponseDTO=deviceServiceClient.deviceOwner(repairRequestDTO.getDeviceId());
+        if(deviceResponseDTO.getAssignedtoId()!=employee.getId()){
+            return ResponseEntity.badRequest().body("Employee should own the device raise a request");
+        }
+        repairserviceClient.raiseRequest(repairRequestDTO,employee.getId(),deviceResponseDTO.getVendorId());
+        return ResponseEntity.ok("rasied a repair request for device with id:"+repairRequestDTO.getDeviceId());
+    }
+
+    @Override
+    public ResponseEntity<?> acknwoledgeRequest(String username, long id) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        if(!employee.getRole().equals(Role.ADMIN)){
+            return ResponseEntity.badRequest().body("only admin can acknoledge the request");
+        }
+        repairserviceClient.acknowledge(id, employee.getId());
+        return ResponseEntity.ok("Repairequest with id:"+id+" is acknowledged by admin:"+username);
+    }
+
+    @Override
+    public ResponseEntity<?> closeRequest(String username, long id) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        if(!employee.getRole().equals(Role.ADMIN)){
+            return ResponseEntity.badRequest().body("only admin can close the request");
+        }
+        repairserviceClient.close(id);
+        return ResponseEntity.ok("Repair request:"+id+"is closed");
     }
 
     // ── helpers ──────────────────────────────────────────────

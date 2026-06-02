@@ -16,4 +16,10 @@ public interface UserService {
     List<?> getAssignedDevices(String username);
 
     ResponseEntity<?> assigndevices(AssignmentRequest assignmentRequest, String username);
+
+    ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO,String username);
+
+    ResponseEntity<?> acknwoledgeRequest(String username, long id);
+
+    ResponseEntity<?> closeRequest(String username, long id);
 }

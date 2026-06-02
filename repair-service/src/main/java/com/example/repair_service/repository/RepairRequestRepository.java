@@ -4,6 +4,7 @@ import com.example.repair_service.entity.RepairRequest;
 import com.example.repair_service.enums.RepairStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,4 +25,14 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
     @Query("SELECT r FROM RepairRequest r WHERE r.status = com.example.repair_service.enums.RepairStatus.ACKNOWLEDGED " +
            "OR (r.status = com.example.repair_service.enums.RepairStatus.PENDING AND r.urgent = true)")
     List<RepairRequest> findAvailableForVendor();
+
+    @Query("""
+       SELECT r
+       FROM RepairRequest r
+       WHERE r.status = :status
+       AND r.vendorId = :vendorId
+       """)
+    List<RepairRequest> findByStatusAndVendorId(
+            @Param("status") RepairStatus status,
+            @Param("vendorId") long vendorId);
 }

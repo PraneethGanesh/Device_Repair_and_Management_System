@@ -48,6 +48,11 @@ public class UserController {
         return userService.assigndevices(assignmentRequest,username);
     }
 
+    @PostMapping("/request/raise")
+    public ResponseEntity<?> raiseRepairRequest(@RequestBody RepairRequestDTO repairRequestDTO,
+                                                @RequestHeader("X-Auth-User") String username){
+       return userService.raiseRepairRequest(repairRequestDTO,username);
+    }
 
 
     @GetMapping("/all")
@@ -72,4 +77,18 @@ public class UserController {
     public ResponseEntity<List<?>> getDevices(@RequestHeader("X-Auth-User") String username) {
         return ResponseEntity.ok(userService.getAssignedDevices(username));
     }
+
+    @PutMapping("/repair/acknwoledge/{id}")
+    public ResponseEntity<?> acknwoledgeRequest(@RequestHeader("X-Auth-User") String username,
+                                                @PathVariable long id){
+        return userService.acknwoledgeRequest(username,id);
+    }
+
+    @PutMapping("/repair/close/{id}")
+    public ResponseEntity<?> closeRequest(@RequestHeader("X-Auth-User") String username,
+                                                @PathVariable long id){
+        return userService.closeRequest(username,id);
+    }
+
+
 }
