@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Workspace | Device Repair & Management System</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Radial Ambient Background Lights -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <main class="app-container">
+        <!-- AUTHENTICATION GATEWAY SECTION -->
+        <section class="auth-panel" id="authPanel">
+            <!-- Brand Column -->
+            <div class="brand-block">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="brand-logo-text">DeviceFix</span>
+                </div>
+                <div class="brand-text">
+                    <span class="eyebrow">Enterprise Suite</span>
+                    <h1>Vendor Management Portal</h1>
+                    <p>Track hardware assets, manage service agreements, and submit devices for repair workflows within our streamlined cloud infrastructure.</p>
+                </div>
+                <div class="brand-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Real-time Tracking</h3>
+                            <p>Monitor your diagnostic pipelines instantly.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V17M12 7V11M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Warranty Monitoring</h3>
+                            <p>Auto-alerts for hardware policy expiration.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentic Form Card -->
+            <div class="auth-card-wrapper">
+                <div class="auth-card glass-panel">
+                    <div class="tabs" role="tablist" aria-label="Authentication">
+                        <button class="tab active" id="loginTab" type="button">Sign In</button>
+                        <button class="tab" id="registerTab" type="button">Create Account</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form class="form active" id="loginForm">
+                        <div class="input-group">
+                            <input type="email" name="username" autocomplete="email" required placeholder=" ">
+                            <label>Business Email</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password" autocomplete="current-password" required placeholder=" ">
+                            <label>Password</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <button class="primary btn-glow" type="submit">
+                            <span>Sign In to Workspace</span>
+                            <div class="btn-spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <!-- Registration Form -->
+                    <form class="form" id="registerForm">
+                        <div class="input-group">
+                            <input type="text" name="vendorName" autocomplete="organization" required placeholder=" ">
+                            <label>Vendor Name</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <div class="input-group">
+                            <input type="email" name="email" autocomplete="email" required placeholder=" ">
+                            <label>Business Email</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <div class="input-group">
+                            <input type="tel" name="phoneNumber" autocomplete="tel" required placeholder=" ">
+                            <label>Phone Number</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password" autocomplete="new-password" minlength="4" required placeholder=" ">
+                            <label>Access Password</label>
+                            <span class="focus-border"></span>
+                        </div>
+                        <button class="primary btn-glow" type="submit">
+                            <span>Create Enterprise Account</span>
+                            <div class="btn-spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <p class="message" id="authMessage" aria-live="polite"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ENTERPRISE DASHBOARD SECTION -->
+        <section class="dashboard hidden" id="dashboard">
+            <!-- Left Fixed Sidebar -->
+            <aside class="sidebar glass-panel">
+                <div class="sidebar-top">
+                    <div class="brand-logo">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="brand-logo-text">DeviceFix</span>
+                    </div>
+
+                    <!-- Profile Section -->
+                    <div class="sidebar-profile">
+                        <div class="avatar">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 21V19C20 17.9402 19.5786 16.9239 18.8284 16.1737C18.0783 15.4236 17.062 15 16 15H8C6.93799 15 5.92172 15.4236 5.17157 16.1737C4.42143 16.9239 4 17.9402 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="welcomeTitle">Loading Vendor...</h3>
+                            <span class="role-badge" id="roleValue">VENDOR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Operations -->
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" id="sidebarDashboardLink" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <rect x="14" y="3" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <rect x="14" y="12" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <rect x="3" y="16" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Workspace Grid</span>
+                    </button>
+                    <button class="nav-item secondary-btn" id="refreshButton" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-2.19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Refresh Server Data</span>
+                    </button>
+                </nav>
+
+                <!-- Sidebar Footer Account Info -->
+                <div class="sidebar-footer">
+                    <div class="session-block">
+                        <span class="eyebrow">Active Session</span>
+                        <div class="session-email" id="sessionValue">loading...</div>
+                    </div>
+                    <button class="ghost logout-btn" id="logoutButton" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12L16 7M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Right Workspace Main Content Canvas -->
+            <main class="main-content">
+                <!-- Top Status Header Bar -->
+                <header class="topbar glass-panel">
+                    <div>
+                        <span class="eyebrow">Enterprise Hardware System</span>
+                        <h1>Device Catalog</h1>
+                    </div>
+                    <div class="status-pill active">
+                        <span class="status-indicator-dot"></span>
+                        <span>Connection Synchronized</span>
+                    </div>
+                </header>
+
+                <!-- High-End Metric Widgets -->
+                <div class="summary-grid">
+                    <article class="metric glass-panel glowing-border-indigo">
+                        <div class="metric-header">
+                            <span>Total Registered Assets</span>
+                            <div class="metric-icon bg-indigo">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 16V8C21 6.89543 20.1046 6 19 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18H19C20.1046 18 21 17.1046 21 16Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M12 6V18M3 12H21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-val">
+                            <strong id="deviceCount">0</strong>
+                            <span class="metric-trend text-green">Online</span>
+                        </div>
+                    </article>
+
+                    <article class="metric glass-panel glowing-border-green">
+                        <div class="metric-header">
+                            <span>Active Warranties</span>
+                            <div class="metric-icon bg-green">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-val">
+                            <strong id="activeWarrantyCount">0</strong>
+                            <span class="metric-trend text-green" id="activeWarrantyPercent">100% Policy Protection</span>
+                        </div>
+                    </article>
+
+                    <article class="metric glass-panel glowing-border-danger">
+                        <div class="metric-header">
+                            <span>Expired/Urgent Policies</span>
+                            <div class="metric-icon bg-danger">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="metric-val">
+                            <strong id="expiredWarrantyCount">0</strong>
+                            <span class="metric-trend text-danger" id="expiredWarrantyTrend">Requires Renewal</span>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Two Column Workspace Layout Grid -->
+                <div class="workspace-grid">
+                    <!-- Column 1: Add New Device Card Panel -->
+                    <section class="tool-panel glass-panel">
+                        <div class="section-heading">
+                            <h2>Register Asset</h2>
+                        </div>
+                        <form class="form active compact" id="deviceForm">
+                            <div class="input-group">
+                                <input type="text" name="deviceName" placeholder=" " required>
+                                <label>Device Model Name</label>
+                                <span class="focus-border"></span>
+                            </div>
+
+                            <div class="input-group select-group">
+                                <select name="deviceType" required>
+                                    <option value="" disabled selected hidden></option>
+                                    <option value="LAPTOP">Laptop Computer</option>
+                                    <option value="DESKTOP">Desktop Workstation</option>
+                                    <option value="TABLET">Tablet Device</option>
+                                    <option value="ROUTER">Network Router</option>
+                                    <option value="SENSOR">Connected IoT Sensor</option>
+                                    <option value="HEADPHONE">Audio Peripheral</option>
+                                </select>
+                                <label>Hardware Category</label>
+                                <span class="focus-border"></span>
+                            </div>
+
+                            <div class="input-group date-group">
+                                <input type="date" name="warrantyExpiry" placeholder=" " required>
+                                <label>Warranty Expiry</label>
+                                <span class="focus-border"></span>
+                            </div>
+
+                            <button class="primary btn-glow" type="submit">
+                                <span>Register New Asset</span>
+                                <div class="btn-spinner hidden"></div>
+                            </button>
+                        </form>
+                        <p class="message" id="deviceMessage" aria-live="polite"></p>
+                    </section>
+
+                    <!-- Column 2: Devices Showcase & Filter Canvas -->
+                    <section class="device-panel glass-panel">
+                        <div class="section-heading-row">
+                            <div class="section-heading">
+                                <h2>Registered Inventories</h2>
+                            </div>
+
+                            <!-- Enterprise Filtration Bar -->
+                            <div class="controls-panel">
+                                <div class="search-wrapper">
+                                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <input type="text" id="searchBar" placeholder="Search by model...">
+                                </div>
+                                <div class="filter-dropdown-wrapper">
+                                    <select id="typeFilter">
+                                        <option value="ALL">All Categories</option>
+                                        <option value="LAPTOP">Laptops</option>
+                                        <option value="DESKTOP">Desktops</option>
+                                        <option value="TABLET">Tablets</option>
+                                        <option value="ROUTER">Routers</option>
+                                        <option value="SENSOR">Sensors</option>
+                                        <option value="HEADPHONE">Headphones</option>
+                                    </select>
+                                </div>
+                                <div class="sort-dropdown-wrapper">
+                                    <select id="sortSelector">
+                                        <option value="expiryAsc">Warranty: Expiry Closest</option>
+                                        <option value="expiryDesc">Warranty: Expiry Furthest</option>
+                                        <option value="nameAsc">Name: A to Z</option>
+                                        <option value="nameDesc">Name: Z to A</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State View Box -->
+                        <div class="empty-state" id="emptyState">
+                            <div class="empty-illustration">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 21V19C20 17.9402 19.5786 16.9239 18.8284 16.1737C18.0783 15.4236 17.062 15 16 15H8C6.93799 15 5.92172 15.4236 5.17157 16.1737C4.42143 16.9239 4 17.9402 4 19V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4"/>
+                                </svg>
+                            </div>
+                            <strong>Inventory Canvas Unloaded</strong>
+                            <span>Search query yielded no matches, or server synchronizations are required.</span>
+                        </div>
+
+                        <!-- Dynamic Devices Render List -->
+                        <div class="device-list" id="deviceList"></div>
+                    </section>
+                </div>
+            </main>
+        </section>
+    </main>
+
+    <!-- Slide-in Dynamic Toast Alert Container Slot -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

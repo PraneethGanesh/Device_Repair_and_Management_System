@@ -16,7 +16,7 @@ public class Vendor {
     @Email
     private String email;
     private String password;
-    private int number;
+    private String number;
     private Role role=Role.VENDOR;
 
     public long getVendorId() {
@@ -43,11 +43,11 @@ public class Vendor {
         this.email = email;
     }
 
-    public int getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 
