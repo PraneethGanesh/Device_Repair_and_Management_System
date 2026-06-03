@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — ServiceDesk</title>
+<link rel="stylesheet" href="dashboard.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="#">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </div>
+    <span class="logo-text">ServiceDesk</span>
+    <span class="sidebar-role-badge badge-admin">Admin</span>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Overview</div>
+    <button class="nav-item active" data-page="page-overview" data-title="Overview" onclick="showPage('page-overview')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+
+    <div class="nav-section-title">Management</div>
+    <button class="nav-item" data-page="page-devices" data-title="My Devices" onclick="showPage('page-devices'); loadAdminDevices()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Devices
+    </button>
+    <button class="nav-item" data-page="page-requests" data-title="Repair Requests" onclick="showPage('page-requests'); loadAdminRequests()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Requests
+      <span class="nav-badge" id="admin-req-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-page="page-profile" data-title="My Profile" onclick="showPage('page-profile'); loadAdminProfile()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="admin-avatar">A</div>
+      <div class="user-info">
+        <div class="user-name" id="admin-name">Admin</div>
+        <div class="user-email" id="admin-email">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <span class="topbar-title">Overview</span>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" onclick="openRaiseModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Raise Request
+      </button>
+    </div>
+  </header>
+
+  <!-- OVERVIEW -->
+  <div id="page-overview" class="page active">
+    <div class="stat-grid" id="admin-stats">
+      <div class="stat-card">
+        <div class="stat-icon yellow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="stat-value" id="stat-devices">—</div>
+        <div class="stat-label">Total Devices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="stat-value" id="stat-inprogress">—</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="stat-value" id="stat-completed">—</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Pending Repair Requests</div>
+          <div class="section-sub" style="margin-top:2px">Requests awaiting your action</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="loadOverviewRequests()">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Device</th><th>Raised By</th><th>Issue</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="overview-requests-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEVICES -->
+  <div id="page-devices" class="page">
+    <div class="section-header">
+      <div>
+        <div class="section-title">All Devices</div>
+        <div class="section-sub">Devices registered under your administration</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Device ID</th><th>Name</th><th>Type</th><th>Serial</th><th>Assigned To</th><th>Status</th></tr></thead>
+          <tbody id="admin-devices-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUESTS -->
+  <div id="page-requests" class="page">
+    <div class="section-header">
+      <div>
+        <div class="section-title">All Repair Requests</div>
+        <div class="section-sub">Full request history across all users</div>
+      </div>
+      <button class="btn btn-primary" onclick="openRaiseModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Raise Request
+      </button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Device</th><th>Issue</th><th>Status</th><th>Assigned Vendor</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="admin-requests-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="page-profile" class="page">
+    <div class="section-header">
+      <div class="section-title">My Profile</div>
+    </div>
+    <div class="card">
+      <div class="card-body" id="admin-profile-body">
+        <div style="color:var(--muted)">Loading…</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- RAISE REQUEST MODAL -->
+<div class="modal-overlay hidden" id="raise-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Raise Repair Request</div>
+      <button class="modal-close" onclick="closeModal('raise-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Device</label>
+        <select id="raise-device"></select>
+      </div>
+      <div class="field">
+        <label>Issue Description</label>
+        <textarea id="raise-issue" placeholder="Describe the problem…"></textarea>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <select id="raise-priority">
+          <option value="LOW">Low</option>
+          <option value="MEDIUM" selected>Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('raise-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRaiseRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE REQUEST MODAL -->
+<div class="modal-overlay hidden" id="close-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Close Request</div>
+      <button class="modal-close" onclick="closeModal('close-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Mark this repair request as closed. This confirms the repair is complete.</p>
+      <div class="field">
+        <label>Closing Remarks (optional)</label>
+        <textarea id="close-remark" placeholder="Any notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('close-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="submitCloseRequest()">Mark as Closed</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="shared.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
