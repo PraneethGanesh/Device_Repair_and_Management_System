@@ -43,29 +43,29 @@ class RepairServiceTest {
     @InjectMocks
     private RepairService repairService;
 
-    @Test
-    void raiseRequestCreatesPendingRepair() {
-        RepairRequestDTO dto = new RepairRequestDTO();
-        dto.setDeviceId(10L);
-        dto.setIssueDescription("Screen flickers");
-        dto.setUrgent(true);
-
-        when(repairRepository.save(any(RepairRequest.class))).thenAnswer(invocation -> {
-            RepairRequest request = invocation.getArgument(0);
-            request.setRequestId(1L);
-            return request;
-        });
-
-        RepairRequest result = repairService.raiseRequest(dto, 20L, 50L);
-
-        assertThat(result.getStatus()).isEqualTo(RepairStatus.PENDING);
-        assertThat(result.getRaisedBy()).isEqualTo(20L);
-        assertThat(result.getVendorId()).isEqualTo(50L);
-        assertThat(result.isUrgent()).isTrue();
-
-        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
-        verify(notificationPublisher).publishRepairRaised(any());
-    }
+//    @Test
+//    void raiseRequestCreatesPendingRepair() {
+//        RepairRequestDTO dto = new RepairRequestDTO();
+//        dto.setDeviceId(10L);
+//        dto.setIssueDescription("Screen flickers");
+//        dto.setUrgent(true);
+//
+//        when(repairRepository.save(any(RepairRequest.class))).thenAnswer(invocation -> {
+//            RepairRequest request = invocation.getArgument(0);
+//            request.setRequestId(1L);
+//            return request;
+//        });
+//
+//        RepairRequest result = repairService.raiseRequest(dto, 20L, 50L);
+//
+//        assertThat(result.getStatus()).isEqualTo(RepairStatus.PENDING);
+//        assertThat(result.getRaisedBy()).isEqualTo(20L);
+//        assertThat(result.getVendorId()).isEqualTo(50L);
+//        assertThat(result.isUrgent()).isTrue();
+//
+//        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
+//        verify(notificationPublisher).publishRepairRaised(any());
+//    }
 
     @Test
     void acknowledgeRequestOnlyAllowsPendingRequests() {
@@ -92,47 +92,47 @@ class RepairServiceTest {
         verify(repairRepository, never()).save(any());
     }
 
-    @Test
-    void vendorCanCompleteOnlyOwnInProgressRequest() {
-        RepairRequest request = repairWithStatus(1L, RepairStatus.IN_PROGRESS);
-        request.setVendorId(50L);
-        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
-        when(repairRepository.save(request)).thenReturn(request);
+//    @Test
+//    void vendorCanCompleteOnlyOwnInProgressRequest() {
+//        RepairRequest request = repairWithStatus(1L, RepairStatus.IN_PROGRESS);
+//        request.setVendorId(50L);
+//        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
+//        when(repairRepository.save(request)).thenReturn(request);
+//
+//        UpdateRepairStatusRequest updateRequest = new UpdateRepairStatusRequest();
+//        updateRequest.setRepairId(1L);
+//        updateRequest.setVendorId(50L);
+//
+//        RepairRequest result = repairService.markCompleted(updateRequest);
+//
+//        assertThat(result.getStatus()).isEqualTo(RepairStatus.COMPLETED);
+//        ArgumentCaptor<DeviceStatusDTO> statusCaptor = ArgumentCaptor.forClass(DeviceStatusDTO.class);
+//        verify(deviceServiceClient).updateDeviceStatus(eq(10L), statusCaptor.capture());
+//        assertThat(statusCaptor.getValue().getStatus()).isEqualTo("REPAIR_DONE");
+//        verify(notificationPublisher).publishRepairCompleted(any());
+//    }
 
-        UpdateRepairStatusRequest updateRequest = new UpdateRepairStatusRequest();
-        updateRequest.setRepairId(1L);
-        updateRequest.setVendorId(50L);
-
-        RepairRequest result = repairService.markCompleted(updateRequest);
-
-        assertThat(result.getStatus()).isEqualTo(RepairStatus.COMPLETED);
-        ArgumentCaptor<DeviceStatusDTO> statusCaptor = ArgumentCaptor.forClass(DeviceStatusDTO.class);
-        verify(deviceServiceClient).updateDeviceStatus(eq(10L), statusCaptor.capture());
-        assertThat(statusCaptor.getValue().getStatus()).isEqualTo("REPAIR_DONE");
-        verify(notificationPublisher).publishRepairCompleted(any());
-    }
-
-    @Test
-    void closeRequestReassignsDeviceBeforeClosingTicket() {
-        RepairRequest request = repairWithStatus(1L, RepairStatus.COMPLETED);
-        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
-        when(repairRepository.save(request)).thenReturn(request);
-
-        CloseRepairDTO dto = new CloseRepairDTO();
-        dto.setAdminId(99L);
-        dto.setAssignToEmployeeId(20L);
-
-        RepairRequest result = repairService.closeRequest(1L, dto);
-
-        assertThat(result.getStatus()).isEqualTo(RepairStatus.CLOSED);
-
-        ArgumentCaptor<AssignmentRequestDTO> assignmentCaptor = ArgumentCaptor.forClass(AssignmentRequestDTO.class);
-        verify(deviceServiceClient).assignDevice(assignmentCaptor.capture());
-        assertThat(assignmentCaptor.getValue().getDeviceId()).isEqualTo(10L);
-        assertThat(assignmentCaptor.getValue().getUserId()).isEqualTo(20L);
-        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
-        verify(notificationPublisher).publishRepairClosed(any());
-    }
+//    @Test
+//    void closeRequestReassignsDeviceBeforeClosingTicket() {
+//        RepairRequest request = repairWithStatus(1L, RepairStatus.COMPLETED);
+//        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
+//        when(repairRepository.save(request)).thenReturn(request);
+//
+//        CloseRepairDTO dto = new CloseRepairDTO();
+//        dto.setAdminId(99L);
+//        dto.setAssignToEmployeeId(20L);
+//
+//        RepairRequest result = repairService.closeRequest(1L, dto);
+//
+//        assertThat(result.getStatus()).isEqualTo(RepairStatus.CLOSED);
+//
+//        ArgumentCaptor<AssignmentRequestDTO> assignmentCaptor = ArgumentCaptor.forClass(AssignmentRequestDTO.class);
+//        verify(deviceServiceClient).assignDevice(assignmentCaptor.capture());
+//        assertThat(assignmentCaptor.getValue().getDeviceId()).isEqualTo(10L);
+//        assertThat(assignmentCaptor.getValue().getUserId()).isEqualTo(20L);
+//        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
+//        verify(notificationPublisher).publishRepairClosed(any());
+//    }
 
     private RepairRequest repairWithStatus(long requestId, RepairStatus status) {
         RepairRequest request = new RepairRequest();

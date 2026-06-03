@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface DeviceServiceClient {
 
     // Update device status e.g. UNDER_REPAIR, AVAILABLE, ASSIGNED
-    @PutMapping("/api/devices/{id}/status")
-    void updateDeviceStatus(@PathVariable("id") long deviceId,
-                            @RequestBody DeviceStatusDTO statusDTO);
+    @PutMapping("/api/devices/status")
+    void updateDeviceStatus(@RequestBody DeviceStatusDTO statusDTO);
 
     @PostMapping("/api/devices/assign")
     void assignDevice(@RequestBody AssignmentRequestDTO assignmentRequest);

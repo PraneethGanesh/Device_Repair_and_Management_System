@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.*;
 public interface RepairserviceClient {
     @PostMapping("/api/repairs/{userId}/{vendorId}")
     ResponseEntity<?> raiseRequest(@RequestBody RepairRequestDTO dto, @PathVariable long userId, @PathVariable long vendorId);
-    @PutMapping("/{id}/acknowledge")
+    @PutMapping("/api/repairs/{id}/acknowledge")
     ResponseEntity<?> acknowledge( @PathVariable long id, @RequestParam long adminId);
-    @PutMapping("/{repairId}/close")
+    @PutMapping("/api/repairs/{repairId}/close")
     public ResponseEntity<?> close(@PathVariable long repairId);
 
 
