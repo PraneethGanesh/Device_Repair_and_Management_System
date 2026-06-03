@@ -81,16 +81,16 @@
                   .body(deviceDTO)
                   .retrieve()
                   .toEntity(DeviceDTO.class);
-          NotificationDTO notificationDTO=new NotificationDTO(vendor.getVendorId(),
-                  Role.VENDOR,
-                  Role.ADMIN,
-                  "Device:"+deviceDTO.getDeviceName()+" is added");
-          ResponseEntity responseEntity=notificationClient.post()
-                  .uri("/api/notifications")
-                  .body(notificationDTO)
-                  .retrieve()
-                  .toBodilessEntity();
-            System.out.println("Notification status:"+responseEntity.getStatusCode());
+//          NotificationDTO notificationDTO=new NotificationDTO(vendor.getVendorId(),
+//                  Role.VENDOR,
+//                  Role.ADMIN,
+//                  "Device:"+deviceDTO.getDeviceName()+" is added");
+//          ResponseEntity responseEntity=notificationClient.post()
+//                  .uri("/api/notifications")
+//                  .body(notificationDTO)
+//                  .retrieve()
+//                  .toBodilessEntity();
+//            System.out.println("Notification status:"+responseEntity.getStatusCode());
           return deviceDTOResponseEntity;
         }
 
