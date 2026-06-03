@@ -294,13 +294,7 @@ function bindForms() {
 
   $("#closeRepairForm").addEventListener("submit", withForm(async (form) => {
     const data = formData(form);
-    await api(`/api/repairs/${numberValue(data.repairId)}/close`, {
-      method: "PUT",
-      body: JSON.stringify({
-        adminId: numberValue(data.adminId),
-        assignToEmployeeId: numberValue(data.assignToEmployeeId),
-      }),
-    });
+    await api(`/api/repairs/${numberValue(data.repairId)}/close`, { method: "PUT" });
     setAlert("Repair closed.");
     await loadRepairs();
   }));

@@ -60,6 +60,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<EmployeeResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getById(id));
+    }
+
     @PutMapping("/{id}/role")
     public ResponseEntity<EmployeeResponse> updateRole(
             @PathVariable Long id,
@@ -76,6 +81,11 @@ public class UserController {
     @GetMapping("/devices")
     public ResponseEntity<List<?>> getDevices(@RequestHeader("X-Auth-User") String username) {
         return ResponseEntity.ok(userService.getAssignedDevices(username));
+    }
+
+    @GetMapping("/{id}/devices")
+    public ResponseEntity<List<?>> getDevicesByEmployeeId(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getAssignedDevicesByEmployeeId(id));
     }
 
     @PutMapping("/repair/acknwoledge/{id}")

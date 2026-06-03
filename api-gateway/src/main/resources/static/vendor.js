@@ -1,18 +1,24 @@
 // ── Guard ──────────────────────────────────────────────────────────────────
 const vendorUser = guardRole('vendor');
 
-let allRequests = [];
+let allRequests  = [];
 let activeFilter = 'ALL';
+let vendorDevSearch = '';
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   if (!vendorUser) return;
-  const name  = vendorUser.name || vendorUser.sub || 'Vendor';
-  const email = vendorUser.email || vendorUser.sub || '';
+  const name  = vendorUser.name  || vendorUser.sub  || 'Vendor';
+  const email = vendorUser.email || vendorUser.sub  || '';
   document.getElementById('vendor-name').textContent   = name;
   document.getElementById('vendor-email').textContent  = email;
   document.getElementById('vendor-avatar').textContent = getUserInitials(name);
   loadVendorOverview();
+
+  document.getElementById('vendor-dev-search')?.addEventListener('input', e => {
+    vendorDevSearch = e.target.value.toLowerCase();
+    renderVendorDevicesTable();
+  });
 });
 
 // ── Overview ───────────────────────────────────────────────────────────────
@@ -20,28 +26,29 @@ async function loadVendorOverview() {
   tableLoading('vendor-ack-body', 6);
   tableLoading('vendor-inprogress-body', 6);
   try {
-    const [requests, devices] = await Promise.all([
-      apiGet('/api/repairs').catch(() => []),
-      apiGet('/api/devices').catch(() => [])
+    const [requestsRes, devicesRes] = await Promise.allSettled([
+      apiGet('/api/repairs'),
+      apiGet('/api/devices')
     ]);
 
-    allRequests = requests || [];
+    allRequests = requestsRes.status === 'fulfilled' ? (requestsRes.value || []) : [];
+    const devices = devicesRes.status === 'fulfilled' ? (devicesRes.value || []) : [];
 
     const acked  = allRequests.filter(r => r.status === 'ACKNOWLEDGED');
     const inprog = allRequests.filter(r => ['IN_PROGRESS','INPROGRESS'].includes(r.status));
     const done   = allRequests.filter(r => r.status === 'COMPLETED');
+    const closed = allRequests.filter(r => r.status === 'CLOSED');
 
     document.getElementById('vstat-acknowledged').textContent = acked.length;
     document.getElementById('vstat-inprogress').textContent   = inprog.length;
     document.getElementById('vstat-completed').textContent    = done.length;
-    document.getElementById('vstat-devices').textContent      = (devices || []).length;
+    document.getElementById('vstat-closed').textContent       = closed.length;
+    document.getElementById('vstat-devices').textContent      = devices.length;
 
-    // Badge
     const badge = document.getElementById('vendor-req-badge');
     if (acked.length > 0) { badge.textContent = acked.length; badge.style.display = ''; }
     else badge.style.display = 'none';
 
-    // Render acknowledged queue
     renderActionTable('vendor-ack-body', acked, 'ack');
     renderActionTable('vendor-inprogress-body', inprog, 'inprogress');
   } catch (err) {
@@ -58,14 +65,14 @@ function renderActionTable(tbodyId, requests, mode) {
   }
   tbody.innerHTML = requests.map(r => {
     const action = mode === 'ack'
-      ? `<button class="btn btn-sm btn-info" onclick="markInProgress(${r.id})">▶ Start</button>`
-      : `<button class="btn btn-sm btn-success" onclick="markCompleted(${r.id})">✓ Complete</button>`;
+        ? `<button class="btn btn-sm btn-info" onclick="markInProgress(${r.id}, this)">▶ Start</button>`
+        : `<button class="btn btn-sm btn-success" onclick="openCompleteModal(${r.id})">✓ Complete</button>`;
     return `
       <tr>
         <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.id}</span></td>
         <td>${r.deviceName || r.deviceId || '—'}</td>
-        <td>${r.issue || r.description || '—'}</td>
-        <td><span style="font-size:12px;color:var(--muted)">${r.priority || '—'}</span></td>
+        <td title="${r.issue || r.description || ''}" style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.issue || r.description || '—'}</td>
+        <td><span class="priority-badge priority-${(r.priority||'low').toLowerCase()}">${r.priority || '—'}</span></td>
         <td style="font-size:12px;color:var(--muted)">${fmtDateTime(r.createdAt || r.updatedAt)}</td>
         <td>${action}</td>
       </tr>`;
@@ -94,27 +101,30 @@ function setFilter(f) {
 
 function renderFilteredTable() {
   const filtered = activeFilter === 'ALL'
-    ? allRequests
-    : allRequests.filter(r => r.status === activeFilter || r.status === activeFilter.replace('_',''));
+      ? allRequests
+      : allRequests.filter(r => {
+        if (activeFilter === 'IN_PROGRESS') return ['IN_PROGRESS','INPROGRESS'].includes(r.status);
+        return r.status === activeFilter;
+      });
 
   const tbody = document.getElementById('vendor-all-requests-body');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">No requests</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">No requests</div><div class="empty-sub">No requests match this filter</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = filtered.map(r => {
     let action = '—';
     if (r.status === 'ACKNOWLEDGED') {
-      action = `<button class="btn btn-sm btn-info" onclick="markInProgress(${r.id})">▶ Start</button>`;
+      action = `<button class="btn btn-sm btn-info" onclick="markInProgress(${r.id}, this)">▶ Start</button>`;
     } else if (['IN_PROGRESS','INPROGRESS'].includes(r.status)) {
-      action = `<button class="btn btn-sm btn-success" onclick="markCompleted(${r.id})">✓ Complete</button>`;
+      action = `<button class="btn btn-sm btn-success" onclick="openCompleteModal(${r.id})">✓ Complete</button>`;
     }
     return `
       <tr>
         <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.id}</span></td>
         <td>${r.deviceName || r.deviceId || '—'}</td>
-        <td>${r.issue || r.description || '—'}</td>
-        <td><span style="font-size:12px;color:var(--muted)">${r.priority || '—'}</span></td>
+        <td title="${r.issue || r.description || ''}" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.issue || r.description || '—'}</td>
+        <td><span class="priority-badge priority-${(r.priority||'low').toLowerCase()}">${r.priority || '—'}</span></td>
         <td>${statusBadge(r.status)}</td>
         <td style="font-size:12px;color:var(--muted)">${fmtDate(r.createdAt)}</td>
         <td>${action}</td>
@@ -123,55 +133,90 @@ function renderFilteredTable() {
 }
 
 // ── Status actions ─────────────────────────────────────────────────────────
-async function markInProgress(id) {
+async function markInProgress(id, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
   try {
     await apiPatch(`/api/repairs/${id}/inprogress`);
     toast('Marked as In Progress!', 'success');
-    loadVendorOverview();
+    await loadVendorOverview();
     if (document.getElementById('page-repair').classList.contains('active')) loadVendorRequests();
   } catch (err) {
     toast(`Failed: ${err.message}`, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '▶ Start'; }
   }
 }
 
-async function markCompleted(id) {
+// ── Complete Modal ──────────────────────────────────────────────────────────
+let completeRequestId = null;
+
+function openCompleteModal(id) {
+  completeRequestId = id;
+  document.getElementById('complete-notes').value = '';
+  document.getElementById('complete-modal').classList.remove('hidden');
+}
+
+async function submitComplete() {
+  if (!completeRequestId) return;
+  const notes = document.getElementById('complete-notes').value.trim();
+
+  const btn = document.getElementById('complete-submit-btn');
+  btn.disabled = true; btn.textContent = 'Completing…';
   try {
-    await apiPatch(`/api/repairs/${id}/complete`);
+    await apiPatch(`/api/repairs/${completeRequestId}/complete`, notes ? { notes } : {});
+    closeModal('complete-modal');
     toast('Marked as Completed!', 'success');
-    loadVendorOverview();
+    await loadVendorOverview();
     if (document.getElementById('page-repair').classList.contains('active')) loadVendorRequests();
   } catch (err) {
     toast(`Failed: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Mark Complete';
   }
 }
 
 // ── Devices ────────────────────────────────────────────────────────────────
+let vendorDevices = [];
+
 async function loadVendorDevices() {
   tableLoading('vendor-devices-body', 5);
   try {
     const devices = await apiGet('/api/devices');
-    const tbody = document.getElementById('vendor-devices-body');
-    if (!(devices || []).length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">No devices</div><div class="empty-sub">Add your first device</div></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = (devices || []).map(d => `
-      <tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px">${d.id}</span></td>
-        <td>${d.name || '—'}</td>
-        <td>${d.type || d.category || '—'}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px">${d.serialNumber || '—'}</td>
-        <td>${statusBadge(d.status || 'ACTIVE')}</td>
-      </tr>`).join('');
+    vendorDevices = devices || [];
+    renderVendorDevicesTable();
   } catch (err) {
     tableEmpty('vendor-devices-body', 5, `Error: ${err.message}`);
   }
 }
 
+function renderVendorDevicesTable() {
+  const tbody = document.getElementById('vendor-devices-body');
+  const filtered = vendorDevSearch
+      ? vendorDevices.filter(d =>
+          (d.name || '').toLowerCase().includes(vendorDevSearch) ||
+          (d.type || d.category || '').toLowerCase().includes(vendorDevSearch) ||
+          (d.serialNumber || '').toLowerCase().includes(vendorDevSearch)
+      )
+      : vendorDevices;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">${vendorDevSearch ? 'No matches found' : 'No devices'}</div><div class="empty-sub">${vendorDevSearch ? 'Try different keywords' : 'Add your first device'}</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(d => `
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px">${d.id}</span></td>
+      <td>${d.name || '—'}</td>
+      <td>${d.type || d.category || '—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${d.serialNumber || '—'}</td>
+      <td>${statusBadge(d.status || 'ACTIVE')}</td>
+    </tr>`).join('');
+}
+
 // ── Add Device ─────────────────────────────────────────────────────────────
 function openAddDeviceModal() {
   ['dev-name','dev-type','dev-serial','dev-user'].forEach(id => {
-    document.getElementById(id).value = '';
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
   document.getElementById('add-device-modal').classList.remove('hidden');
 }
@@ -184,6 +229,8 @@ async function submitAddDevice() {
 
   if (!name) return toast('Device name is required.', 'error');
 
+  const btn = document.getElementById('add-dev-btn');
+  btn.disabled = true; btn.textContent = 'Adding…';
   try {
     await apiPost('/api/devices', { name, type, serialNumber: serial, userId: userId || undefined });
     closeModal('add-device-modal');
@@ -191,12 +238,15 @@ async function submitAddDevice() {
     loadVendorDevices();
   } catch (err) {
     toast(`Failed: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Add Device';
   }
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────
 async function loadVendorProfile() {
   const body = document.getElementById('vendor-profile-body');
+  body.innerHTML = `<div style="color:var(--muted)">Loading…</div>`;
   try {
     const profile = await apiGet('/api/vendors/me');
     const u = profile || vendorUser;
