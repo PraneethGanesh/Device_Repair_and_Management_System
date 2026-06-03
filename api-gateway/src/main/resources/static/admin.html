@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — ServiceDesk</title>
-<link rel="stylesheet" href="dashboard.css">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — ServiceDesk</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .priority-badge { display:inline-block; padding:2px 8px; border-radius:100px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+    .priority-high   { background:rgba(255,107,107,.12); color:var(--danger); }
+    .priority-medium { background:rgba(255,169,77,.12);  color:var(--warning); }
+    .priority-low    { background:rgba(78,205,196,.12);  color:var(--accent2); }
+    .search-input { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; width:220px; transition:border-color .2s; }
+    .search-input:focus { border-color:var(--accent); }
+    .filter-btn.active { background:rgba(232,197,71,.15); color:var(--accent); border-color:rgba(232,197,71,.3); }
+  </style>
 </head>
 <body>
 
@@ -27,7 +36,7 @@
     </button>
 
     <div class="nav-section-title">Management</div>
-    <button class="nav-item" data-page="page-devices" data-title="My Devices" onclick="showPage('page-devices'); loadAdminDevices()">
+    <button class="nav-item" data-page="page-devices" data-title="Devices" onclick="showPage('page-devices'); loadAdminDevices()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       Devices
     </button>
@@ -78,6 +87,11 @@
         <div class="stat-label">Total Devices</div>
       </div>
       <div class="stat-card">
+        <div class="stat-icon teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div class="stat-value" id="stat-vendors">—</div>
+        <div class="stat-label">Vendors</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-icon orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
         <div class="stat-value" id="stat-pending">—</div>
         <div class="stat-label">Pending Requests</div>
@@ -97,8 +111,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Pending Repair Requests</div>
-          <div class="section-sub" style="margin-top:2px">Requests awaiting your action</div>
+          <div class="card-title">Pending &amp; Recent Requests</div>
+          <div class="section-sub" style="margin-top:2px">Requests awaiting action or recently updated</div>
         </div>
         <button class="btn btn-secondary btn-sm" onclick="loadOverviewRequests()">Refresh</button>
       </div>
@@ -118,11 +132,18 @@
         <div class="section-title">All Devices</div>
         <div class="section-sub">Devices registered under your administration</div>
       </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input class="search-input" id="device-search" placeholder="Search devices…" autocomplete="off">
+        <button class="btn btn-primary" onclick="openAddDeviceModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Device
+        </button>
+      </div>
     </div>
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Device ID</th><th>Name</th><th>Type</th><th>Serial</th><th>Assigned To</th><th>Status</th></tr></thead>
+          <thead><tr><th>Device ID</th><th>Name</th><th>Type</th><th>Serial</th><th>Assigned To</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="admin-devices-body"></tbody>
         </table>
       </div>
@@ -134,17 +155,25 @@
     <div class="section-header">
       <div>
         <div class="section-title">All Repair Requests</div>
-        <div class="section-sub">Full request history across all users</div>
+        <div class="section-sub">Full request history — acknowledge, assign, and close</div>
       </div>
       <button class="btn btn-primary" onclick="openRaiseModal()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Raise Request
       </button>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm req-filter-btn active" data-filter="ALL" onclick="setAdminReqFilter('ALL')">All</button>
+      <button class="btn btn-secondary btn-sm req-filter-btn" data-filter="PENDING" onclick="setAdminReqFilter('PENDING')">Pending</button>
+      <button class="btn btn-secondary btn-sm req-filter-btn" data-filter="ACKNOWLEDGED" onclick="setAdminReqFilter('ACKNOWLEDGED')">Acknowledged</button>
+      <button class="btn btn-secondary btn-sm req-filter-btn" data-filter="IN_PROGRESS" onclick="setAdminReqFilter('IN_PROGRESS')">In Progress</button>
+      <button class="btn btn-secondary btn-sm req-filter-btn" data-filter="COMPLETED" onclick="setAdminReqFilter('COMPLETED')">Completed</button>
+      <button class="btn btn-secondary btn-sm req-filter-btn" data-filter="CLOSED" onclick="setAdminReqFilter('CLOSED')">Closed</button>
+    </div>
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Device</th><th>Issue</th><th>Status</th><th>Assigned Vendor</th><th>Date</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ID</th><th>Device</th><th>Issue</th><th>Raised By</th><th>Status</th><th>Priority</th><th>Date</th><th>Actions</th></tr></thead>
           <tbody id="admin-requests-body"></tbody>
         </table>
       </div>
@@ -191,7 +220,49 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('raise-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitRaiseRequest()">Submit Request</button>
+      <button class="btn btn-primary" id="raise-submit-btn" onclick="submitRaiseRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACKNOWLEDGE MODAL -->
+<div class="modal-overlay hidden" id="ack-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Acknowledge Request</div>
+      <button class="modal-close" onclick="closeModal('ack-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Acknowledge this repair request to move it forward. You can optionally assign a vendor now.</p>
+      <div class="field">
+        <label>Assign Vendor (Optional)</label>
+        <select id="ack-vendor"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('ack-modal')">Cancel</button>
+      <button class="btn btn-info" id="ack-submit-btn" onclick="submitAcknowledge()">Acknowledge</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN VENDOR MODAL -->
+<div class="modal-overlay hidden" id="assign-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Vendor</div>
+      <button class="modal-close" onclick="closeModal('assign-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Select a vendor to handle this repair request.</p>
+      <div class="field">
+        <label>Vendor</label>
+        <select id="assign-vendor"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('assign-modal')">Cancel</button>
+      <button class="btn btn-primary" id="assign-submit-btn" onclick="submitAssignVendor()">Assign</button>
     </div>
   </div>
 </div>
@@ -212,7 +283,47 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('close-modal')">Cancel</button>
-      <button class="btn btn-success" onclick="submitCloseRequest()">Mark as Closed</button>
+      <button class="btn btn-success" id="close-submit-btn" onclick="submitCloseRequest()">Mark as Closed</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DEVICE MODAL -->
+<div class="modal-overlay hidden" id="add-device-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Device</div>
+      <button class="modal-close" onclick="closeModal('add-device-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Device Name</label><input id="admin-dev-name" type="text" placeholder="e.g. Dell Latitude 5520"></div>
+      <div class="field"><label>Type / Category</label><input id="admin-dev-type" type="text" placeholder="e.g. Laptop, Printer"></div>
+      <div class="field"><label>Serial Number</label><input id="admin-dev-serial" type="text" placeholder="SN-XXXXXX"></div>
+      <div class="field"><label>Assigned To (User ID)</label><input id="admin-dev-user" type="text" placeholder="Optional"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-device-modal')">Cancel</button>
+      <button class="btn btn-primary" id="add-device-btn" onclick="submitAddDevice()">Add Device</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT DEVICE MODAL -->
+<div class="modal-overlay hidden" id="edit-device-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Device</div>
+      <button class="modal-close" onclick="closeModal('edit-device-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Device Name</label><input id="edit-dev-name" type="text"></div>
+      <div class="field"><label>Type / Category</label><input id="edit-dev-type" type="text"></div>
+      <div class="field"><label>Serial Number</label><input id="edit-dev-serial" type="text"></div>
+      <div class="field"><label>Assigned To (User ID)</label><input id="edit-dev-user" type="text" placeholder="Optional"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('edit-device-modal')">Cancel</button>
+      <button class="btn btn-primary" id="edit-device-btn" onclick="submitEditDevice()">Save Changes</button>
     </div>
   </div>
 </div>

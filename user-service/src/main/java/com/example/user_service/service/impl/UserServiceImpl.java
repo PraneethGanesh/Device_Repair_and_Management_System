@@ -81,6 +81,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public EmployeeResponse getById(Long id) {
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+        return toResponse(emp);
+    }
+
+    @Override
     public List<EmployeeResponse> getAll() {
         return employeeRepository.findAll()
                 .stream()
@@ -108,6 +115,13 @@ public class UserServiceImpl implements UserService {
     public List<?> getAssignedDevices(String username) {
         Employee emp = employeeRepository.findByEmail(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+        return deviceServiceClient.getDevicesByEmployee(emp.getId());
+    }
+
+    @Override
+    public List<?> getAssignedDevicesByEmployeeId(Long employeeId) {
+        Employee emp = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
         return deviceServiceClient.getDevicesByEmployee(emp.getId());
     }
 
