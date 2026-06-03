@@ -189,8 +189,11 @@ public class RepairService {
                 .orElseThrow(() -> new NoSuchElementException("Repair request not found: " + requestId));
     }
 
-    public List<RepairRequest> getAllByEmployee(long employeeId) {
-        return repairRepository.findByRaisedBy(employeeId);
+    public List<ResponseDTO> getAllByEmployee(long employeeId) {
+        List<RepairRequest> repairRequests=repairRepository.findByRaisedBy(employeeId);
+        return repairRequests.stream()
+                .map(request -> toResponseDTO(request))
+                .toList();
     }
 
     public List<RepairRequest> getAllByVendor(long vendorId) {

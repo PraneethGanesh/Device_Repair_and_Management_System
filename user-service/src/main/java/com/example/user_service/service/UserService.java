@@ -22,4 +22,6 @@ public interface UserService {
     ResponseEntity<?> acknwoledgeRequest(String username, long id);
 
     ResponseEntity<?> closeRequest(String username, long id);
+
+    List<ResponseDTO> getRepairRequest(String username);
 }

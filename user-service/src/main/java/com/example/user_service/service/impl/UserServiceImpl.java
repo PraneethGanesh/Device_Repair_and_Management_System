@@ -160,6 +160,14 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok("Repair request:"+id+"is closed");
     }
 
+    @Override
+    public List<ResponseDTO> getRepairRequest(String username) {
+        Employee employee=employeeRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + username));
+      ResponseEntity<List<ResponseDTO>> response=repairserviceClient.getByEmployee(employee.getId());
+      return response.getBody();
+    }
+
     // ── helpers ──────────────────────────────────────────────
 
     private AuthResponse buildAuthResponse(Employee emp, String token) {
