@@ -115,7 +115,8 @@ public class RepairService {
 
         DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
         deviceStatusDTO.setStatus("UNDER_REPAIR");
-        deviceServiceClient.updateDeviceStatus(request.getDeviceId(), deviceStatusDTO);
+        deviceStatusDTO.setDeviceId(request.getDeviceId());
+        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
         request.setStatus(RepairStatus.IN_PROGRESS);
         return repairRepository.save(request);
     }
@@ -135,7 +136,8 @@ public class RepairService {
 
         DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
         deviceStatusDTO.setStatus("REPAIR_DONE");
-        deviceServiceClient.updateDeviceStatus(request.getDeviceId(), deviceStatusDTO);
+        deviceStatusDTO.setDeviceId(request.getDeviceId());
+        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
 
         // Notify ADMIN — vendor completed, admin needs to close and reassign device
         notificationPublisher.publishRepairCompleted(new NotificationDTO(
@@ -151,7 +153,7 @@ public class RepairService {
     }
 
     // ─── 6. Admin closes ticket and reassigns device ──────────────────────────
-    public RepairRequest closeRequest(long repairId, CloseRepairDTO dto) {
+    public RepairRequest closeRequest(long repairId) {
         RepairRequest request = getById(repairId);
 
         if (request.getStatus() != RepairStatus.COMPLETED) {
@@ -159,19 +161,19 @@ public class RepairService {
                     "Only COMPLETED requests can be closed. Current status: " + request.getStatus());
         }
 
-        deviceServiceClient.assignDevice(new AssignmentRequestDTO(
-                request.getDeviceId(),
-                dto.getAssignToEmployeeId()
-        ));
+        DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
+        deviceStatusDTO.setStatus("ASSIGNED");
+        deviceStatusDTO.setDeviceId(request.getDeviceId());
+        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
 
         request.setStatus(RepairStatus.CLOSED);
         RepairRequest saved = repairRepository.save(request);
 
         notificationPublisher.publishRepairClosed(new NotificationDTO(
-                dto.getAdminId(),
+                request.getAdminId(),
                 RecipientRole.ADMIN,
                 RecipientRole.EMPLOYEE,
-                dto.getAssignToEmployeeId(),
+                request.getRaisedBy(),
                 "Your device (ID: " + request.getDeviceId()
                         + ") has been repaired and assigned back to you. Repair request #"
                         + request.getRequestId() + " is now CLOSED."
