@@ -62,6 +62,19 @@ async function apiPatch(path, body) {
   return res.json().catch(() => ({}));
 }
 
+async function apiDelete(path) {
+  const res = await fetch(API_BASE + path, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || e.error || `HTTP ${res.status}`);
+  }
+  return res.json().catch(() => ({}));
+}
+
 // ── JWT decode ──────────────────────────────────────────────────────────────
 function decodeJwt(token) {
   try {

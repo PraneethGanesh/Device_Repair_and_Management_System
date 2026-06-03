@@ -37,6 +37,41 @@ spring:
           predicates:
             - Path=/api/repairs/**
 
+        - id: user-service-openapi
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/v3/api-docs/users
+          filters:
+            - RewritePath=/v3/api-docs/users,/v3/api-docs
+
+        - id: vendor-service-openapi
+          uri: lb://VENDOR-SERVICE
+          predicates:
+            - Path=/v3/api-docs/vendors
+          filters:
+            - RewritePath=/v3/api-docs/vendors,/v3/api-docs
+
+        - id: device-service-openapi
+          uri: lb://DEVICE-SERVICE
+          predicates:
+            - Path=/v3/api-docs/devices
+          filters:
+            - RewritePath=/v3/api-docs/devices,/v3/api-docs
+
+        - id: notification-service-openapi
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/v3/api-docs/notifications
+          filters:
+            - RewritePath=/v3/api-docs/notifications,/v3/api-docs
+
+        - id: repair-service-openapi
+          uri: lb://REPAIR-SERVICE
+          predicates:
+            - Path=/v3/api-docs/repairs
+          filters:
+            - RewritePath=/v3/api-docs/repairs,/v3/api-docs
+
       # Global CORS config
       globalcors:
         cors-configurations:
@@ -69,6 +104,25 @@ eureka:
 # JWT secret
 jwt:
   secret: drmsSuperSecretKeyForJwtTokenGenerationMustBe32CharsLong
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: API Gateway
+        url: /v3/api-docs
+      - name: User Service
+        url: /v3/api-docs/users
+      - name: Vendor Service
+        url: /v3/api-docs/vendors
+      - name: Device Service
+        url: /v3/api-docs/devices
+      - name: Notification Service
+        url: /v3/api-docs/notifications
+      - name: Repair Service
+        url: /v3/api-docs/repairs
 
 # Actuator
 management:

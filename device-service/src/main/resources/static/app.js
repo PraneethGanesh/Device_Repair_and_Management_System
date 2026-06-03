@@ -255,9 +255,10 @@ async function saveDevice(event) {
       });
       showToast("Device updated");
     } else {
-      await request("", {
+      const { vendorId, ...devicePayload } = payload;
+      await request(`/${vendorId}`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(devicePayload),
       });
       showToast("Device added");
     }
@@ -296,9 +297,9 @@ async function assignDevice(event) {
 
 async function updateStatus(deviceId, status) {
   try {
-    await request(`/${deviceId}/status`, {
+    await request("/status", {
       method: "PUT",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ deviceId: Number(deviceId), status }),
     });
     showToast("Status updated");
     await loadDevices();
