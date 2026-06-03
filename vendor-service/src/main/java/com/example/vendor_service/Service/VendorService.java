@@ -56,16 +56,16 @@
             return response;
         }
 
-        public String login(AuthRequest authRequest){
-           Vendor vendor=vendorRepository.findByEmail(authRequest.getUsername())
-                   .orElseThrow(
-                           ()->new RuntimeException("No account found for: "+authRequest.getUsername())
-                   );
+        public AuthResponse login(AuthRequest authRequest) {
+            Vendor vendor = vendorRepository.findByEmail(authRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("No account found for: " + authRequest.getEmail()));
+
             if (!passwordEncoder.matches(authRequest.getPassword(), vendor.getPassword())) {
                 throw new BadCredentialsException("Incorrect password");
             }
+
             String token = jwtUtil.generate(vendor.getEmail(), vendor.getRole().name());
-            return token;
+            return buildAuthResponse(vendor, token);
         }
 
         public ResponseEntity<?> addDevice(DeviceDTO deviceDTO,String username,String role){
