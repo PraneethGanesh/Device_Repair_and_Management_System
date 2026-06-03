@@ -95,7 +95,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Device</th><th>Issue</th><th>Status</th><th>Date</th></tr></thead>
+          <thead><tr><th>Request ID</th><th>Device ID</th><th>Issue</th><th>Status</th></tr></thead>
           <tbody id="emp-overview-body"></tbody>
         </table>
       </div>
@@ -113,7 +113,7 @@
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Device ID</th><th>Name</th><th>Type</th><th>Serial</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Warranty</th><th>Actions</th></tr></thead>
           <tbody id="emp-devices-body"></tbody>
         </table>
       </div>
@@ -135,7 +135,7 @@
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Device</th><th>Issue</th><th>Priority</th><th>Status</th><th>Date</th></tr></thead>
+          <thead><tr><th>Request ID</th><th>Device ID</th><th>Issue</th><th>Status</th><th>Vendor ID</th></tr></thead>
           <tbody id="emp-requests-body"></tbody>
         </table>
       </div>
@@ -169,13 +169,9 @@
         <label>Issue Description</label>
         <textarea id="raise-issue" placeholder="Describe the problem in detail…"></textarea>
       </div>
-      <div class="field">
-        <label>Priority</label>
-        <select id="raise-priority">
-          <option value="LOW">Low</option>
-          <option value="MEDIUM" selected>Medium</option>
-          <option value="HIGH">High</option>
-        </select>
+      <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+        <input type="checkbox" id="raise-urgent" style="width:16px;height:16px;cursor:pointer">
+        <label for="raise-urgent" style="margin:0;cursor:pointer">Mark as Urgent</label>
       </div>
     </div>
     <div class="modal-footer">

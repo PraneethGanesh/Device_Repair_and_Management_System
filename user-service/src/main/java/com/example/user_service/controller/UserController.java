@@ -54,6 +54,11 @@ public class UserController {
        return userService.raiseRepairRequest(repairRequestDTO,username);
     }
 
+    @GetMapping("/myRequests")
+    public List<ResponseDTO> getRepairRequest(@RequestHeader("X-Auth-User") String username){
+        return userService.getRepairRequest(username);
+    }
+
 
     @GetMapping("/all")
     public ResponseEntity<List<EmployeeResponse>> getAll() {

@@ -41,7 +41,7 @@ public class RepairController {
 
     // Get all requests raised by a specific employee/admin
     @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<List<RepairRequest>> getByEmployee(@PathVariable long employeeId) {
+    public ResponseEntity<List<ResponseDTO>> getByEmployee(@PathVariable long employeeId) {
         return ResponseEntity.ok(repairService.getAllByEmployee(employeeId));
     }
 

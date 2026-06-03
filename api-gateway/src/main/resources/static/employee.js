@@ -24,11 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Overview ───────────────────────────────────────────────────────────────
 async function loadEmpOverview() {
-  tableLoading('emp-overview-body', 5);
+  tableLoading('emp-overview-body', 4);
   try {
     const [devices, requests] = await Promise.all([
-      apiGet('/api/devices/my').catch(() => apiGet('/api/devices')),
-      apiGet('/api/repairs/my').catch(() => apiGet('/api/repairs'))
+      apiGet('/api/users/devices'),
+      apiGet('/api/users/myRequests')
     ]);
 
     const devs = devices || [];
@@ -41,21 +41,20 @@ async function loadEmpOverview() {
     document.getElementById('emp-stat-closed').textContent  = closed;
 
     // Recent 5
-    const recent = [...reqs].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0)).slice(0,5);
+    const recent = reqs.slice(0, 5);
     if (!recent.length) {
-      tableEmpty('emp-overview-body', 5, 'No requests yet. Raise one to get started.');
+      tableEmpty('emp-overview-body', 4, 'No requests yet. Raise one to get started.');
       return;
     }
     document.getElementById('emp-overview-body').innerHTML = recent.map(r => `
       <tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.id}</span></td>
-        <td>${r.deviceName || r.deviceId || '—'}</td>
-        <td>${r.issue || r.description || '—'}</td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.requestId}</span></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px">${r.deviceId}</span></td>
+        <td>${r.issueDescription || '—'}</td>
         <td>${statusBadge(r.status)}</td>
-        <td style="font-size:12px;color:var(--muted)">${fmtDate(r.createdAt)}</td>
       </tr>`).join('');
   } catch (err) {
-    tableEmpty('emp-overview-body', 5, `Error: ${err.message}`);
+    tableEmpty('emp-overview-body', 4, `Error: ${err.message}`);
   }
 }
 
@@ -63,7 +62,7 @@ async function loadEmpOverview() {
 async function loadEmpDevices() {
   tableLoading('emp-devices-body', 6);
   try {
-    const devices = await apiGet('/api/devices/my').catch(() => apiGet('/api/devices'));
+    const devices = await apiGet('/api/users/devices').catch(() => apiGet('/api/devices'));
     const tbody = document.getElementById('emp-devices-body');
     if (!(devices || []).length) {
       tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🖥️</div><div class="empty-title">No devices assigned</div><div class="empty-sub">Contact your admin to assign devices</div></div></td></tr>`;
@@ -71,11 +70,10 @@ async function loadEmpDevices() {
     }
     tbody.innerHTML = (devices || []).map(d => `
       <tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px">${d.id}</span></td>
-        <td>${d.name || '—'}</td>
-        <td>${d.type || d.category || '—'}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px">${d.serialNumber || '—'}</td>
-        <td>${statusBadge(d.status || 'ACTIVE')}</td>
+        <td>${d.DeviceName || '—'}</td>
+        <td>${d.deviceType || d.category || '—'}</td>
+        <td>${d.status || 'ACTIVE'}</td>
+        <td>${d.warrantyExpiry || 'Not known'}</td>
         <td><button class="btn btn-sm btn-secondary" onclick="openRaiseModalForDevice('${d.id}','${d.name}')">Raise Request</button></td>
       </tr>`).join('');
   } catch (err) {
@@ -85,25 +83,24 @@ async function loadEmpDevices() {
 
 // ── Requests ───────────────────────────────────────────────────────────────
 async function loadEmpRequests() {
-  tableLoading('emp-requests-body', 6);
+  tableLoading('emp-requests-body', 5);
   try {
-    const requests = await apiGet('/api/repairs/my').catch(() => apiGet('/api/repairs'));
+    const requests = await apiGet('/api/users/myRequests');
     const tbody = document.getElementById('emp-requests-body');
     if (!(requests || []).length) {
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No requests raised</div><div class="empty-sub">Use the "Raise Request" button above</div></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No requests raised</div><div class="empty-sub">Use the "Raise Request" button above</div></div></td></tr>`;
       return;
     }
     tbody.innerHTML = (requests || []).map(r => `
       <tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.id}</span></td>
-        <td>${r.deviceName || r.deviceId || '—'}</td>
-        <td>${r.issue || r.description || '—'}</td>
-        <td><span class="status status-${(r.priority||'').toLowerCase()}" style="background:none;padding:0;font-size:12px">${r.priority || '—'}</span></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px">#${r.requestId}</span></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px">${r.deviceId}</span></td>
+        <td>${r.issueDescription || '—'}</td>
         <td>${statusBadge(r.status)}</td>
-        <td style="font-size:12px;color:var(--muted)">${fmtDate(r.createdAt)}</td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px">${r.vendorId ?? '—'}</span></td>
       </tr>`).join('');
   } catch (err) {
-    tableEmpty('emp-requests-body', 6, `Failed to load: ${err.message}`);
+    tableEmpty('emp-requests-body', 5, `Failed to load: ${err.message}`);
   }
 }
 
@@ -111,7 +108,7 @@ async function loadEmpRequests() {
 async function loadEmpProfile() {
   const body = document.getElementById('emp-profile-body');
   try {
-    const profile = await apiGet('/api/users/me');
+    const profile = await apiGet('/api/users/profile');
     const u = profile || empUser;
     body.innerHTML = `
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px">
@@ -126,8 +123,6 @@ async function loadEmpProfile() {
         <div class="detail-item"><div class="detail-key">User ID</div><div class="detail-value" style="font-family:'DM Mono',monospace">${u.id || '—'}</div></div>
         <div class="detail-item"><div class="detail-key">Role</div><div class="detail-value">Employee</div></div>
         <div class="detail-item"><div class="detail-key">Department</div><div class="detail-value">${u.department || '—'}</div></div>
-        <div class="detail-item"><div class="detail-key">Phone</div><div class="detail-value">${u.phone || '—'}</div></div>
-        <div class="detail-item"><div class="detail-key">Joined</div><div class="detail-value">${fmtDate(u.createdAt)}</div></div>
       </div>`;
   } catch {
     const u = empUser;
@@ -162,22 +157,24 @@ async function populateDeviceDropdown() {
   const sel = document.getElementById('raise-device');
   sel.innerHTML = '<option>Loading…</option>';
   try {
-    const devices = await apiGet('/api/devices/my').catch(() => apiGet('/api/devices'));
-    sel.innerHTML = (devices || []).map(d => `<option value="${d.id}">${d.name} (${d.id})</option>`).join('');
+    const devices = await apiGet('/api/users/devices').catch(() => apiGet('/api/devices'));
+   sel.innerHTML = (devices || []).map(d =>
+     `<option value="${d.deviceId}">${d.deviceName || d.deviceId}</option>`
+   ).join('');
     if (!(devices || []).length) sel.innerHTML = '<option value="">No devices found</option>';
   } catch { sel.innerHTML = '<option value="">Failed to load</option>'; }
 }
 
 async function submitRaiseRequest() {
-  const deviceId = document.getElementById('raise-device').value;
-  const issue    = document.getElementById('raise-issue').value.trim();
-  const priority = document.getElementById('raise-priority').value;
+  const deviceId        = document.getElementById('raise-device').value;
+  const issueDescription = document.getElementById('raise-issue').value.trim();
+  const urgent          = document.getElementById('raise-urgent').checked;
 
-  if (!deviceId) return toast('Please select a device.', 'error');
-  if (!issue)    return toast('Please describe the issue.', 'error');
+  if (!deviceId)          return toast('Please select a device.', 'error');
+  if (!issueDescription)  return toast('Please describe the issue.', 'error');
 
   try {
-    await apiPost('/api/repairs', { deviceId, issue, description: issue, priority });
+    await apiPost('/api/users/request/raise', { deviceId, issueDescription, urgent });
     closeModal('raise-modal');
     toast('Request submitted!', 'success');
     loadEmpOverview();
@@ -186,7 +183,6 @@ async function submitRaiseRequest() {
     toast(`Failed: ${err.message}`, 'error');
   }
 }
-
 // ── Helpers ────────────────────────────────────────────────────────────────
 function closeModal(id) {
   document.getElementById(id).classList.add('hidden');
