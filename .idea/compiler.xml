@@ -10,8 +10,8 @@
         <module name="repair-service" />
         <module name="api-gateway" />
         <module name="user-service" />
-        <module name="eureka-server" />
         <module name="device-service" />
+        <module name="eureka-server" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
