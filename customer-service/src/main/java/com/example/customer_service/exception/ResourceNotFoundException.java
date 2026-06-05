@@ -1,4 +1,4 @@
-package com.dms.customerservice.exception;
+package com.example.customer_service.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
 

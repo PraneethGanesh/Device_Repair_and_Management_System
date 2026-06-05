@@ -52,6 +52,7 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
                     .request(r -> r
                             .header("X-Auth-User", username)
                             .header("X-Auth-Role", role != null ? role : "")
+                            .header("X-User-Id", id != null ? id : "")
                             .header("X-Auth-Id",id!=null? id:"")
                     )
                     .build();
