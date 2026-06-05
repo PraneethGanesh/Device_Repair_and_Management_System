@@ -1,4 +1,4 @@
-package com.dms.customerservice.dto.request;
+package com.example.customer_service.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +17,9 @@ public class EmployeeRequest {
     @NotBlank(message = "Full name is required")
     private String fullName;
 
+    @NotBlank(message = "Password is required")
+    private String password;
+
     private String department;
 
     private String designation;
@@ -24,10 +27,11 @@ public class EmployeeRequest {
     // Constructors
     public EmployeeRequest() {}
 
-    public EmployeeRequest(UUID companyId, String email, String fullName, String department, String designation) {
+    public EmployeeRequest(UUID companyId, String email, String fullName, String password, String department, String designation) {
         this.companyId = companyId;
         this.email = email;
         this.fullName = fullName;
+        this.password = password;
         this.department = department;
         this.designation = designation;
     }
@@ -36,6 +40,7 @@ public class EmployeeRequest {
     public UUID getCompanyId() { return companyId; }
     public String getEmail() { return email; }
     public String getFullName() { return fullName; }
+    public String getPassword() { return password; }
     public String getDepartment() { return department; }
     public String getDesignation() { return designation; }
 
@@ -43,6 +48,7 @@ public class EmployeeRequest {
     public void setCompanyId(UUID companyId) { this.companyId = companyId; }
     public void setEmail(String email) { this.email = email; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setPassword(String password) { this.password = password; }
     public void setDepartment(String department) { this.department = department; }
     public void setDesignation(String designation) { this.designation = designation; }
 }

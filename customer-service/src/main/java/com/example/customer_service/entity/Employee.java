@@ -1,4 +1,4 @@
-package com.dms.customerservice.entity;
+package com.example.customer_service.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -12,7 +12,7 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID userId;
+    private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
@@ -46,7 +46,7 @@ public class Employee {
 
     // Getters
     public UUID getId() { return id; }
-    public UUID getUserId() { return userId; }
+    public String getUserId() { return userId; }
     public Company getCompany() { return company; }
     public String getEmail() { return email; }
     public String getFullName() { return fullName; }
@@ -57,7 +57,7 @@ public class Employee {
 
     // Setters
     public void setId(UUID id) { this.id = id; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public void setCompany(Company company) { this.company = company; }
     public void setEmail(String email) { this.email = email; }
     public void setFullName(String fullName) { this.fullName = fullName; }
