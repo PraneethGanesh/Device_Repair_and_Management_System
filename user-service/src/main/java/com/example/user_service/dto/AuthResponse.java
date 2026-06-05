@@ -6,7 +6,6 @@ public class AuthResponse {
     private String name;
     private String email;
     private String role;
-    private String department;
 
     public String getToken() {
         return token;
@@ -26,10 +25,6 @@ public class AuthResponse {
 
     public String getRole() {
         return role;
-    }
-
-    public String getDepartment() {
-        return department;
     }
 
     public void setToken(String token) {
@@ -52,7 +47,4 @@ public class AuthResponse {
         this.role = role;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
-    }
 }

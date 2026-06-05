@@ -30,10 +30,6 @@ public class GatewayConfig {
                         .path("/api/users/register","/api/users/login")
                         .uri("lb://user-service"))
 
-                .route("vendor-auth", r -> r
-                        .path("/api/vendors/register","/api/vendors/login")
-                        .uri("lb://vendor-service"))
-
                 // User Service - PROTECTED
                 .route("user-service", r -> r
                         .path("/api/users/**")

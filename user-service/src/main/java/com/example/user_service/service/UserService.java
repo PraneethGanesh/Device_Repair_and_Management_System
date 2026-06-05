@@ -1,29 +1,60 @@
 package com.example.user_service.service;
 
+import com.example.user_service.dto.AuthRequest;
+import com.example.user_service.dto.AuthResponse;
+import com.example.user_service.dto.UserDTO;
+import com.example.user_service.entity.Role;
+import com.example.user_service.entity.User;
+import com.example.user_service.repository.UserRepository;
+import com.example.user_service.security.JwtUtil;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-import com.example.user_service.dto.*;
-import org.springframework.http.ResponseEntity;
 
-import java.util.List;
 
-public interface UserService {
-    AuthResponse register(RegisterRequest request);
-    AuthResponse login(LoginRequest request);
-    EmployeeResponse getMyProfile(String username,String role);
-    EmployeeResponse getById(Long id);
-    List<EmployeeResponse> getAll();
-    EmployeeResponse updateRole(Long id, String role);
-    void deleteEmployee(Long id);
-    List<?> getAssignedDevices(String username);
-    List<?> getAssignedDevicesByEmployeeId(Long employeeId);
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    ResponseEntity<?> assigndevices(AssignmentRequest assignmentRequest, String username);
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
 
-    ResponseEntity<?> raiseRepairRequest(RepairRequestDTO repairRequestDTO,String username);
+    public AuthResponse registerUser(UserDTO userDTO,String role){
+       User user=new User();
+       user.setName(userDTO.getName());
+       user.setEmail(userDTO.getEmail());
+       user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+       user.setRole(Role.valueOf(role));
+       User savedUser=userRepository.save(user);
+       String token= jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+       return buildAuthResponse(savedUser,token);
+    }
 
-    ResponseEntity<?> acknwoledgeRequest(String username, long id);
+    public AuthResponse login(AuthRequest authRequest){
+        User user=userRepository.findByEmail(authRequest.getEmail())
+                .orElseThrow(()->new RuntimeException("User not found"));
+        if(passwordEncoder.matches(authRequest.getPassword(),user.getPassword())){
+            throw new BadCredentialsException("Incorrect password");
+        }
+        String token= jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        return buildAuthResponse(user,token);
+    }
 
-    ResponseEntity<?> closeRequest(String username, long id);
+    private AuthResponse buildAuthResponse(User user,String token){
+        AuthResponse authResponse=new AuthResponse();
+        authResponse.setId(user.getId());
+        authResponse.setEmail(user.getEmail());
+        authResponse.setName(user.getName());
+        authResponse.setRole(user.getRole().name());
+        authResponse.setToken(token);
+        return authResponse;
+    }
 
-    List<ResponseDTO> getRepairRequest(String username);
+
 }
