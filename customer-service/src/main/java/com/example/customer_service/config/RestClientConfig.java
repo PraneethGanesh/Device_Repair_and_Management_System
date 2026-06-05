@@ -3,6 +3,7 @@ package com.example.customer_service.config;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
 
 @Configuration
@@ -13,4 +14,11 @@ public class RestClientConfig {
     public RestClient.Builder loadBalancedRestClientBuilder() {
         return RestClient.builder();
     }
+
+    @Bean
+    @Primary
+    public RestClient.Builder RestClientBuilder() {
+        return RestClient.builder();
+    }
+
 }
