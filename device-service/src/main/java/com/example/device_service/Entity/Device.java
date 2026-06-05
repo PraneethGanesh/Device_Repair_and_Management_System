@@ -12,14 +12,13 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String deviceName;
+    private long vendorId;
     @Enumerated(EnumType.STRING)
     private DeviceType deviceType;
     @Enumerated(EnumType.STRING)
     private DeviceStatus deviceStatus;
-    private String serialNumber;
     private LocalDate warrantyExpiry;
-    private long assignedToId;
-    private long vendorId;
+
 
     public DeviceType getDeviceType() {
         return deviceType;
@@ -37,13 +36,6 @@ public class Device {
         this.deviceStatus = deviceStatus;
     }
 
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-    }
 
     public LocalDate getWarrantyExpiry() {
         return warrantyExpiry;
@@ -53,13 +45,6 @@ public class Device {
         this.warrantyExpiry = warrantyExpiry;
     }
 
-    public long getAssignedToId() {
-        return assignedToId;
-    }
-
-    public void setAssignedToId(long assignedToId) {
-        this.assignedToId = assignedToId;
-    }
 
     public long getVendorId() {
         return vendorId;

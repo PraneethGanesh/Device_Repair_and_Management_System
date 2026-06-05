@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="vendor-service" />
         <module name="repair-service" />
+        <module name="customer-service" />
         <module name="api-gateway" />
         <module name="user-service" />
         <module name="device-service" />
@@ -19,6 +20,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api-gateway" options="-parameters" />
+      <module name="customer-service" options="-parameters" />
       <module name="device-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="notification-service" options="-parameters" />

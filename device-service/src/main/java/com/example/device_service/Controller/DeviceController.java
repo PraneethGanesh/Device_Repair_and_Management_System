@@ -24,17 +24,10 @@ public class DeviceController {
     @PostMapping("/{vendorId}")
     public ResponseEntity<DeviceDTO> addDevice(@RequestBody DeviceDTO deviceDTO,
                                                @PathVariable long vendorId) {
-        Device savedDevice = deviceService.addDevice(deviceDTO,vendorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ToDeviceDTO(savedDevice));
+        return ResponseEntity.ok(deviceService.addDevice(deviceDTO,vendorId));
     }
 
-    private DeviceDTO ToDeviceDTO(Device device){
-        DeviceDTO deviceDTO=new DeviceDTO();
-        deviceDTO.setDeviceName(device.getDeviceName());
-        deviceDTO.setDeviceType(device.getDeviceType());
-        deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
-        return deviceDTO;
-    }
+
 
     @PostMapping("/assign")
     public ResponseEntity<DeviceDTO> assignDevice(@RequestBody AssignmentRequest assignmentRequest) {
@@ -85,7 +78,6 @@ public class DeviceController {
         Device device= deviceService.getDeviceById(id);
         DeviceResponseDTO deviceResponseDTO=new DeviceResponseDTO();
         deviceResponseDTO.setVendorId(device.getVendorId());
-        deviceResponseDTO.setAssignedtoId(device.getAssignedToId());
         return deviceResponseDTO;
     }
 }
