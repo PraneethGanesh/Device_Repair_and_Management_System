@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
 
-    Optional<Company> findByUserId(UUID userId);
+    Optional<Company> findByUserId(String userId);
 
     Optional<Company> findByGstNumber(String gstNumber);
 

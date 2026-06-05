@@ -9,7 +9,7 @@ import java.util.UUID;
 public class CompanyResponse {
 
     private UUID id;
-    private UUID userId;
+    private String userId;
     private String companyName;
     private String gstNumber;
     private String address;
@@ -19,7 +19,7 @@ public class CompanyResponse {
     // Constructors
     public CompanyResponse() {}
 
-    public CompanyResponse(UUID id, UUID userId, String companyName, String gstNumber,
+    public CompanyResponse(UUID id, String userId, String companyName, String gstNumber,
                            String address, ApprovalStatus approvalStatus, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
@@ -45,7 +45,7 @@ public class CompanyResponse {
 
     // Getters
     public UUID getId() { return id; }
-    public UUID getUserId() { return userId; }
+    public String getUserId() { return userId; }
     public String getCompanyName() { return companyName; }
     public String getGstNumber() { return gstNumber; }
     public String getAddress() { return address; }
@@ -54,7 +54,7 @@ public class CompanyResponse {
 
     // Setters
     public void setId(UUID id) { this.id = id; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
     public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
     public void setAddress(String address) { this.address = address; }

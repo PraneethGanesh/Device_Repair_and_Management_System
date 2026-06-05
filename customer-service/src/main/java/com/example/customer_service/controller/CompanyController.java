@@ -27,7 +27,7 @@ public class CompanyController {
     // CompanyController — correct way
     @PostMapping
     public ResponseEntity<CompanyResponse> registerCompany(
-            @RequestHeader("X-User-Id") UUID userId,       // ← from gateway header
+            @RequestHeader("X-User-Id") String userId,
             @Valid @RequestBody CompanyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(companyService.registerCompany(userId, request));
@@ -47,7 +47,7 @@ public class CompanyController {
 
     // GET /api/companies/user/{userId} — Get company by userId
     @GetMapping("/user/{userId}")
-    public ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable String userId) {
         return ResponseEntity.ok(companyService.getCompanyByUserId(userId));
     }
 

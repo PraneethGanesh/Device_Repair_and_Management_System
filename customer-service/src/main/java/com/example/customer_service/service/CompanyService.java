@@ -23,7 +23,7 @@ public class CompanyService {
         this.companyRepository = companyRepository;
     }
 
-    public CompanyResponse registerCompany(UUID userId, CompanyRequest request) {
+    public CompanyResponse registerCompany(String userId, CompanyRequest request) {
         if (companyRepository.existsByGstNumber(request.getGstNumber())) {
             throw new DuplicateResourceException("Company with GST number already exists: " + request.getGstNumber());
         }
@@ -45,7 +45,7 @@ public class CompanyService {
         return CompanyResponse.from(company);
     }
 
-    public CompanyResponse getCompanyByUserId(UUID userId) {
+    public CompanyResponse getCompanyByUserId(String userId) {
         Company company = companyRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found for userId: " + userId));
         return CompanyResponse.from(company);

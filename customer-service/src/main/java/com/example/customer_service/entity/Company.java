@@ -15,7 +15,7 @@ public class Company {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID userId;
+    private String userId;
 
     @Column(nullable = false)
     private String companyName;
@@ -37,7 +37,7 @@ public class Company {
     // Constructors
     public Company() {}
 
-    public Company(UUID userId, String companyName, String gstNumber, String address) {
+    public Company(String userId, String companyName, String gstNumber, String address) {
         this.userId = userId;
         this.companyName = companyName;
         this.gstNumber = gstNumber;
@@ -46,7 +46,7 @@ public class Company {
 
     // Getters
     public UUID getId() { return id; }
-    public UUID getUserId() { return userId; }
+    public String getUserId() { return userId; }
     public String getCompanyName() { return companyName; }
     public String getGstNumber() { return gstNumber; }
     public String getAddress() { return address; }
@@ -56,7 +56,7 @@ public class Company {
 
     // Setters
     public void setId(UUID id) { this.id = id; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
     public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
     public void setAddress(String address) { this.address = address; }

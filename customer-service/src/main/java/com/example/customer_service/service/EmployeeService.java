@@ -1,7 +1,11 @@
 package com.example.customer_service.service;
 
+import com.example.customer_service.client.UserServiceClient;
 import com.example.customer_service.dto.EmployeeRequest;
 import com.example.customer_service.dto.EmployeeResponse;
+import com.example.customer_service.dto.UserRegistrationRequest;
+import com.example.customer_service.dto.UserRegistrationResponse;
+import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
 import com.example.customer_service.entity.Employee;
 import com.example.customer_service.entity.InviteStatus;
@@ -20,10 +24,15 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final CompanyRepository companyRepository;
+    private final UserServiceClient userServiceClient;
 
-    public EmployeeService(EmployeeRepository employeeRepository, CompanyRepository companyRepository) {
+    public EmployeeService(
+            EmployeeRepository employeeRepository,
+            CompanyRepository companyRepository,
+            UserServiceClient userServiceClient) {
         this.employeeRepository = employeeRepository;
         this.companyRepository = companyRepository;
+        this.userServiceClient = userServiceClient;
     }
 
     public EmployeeResponse inviteEmployee(EmployeeRequest request) {
@@ -34,6 +43,14 @@ public class EmployeeService {
         Company company = companyRepository.findById(request.getCompanyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + request.getCompanyId()));
 
+        if (company.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new IllegalStateException("Company must be approved before employees can be registered");
+        }
+
+        UserRegistrationResponse user = userServiceClient.registerCompanyEmployee(
+                new UserRegistrationRequest(request.getFullName(), request.getEmail(), request.getPassword())
+        );
+
         Employee employee = new Employee(
                 request.getEmail(),
                 request.getFullName(),
@@ -41,6 +58,8 @@ public class EmployeeService {
                 request.getDesignation(),
                 company
         );
+        employee.setUserId(user.getId());
+        employee.setInviteStatus(InviteStatus.ACCEPTED);
 
         Employee saved = employeeRepository.save(employee);
         return EmployeeResponse.from(saved);
