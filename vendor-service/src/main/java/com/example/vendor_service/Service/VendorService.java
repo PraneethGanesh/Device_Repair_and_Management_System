@@ -1,10 +1,20 @@
     package com.example.vendor_service.Service;
 
+    import com.example.vendor_service.DTO.ActionDTO;
     import com.example.vendor_service.DTO.RegisterDTO;
+    import com.example.vendor_service.DTO.VendorResponseDTO;
     import com.example.vendor_service.Entity.Vendor;
     import com.example.vendor_service.Enum.ApprovalStatus;
+    import com.example.vendor_service.Exception.VendorNotFoundException;
     import com.example.vendor_service.Repository.VendorRepository;
+    import org.springframework.http.ResponseEntity;
     import org.springframework.stereotype.Service;
+
+    import java.time.LocalDateTime;
+    import java.util.HashMap;
+    import java.util.List;
+    import java.util.Map;
+    import java.util.stream.Collectors;
 
     @Service
     public class VendorService {
@@ -26,6 +36,52 @@
             vendor.setAddress(registerDTO.getAddress());
             return vendorRepository.save(vendor);
         }
+
+        public ResponseEntity<?> approveVendor(ActionDTO actionDTO, String role) {
+            if(!role.equals("ADMIN")){
+             return ResponseEntity.badRequest().body("Only admin can approve or reject the vendor account");
+            }
+            Vendor vendor=vendorRepository.findById(actionDTO.getVendorId()).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id:"+actionDTO.getVendorId())
+            );
+
+            vendor.setApprovalStatus(ApprovalStatus.valueOf(actionDTO.getAction().toUpperCase()));
+            vendor.setOnboardedAt(LocalDateTime.now());
+            Vendor saved=vendorRepository.save(vendor);
+            return ResponseEntity.ok(saved);
+        }
+
+        public ResponseEntity<?> myAccount(String userId) {
+            Vendor vendor=vendorRepository.findByUserId(userId).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id: "+userId)
+            );
+            return ResponseEntity.ok(
+                    Map.of("Approval status:",vendor.getApprovalStatus().equals(ApprovalStatus.APPROVED)?"Account approved by Admin":" Account Not approved By admin",
+                            "Vendor Account:",vendor)
+            );
+        }
+
+        public ResponseEntity<?> getPendingAccount(String role) {
+            if(!role.equals("ADMIN")){
+                return ResponseEntity.badRequest().body("Only admin can see the pending vendor account");
+            }
+            List<Vendor> vendorsList=vendorRepository.findByApproval(ApprovalStatus.PENDING.name());
+            List<VendorResponseDTO> vendorResponseDTOS=vendorsList.stream()
+                    .map(vendor -> toVendorResponseDTO(vendor))
+                    .toList();
+            return ResponseEntity.ok(vendorResponseDTOS);
+        }
+
+        private VendorResponseDTO toVendorResponseDTO(Vendor vendor){
+            VendorResponseDTO vendorResponseDTO=new VendorResponseDTO();
+            vendorResponseDTO.setCompanyName(vendor.getCompanyName());
+            vendorResponseDTO.setEmail(vendor.getEmail());
+            vendorResponseDTO.setPhone(vendor.getPhone());
+            vendorResponseDTO.setGstNumber(vendor.getGstNumber());
+            return vendorResponseDTO;
+        }
+
+
 
 //        private final VendorRepository vendorRepository;
 //        private final RestClient deviceClient;
