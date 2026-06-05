@@ -2,7 +2,7 @@ package com.example.user_service.dto;
 
 public class AuthResponse {
     private String token;
-    private Long id;
+    private String id;
     private String name;
     private String email;
     private String role;
@@ -11,7 +11,7 @@ public class AuthResponse {
         return token;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -31,7 +31,7 @@ public class AuthResponse {
         this.token = token;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
