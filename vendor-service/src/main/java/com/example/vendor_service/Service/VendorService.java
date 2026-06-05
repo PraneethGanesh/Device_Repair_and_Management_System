@@ -1,14 +1,17 @@
     package com.example.vendor_service.Service;
 
     import com.example.vendor_service.DTO.ActionDTO;
+    import com.example.vendor_service.DTO.DeviceDTO;
     import com.example.vendor_service.DTO.RegisterDTO;
     import com.example.vendor_service.DTO.VendorResponseDTO;
     import com.example.vendor_service.Entity.Vendor;
     import com.example.vendor_service.Enum.ApprovalStatus;
     import com.example.vendor_service.Exception.VendorNotFoundException;
     import com.example.vendor_service.Repository.VendorRepository;
+    import org.springframework.cloud.client.loadbalancer.LoadBalanced;
     import org.springframework.http.ResponseEntity;
     import org.springframework.stereotype.Service;
+    import org.springframework.web.client.RestClient;
 
     import java.time.LocalDateTime;
     import java.util.HashMap;
@@ -19,9 +22,12 @@
     @Service
     public class VendorService {
         private final VendorRepository vendorRepository;
+        private final RestClient deviceClient;
 
-        public VendorService(VendorRepository vendorRepository) {
+
+        public VendorService(VendorRepository vendorRepository,@LoadBalanced RestClient.Builder restClientBuilder) {
             this.vendorRepository = vendorRepository;
+            this.deviceClient=restClientBuilder.baseUrl("http://device-service").build();
         }
 
         public Vendor registerVendor(RegisterDTO registerDTO,
@@ -81,6 +87,36 @@
             return vendorResponseDTO;
         }
 
+        public ResponseEntity<?> addDevice(DeviceDTO deviceDTO, String username, String role){
+            if(!role.equals("VENDOR")){
+                return ResponseEntity.badRequest().body("only vendor has the access to add the device");
+            }
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
+
+          ResponseEntity<DeviceDTO> deviceDTOResponseEntity=deviceClient.post()
+                  .uri("/api/devices/{vendorId}",vendor.getId())
+                  .body(deviceDTO)
+                  .retrieve()
+                  .toEntity(DeviceDTO.class);
+          return deviceDTOResponseEntity;
+        }
+
+        public ResponseEntity<?> getDevices(String username,String role){
+            if(!role.equals("VENDOR")){
+                return ResponseEntity.badRequest().body("only vendor has the access to see his device");
+            }
+            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
+                    ()-> new VendorNotFoundException("vendor not found:"+username)
+            );
+          List<DeviceDTO> deviceDTOS= deviceClient.get()
+                  .uri("/api/devices/vendor/{vendorId}",vendor.getId())
+                  .retrieve()
+                  .body(List.class);
+          return ResponseEntity.ok(deviceDTOS);
+        }
+
 
 
 //        private final VendorRepository vendorRepository;
@@ -110,28 +146,6 @@
 //
 //            String token= jwtUtil.generate(saved.getEmail(), saved.getRole().name());
 //            return buildAuthResponse(saved,token);
-//        }
-//
-//        private AuthResponse buildAuthResponse(Vendor vendor, String token) {
-//            AuthResponse response = new AuthResponse();
-//            response.setToken(token);
-//            response.setId(vendor.getVendorId());
-//            response.setName(vendor.getVendorName());
-//            response.setEmail(vendor.getEmail());
-//            response.setRole(vendor.getRole().name());
-//            return response;
-//        }
-//
-//        public AuthResponse login(AuthRequest authRequest) {
-//            Vendor vendor = vendorRepository.findByEmail(authRequest.getEmail())
-//                    .orElseThrow(() -> new RuntimeException("No account found for: " + authRequest.getEmail()));
-//
-//            if (!passwordEncoder.matches(authRequest.getPassword(), vendor.getPassword())) {
-//                throw new BadCredentialsException("Incorrect password");
-//            }
-//
-//            String token = jwtUtil.generate(vendor.getEmail(), vendor.getRole().name());
-//            return buildAuthResponse(vendor, token);
 //        }
 //
 //        public ResponseEntity<?> addDevice(DeviceDTO deviceDTO,String username,String role){

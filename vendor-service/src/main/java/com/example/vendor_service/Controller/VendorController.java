@@ -1,6 +1,7 @@
 package com.example.vendor_service.Controller;
 
 import com.example.vendor_service.DTO.ActionDTO;
+import com.example.vendor_service.DTO.DeviceDTO;
 import com.example.vendor_service.DTO.RegisterDTO;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
@@ -41,19 +42,18 @@ public class VendorController {
     }
 
 
-//
-//    @PostMapping("/devices")
-//    public ResponseEntity<?> addDevice(@RequestBody DeviceDTO deviceDTO,
-//                                               @RequestHeader("X-Auth-User") String username,
-//                                               @RequestHeader("X-Auth-Role") String role) {
-//        return vendorService.addDevice(deviceDTO,username,role);
-//    }
-//
-//    @GetMapping("/devices")
-//    public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
-//                                                      @RequestHeader("X-Auth-Role") String role){
-//       return vendorService.getDevices(username,role);
-//    }
+    @PostMapping("/devices")
+    public ResponseEntity<?> addDevice(@RequestBody DeviceDTO deviceDTO,
+                                       @RequestHeader("X-Auth-User") String username,
+                                       @RequestHeader("X-Auth-Role") String role) {
+        return vendorService.addDevice(deviceDTO,username,role);
+    }
+
+    @GetMapping("/devices")
+    public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
+                                                      @RequestHeader("X-Auth-Role") String role){
+       return vendorService.getDevices(username,role);
+    }
 //
 //    @GetMapping("/profile")
 //    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){

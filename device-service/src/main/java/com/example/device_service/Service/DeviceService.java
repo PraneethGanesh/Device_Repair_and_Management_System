@@ -21,22 +21,28 @@ public class DeviceService {
         this.deviceRepository = deviceRepository;
     }
 
-    public Device addDevice(DeviceDTO deviceDTO,long vendorId){
+    public DeviceDTO addDevice(DeviceDTO deviceDTO,long vendorId){
         Device device=new Device();
         device.setDeviceName(deviceDTO.getDeviceName());
         device.setDeviceType(deviceDTO.getDeviceType());
         device.setDeviceStatus(DeviceStatus.AVAILABLE);
-        device.setSerialNumber(UUID.randomUUID().toString());
         device.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
         device.setVendorId(vendorId);
-        return deviceRepository.save(device);
+        Device saved=deviceRepository.save(device);
+        return toDeviceDto(saved);
+    }
+    private DeviceDTO ToDeviceDTO(Device device){
+        DeviceDTO deviceDTO=new DeviceDTO();
+        deviceDTO.setDeviceName(device.getDeviceName());
+        deviceDTO.setDeviceType(device.getDeviceType());
+        deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
+        return deviceDTO;
     }
 
     public DeviceDTO assignDevice(AssignmentRequest assignmentRequest){
         Device device=deviceRepository.findById(assignmentRequest.getDeviceId())
                 .orElseThrow(() -> new DeviceNotFoundException(
                         "Device not found with id: " + assignmentRequest.getDeviceId()));
-        device.setAssignedToId(assignmentRequest.getUserId());
         device.setDeviceStatus(DeviceStatus.ASSIGNED);
         Device saved=deviceRepository.save(device);
         return toDeviceDto(saved);
