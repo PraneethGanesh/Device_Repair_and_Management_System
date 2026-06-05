@@ -19,7 +19,9 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/api/auth/**",
                                 "/actuator/health",
-                                "/actuator/info"
+                                "/actuator/info",
+                                "/api/users/register/**",
+                                "/api/users/login"
                         ).permitAll()
                         // Everything else requires authentication (handled by JwtAuthFilter)
                         .anyExchange().permitAll()

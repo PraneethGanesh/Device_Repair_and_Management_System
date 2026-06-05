@@ -27,15 +27,9 @@ public class GatewayConfig {
 
 
                 .route("user-auth", r -> r
-                        .path("/api/users/register","/api/users/login")
+                        .path("/api/users/register/**","/api/users/login")
                         .uri("lb://user-service"))
 
-                // User Service - PROTECTED
-                .route("user-service", r -> r
-                        .path("/api/users/**")
-                        .filters(f -> f
-                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
-                        .uri("lb://user-service"))
 
                 // Device Service - PROTECTED
                 .route("device-service", r -> r

@@ -16,7 +16,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/Register/{role}")
+    @PostMapping("/register/{role}")
     public AuthResponse registerUser(@PathVariable String role, @RequestBody UserDTO userDTO){
         return userService.registerUser(userDTO,role);
     }
