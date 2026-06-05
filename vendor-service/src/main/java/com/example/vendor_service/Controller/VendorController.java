@@ -1,5 +1,6 @@
 package com.example.vendor_service.Controller;
 
+import com.example.vendor_service.DTO.ActionDTO;
 import com.example.vendor_service.DTO.RegisterDTO;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
@@ -22,6 +23,23 @@ public class VendorController {
                                                  @RequestHeader("X-Auth-Id") String userId){
          return ResponseEntity.ok(vendorService.registerVendor(registerDTO,username,userId));
     }
+
+    @PutMapping("/review")
+    public ResponseEntity<?> approveVendor(@RequestBody ActionDTO actionDTO,
+                                           @RequestHeader("X-Auth-Role") String role){
+        return vendorService.approveVendor(actionDTO,role);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> myAccount(@RequestHeader("X-Auth-Id") String userId){
+        return vendorService.myAccount(userId);
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingAccount(@RequestHeader("X-Auth-Role") String role){
+        return vendorService.getPendingAccount(role);
+    }
+
 
 //
 //    @PostMapping("/devices")
