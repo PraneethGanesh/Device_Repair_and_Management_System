@@ -1,14 +1,14 @@
-package com.dms.customerservice.service;
+package com.example.customer_service.service;
 
-import com.dms.customerservice.dto.request.EmployeeRequest;
-import com.dms.customerservice.dto.response.EmployeeResponse;
-import com.dms.customerservice.entity.Company;
-import com.dms.customerservice.entity.Employee;
-import com.dms.customerservice.entity.InviteStatus;
-import com.dms.customerservice.exception.DuplicateResourceException;
-import com.dms.customerservice.exception.ResourceNotFoundException;
-import com.dms.customerservice.repository.CompanyRepository;
-import com.dms.customerservice.repository.EmployeeRepository;
+import com.example.customer_service.dto.EmployeeRequest;
+import com.example.customer_service.dto.EmployeeResponse;
+import com.example.customer_service.entity.Company;
+import com.example.customer_service.entity.Employee;
+import com.example.customer_service.entity.InviteStatus;
+import com.example.customer_service.exception.DuplicateResourceException;
+import com.example.customer_service.exception.ResourceNotFoundException;
+import com.example.customer_service.repository.CompanyRepository;
+import com.example.customer_service.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

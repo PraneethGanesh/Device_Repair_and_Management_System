@@ -1,7 +1,7 @@
-package com.dms.customerservice.dto.response;
+package com.example.customer_service.dto;
 
-import com.dms.customerservice.entity.ApprovalStatus;
-import com.dms.customerservice.entity.Company;
+import com.example.customer_service.entity.ApprovalStatus;
+import com.example.customer_service.entity.Company;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

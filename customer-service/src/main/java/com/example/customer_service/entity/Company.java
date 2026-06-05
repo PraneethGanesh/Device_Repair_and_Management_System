@@ -1,4 +1,4 @@
-package com.dms.customerservice.entity;
+package com.example.customer_service.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

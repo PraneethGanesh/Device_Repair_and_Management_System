@@ -1,4 +1,4 @@
-package com.dms.customerservice.dto.request;
+package com.example.customer_service.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,7 @@
-package com.dms.customerservice.dto.response;
+package com.example.customer_service.dto;
 
-import com.dms.customerservice.entity.Employee;
-import com.dms.customerservice.entity.InviteStatus;
+import com.example.customer_service.entity.Employee;
+import com.example.customer_service.entity.InviteStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

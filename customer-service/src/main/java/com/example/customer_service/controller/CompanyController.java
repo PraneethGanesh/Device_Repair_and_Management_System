@@ -1,9 +1,10 @@
-package com.dms.customerservice.controller;
+package com.example.customer_service.controller;
 
-import com.dms.customerservice.dto.request.CompanyRequest;
-import com.dms.customerservice.dto.response.CompanyResponse;
-import com.dms.customerservice.entity.ApprovalStatus;
-import com.dms.customerservice.service.CompanyService;
+
+import com.example.customer_service.dto.CompanyRequest;
+import com.example.customer_service.dto.CompanyResponse;
+import com.example.customer_service.entity.ApprovalStatus;
+import com.example.customer_service.service.CompanyService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +24,13 @@ public class CompanyController {
     }
 
     // POST /api/companies — Register a company
+    // CompanyController — correct way
     @PostMapping
-    public ResponseEntity<CompanyResponse> registerCompany(@Valid @RequestBody CompanyRequest request) {
-        CompanyResponse response = companyService.registerCompany(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<CompanyResponse> registerCompany(
+            @RequestHeader("X-User-Id") UUID userId,       // ← from gateway header
+            @Valid @RequestBody CompanyRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(companyService.registerCompany(userId, request));
     }
 
     // GET /api/companies — Get all companies

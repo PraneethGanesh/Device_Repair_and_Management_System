@@ -1,9 +1,9 @@
-package com.dms.customerservice.controller;
+package com.example.customer_service.controller;
 
-import com.dms.customerservice.dto.request.EmployeeRequest;
-import com.dms.customerservice.dto.response.EmployeeResponse;
-import com.dms.customerservice.entity.InviteStatus;
-import com.dms.customerservice.service.EmployeeService;
+import com.example.customer_service.dto.EmployeeRequest;
+import com.example.customer_service.dto.EmployeeResponse;
+import com.example.customer_service.entity.InviteStatus;
+import com.example.customer_service.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

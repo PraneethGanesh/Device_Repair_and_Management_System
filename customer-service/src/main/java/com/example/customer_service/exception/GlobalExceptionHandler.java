@@ -1,4 +1,4 @@
-package com.dms.customerservice.exception;
+package com.example.customer_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
