@@ -1,7 +1,7 @@
-package com.dms.customerservice.dto.response;
+package com.example.customer_service.dto;
 
-import com.dms.customerservice.entity.Employee;
-import com.dms.customerservice.entity.InviteStatus;
+import com.example.customer_service.entity.Employee;
+import com.example.customer_service.entity.InviteStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -9,7 +9,7 @@ import java.util.UUID;
 public class EmployeeResponse {
 
     private UUID id;
-    private UUID userId;
+    private String userId;
     private UUID companyId;
     private String email;
     private String fullName;
@@ -21,7 +21,7 @@ public class EmployeeResponse {
     // Constructors
     public EmployeeResponse() {}
 
-    public EmployeeResponse(UUID id, UUID userId, UUID companyId, String email, String fullName,
+    public EmployeeResponse(UUID id, String userId, UUID companyId, String email, String fullName,
                             String department, String designation, InviteStatus inviteStatus,
                             LocalDateTime createdAt) {
         this.id = id;
@@ -52,7 +52,7 @@ public class EmployeeResponse {
 
     // Getters
     public UUID getId() { return id; }
-    public UUID getUserId() { return userId; }
+    public String getUserId() { return userId; }
     public UUID getCompanyId() { return companyId; }
     public String getEmail() { return email; }
     public String getFullName() { return fullName; }
@@ -63,7 +63,7 @@ public class EmployeeResponse {
 
     // Setters
     public void setId(UUID id) { this.id = id; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public void setCompanyId(UUID companyId) { this.companyId = companyId; }
     public void setEmail(String email) { this.email = email; }
     public void setFullName(String fullName) { this.fullName = fullName; }

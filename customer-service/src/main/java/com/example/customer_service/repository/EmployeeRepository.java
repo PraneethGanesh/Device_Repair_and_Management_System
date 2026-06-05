@@ -1,7 +1,7 @@
-package com.dms.customerservice.repository;
+package com.example.customer_service.repository;
 
-import com.dms.customerservice.entity.Employee;
-import com.dms.customerservice.entity.InviteStatus;
+import com.example.customer_service.entity.Employee;
+import com.example.customer_service.entity.InviteStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

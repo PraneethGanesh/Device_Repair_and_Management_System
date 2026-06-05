@@ -1,7 +1,7 @@
-package com.dms.customerservice.repository;
+package com.example.customer_service.repository;
 
-import com.dms.customerservice.entity.ApprovalStatus;
-import com.dms.customerservice.entity.Company;
+import com.example.customer_service.entity.ApprovalStatus;
+import com.example.customer_service.entity.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
 
-    Optional<Company> findByUserId(UUID userId);
+    Optional<Company> findByUserId(String userId);
 
     Optional<Company> findByGstNumber(String gstNumber);
 
