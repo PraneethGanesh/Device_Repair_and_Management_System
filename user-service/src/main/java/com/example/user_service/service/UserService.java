@@ -39,7 +39,7 @@ public class UserService {
     public AuthResponse login(AuthRequest authRequest){
         User user=userRepository.findByEmail(authRequest.getEmail())
                 .orElseThrow(()->new RuntimeException("User not found"));
-        if(passwordEncoder.matches(authRequest.getPassword(),user.getPassword())){
+        if(!passwordEncoder.matches(authRequest.getPassword(),user.getPassword())){
             throw new BadCredentialsException("Incorrect password");
         }
         String token= jwtUtil.generateToken(user.getId(),user.getEmail(), user.getRole().name());

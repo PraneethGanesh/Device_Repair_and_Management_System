@@ -1,13 +1,13 @@
 package com.example.vendor_service.DTO;
 
-public class VendorResponseDTO {
+public class RegisterDTO {
     private String companyName;
-
-    private String email;
 
     private String gstNumber;
 
     private String phone;
+
+    private String address;
 
     public String getCompanyName() {
         return companyName;
@@ -15,14 +15,6 @@ public class VendorResponseDTO {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getGstNumber() {
@@ -39,5 +31,13 @@ public class VendorResponseDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

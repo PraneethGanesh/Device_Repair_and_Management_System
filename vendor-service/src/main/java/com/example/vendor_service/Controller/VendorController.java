@@ -1,17 +1,11 @@
 package com.example.vendor_service.Controller;
 
-import com.example.vendor_service.DTO.AuthRequest;
-import com.example.vendor_service.DTO.AuthResponse;
-import com.example.vendor_service.DTO.DeviceDTO;
-import com.example.vendor_service.DTO.VendorDTO;
+import com.example.vendor_service.DTO.ActionDTO;
+import com.example.vendor_service.DTO.RegisterDTO;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/vendors")
@@ -24,44 +18,58 @@ public class VendorController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> createVendor(@RequestBody VendorDTO vendor) {
-        AuthResponse savedVendor = vendorService.createVendor(vendor);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedVendor);
+    public ResponseEntity<Vendor> registerVendor(@RequestBody RegisterDTO registerDTO,
+                                                 @RequestHeader("X-Auth-User") String username,
+                                                 @RequestHeader("X-Auth-Id") String userId){
+         return ResponseEntity.ok(vendorService.registerVendor(registerDTO,username,userId));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
-        return ResponseEntity.ok(vendorService.login(authRequest));
+    @PutMapping("/review")
+    public ResponseEntity<?> approveVendor(@RequestBody ActionDTO actionDTO,
+                                           @RequestHeader("X-Auth-Role") String role){
+        return vendorService.approveVendor(actionDTO,role);
     }
 
-    @PostMapping("/devices")
-    public ResponseEntity<?> addDevice(@RequestBody DeviceDTO deviceDTO,
-                                               @RequestHeader("X-Auth-User") String username,
-                                               @RequestHeader("X-Auth-Role") String role) {
-        return vendorService.addDevice(deviceDTO,username,role);
+    @GetMapping("/me")
+    public ResponseEntity<?> myAccount(@RequestHeader("X-Auth-Id") String userId){
+        return vendorService.myAccount(userId);
     }
 
-    @GetMapping("/devices")
-    public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
-                                                      @RequestHeader("X-Auth-Role") String role){
-       return vendorService.getDevices(username,role);
-    }
-
-    @GetMapping("/profile")
-    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
-        return vendorService.getMyprofile(username);
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingAccount(@RequestHeader("X-Auth-Role") String role){
+        return vendorService.getPendingAccount(role);
     }
 
 
-    @PutMapping("/mark/progress/{repairId}")
-    public ResponseEntity<?> markInProgress(@RequestHeader("X-Auth-User") String username,
-                                          @PathVariable long repairId){
-        return vendorService.markInProgress(username,repairId);
-    }
-
-    @PutMapping("/mark/complete/{repairId}")
-    public ResponseEntity<?> markCompleted(@RequestHeader("X-Auth-User") String username,
-                                            @PathVariable long repairId){
-        return vendorService.markCompleted(username,repairId);
-    }
+//
+//    @PostMapping("/devices")
+//    public ResponseEntity<?> addDevice(@RequestBody DeviceDTO deviceDTO,
+//                                               @RequestHeader("X-Auth-User") String username,
+//                                               @RequestHeader("X-Auth-Role") String role) {
+//        return vendorService.addDevice(deviceDTO,username,role);
+//    }
+//
+//    @GetMapping("/devices")
+//    public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
+//                                                      @RequestHeader("X-Auth-Role") String role){
+//       return vendorService.getDevices(username,role);
+//    }
+//
+//    @GetMapping("/profile")
+//    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
+//        return vendorService.getMyprofile(username);
+//    }
+//
+//
+//    @PutMapping("/mark/progress/{repairId}")
+//    public ResponseEntity<?> markInProgress(@RequestHeader("X-Auth-User") String username,
+//                                          @PathVariable long repairId){
+//        return vendorService.markInProgress(username,repairId);
+//    }
+//
+//    @PutMapping("/mark/complete/{repairId}")
+//    public ResponseEntity<?> markCompleted(@RequestHeader("X-Auth-User") String username,
+//                                            @PathVariable long repairId){
+//        return vendorService.markCompleted(username,repairId);
+//    }
 }
