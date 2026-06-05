@@ -46,11 +46,13 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
             Claims claims = jwtUtil.extractAllClaims(token);
             String username = claims.getSubject();
             String role = claims.get("role", String.class);
+            String id=claims.get("userId",String.class);
 
             ServerWebExchange mutatedExchange = exchange.mutate()
                     .request(r -> r
                             .header("X-Auth-User", username)
                             .header("X-Auth-Role", role != null ? role : "")
+                            .header("X-Auth-Id",id!=null? id:"")
                     )
                     .build();
 

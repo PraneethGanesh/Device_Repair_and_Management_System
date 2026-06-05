@@ -32,7 +32,7 @@ public class UserService {
        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
        user.setRole(Role.valueOf(role));
        User savedUser=userRepository.save(user);
-       String token= jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+       String token= jwtUtil.generateToken(savedUser.getId(),savedUser.getEmail(), savedUser.getRole().name());
        return buildAuthResponse(savedUser,token);
     }
 
@@ -42,7 +42,7 @@ public class UserService {
         if(passwordEncoder.matches(authRequest.getPassword(),user.getPassword())){
             throw new BadCredentialsException("Incorrect password");
         }
-        String token= jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token= jwtUtil.generateToken(user.getId(),user.getEmail(), user.getRole().name());
         return buildAuthResponse(user,token);
     }
 
@@ -55,6 +55,5 @@ public class UserService {
         authResponse.setToken(token);
         return authResponse;
     }
-
 
 }
