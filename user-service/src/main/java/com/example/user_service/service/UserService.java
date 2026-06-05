@@ -30,7 +30,7 @@ public class UserService {
        user.setName(userDTO.getName());
        user.setEmail(userDTO.getEmail());
        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-       user.setRole(Role.valueOf(role));
+       user.setRole(Role.valueOf(role.toUpperCase()));
        User savedUser=userRepository.save(user);
        String token= jwtUtil.generateToken(savedUser.getId(),savedUser.getEmail(), savedUser.getRole().name());
        return buildAuthResponse(savedUser,token);
