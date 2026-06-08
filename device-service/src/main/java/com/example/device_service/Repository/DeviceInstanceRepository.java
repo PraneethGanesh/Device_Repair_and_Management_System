@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface DeviceInstanceRepository extends JpaRepository<DeviceInstance,Long> {
     @Query("select deviceInstance from DeviceInstance deviceInstance where deviceInstance.device_id = :deviceId")
@@ -13,4 +14,7 @@ public interface DeviceInstanceRepository extends JpaRepository<DeviceInstance,L
 
     @Query("select deviceInstance from DeviceInstance deviceInstance where deviceInstance.order_id = :orderId")
     List<DeviceInstance> findByOrder_id(@Param("orderId") long orderId);
+
+    @Query("select deviceInstance from DeviceInstance deviceInstance where deviceInstance.company_id = :companyId")
+    List<DeviceInstance> findByCompanyId(@Param("companyId") UUID companyId);
 }

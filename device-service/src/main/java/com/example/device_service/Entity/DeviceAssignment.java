@@ -2,11 +2,14 @@ package com.example.device_service.Entity;
 
 import com.example.device_service.Enum.AssignmentStatus;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class DeviceAssignment {
@@ -14,10 +17,12 @@ public class DeviceAssignment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private long device_instance_id;
-    private long company_id;
-    private long employee_id;
+    private UUID company_id;
+    private UUID employee_id;
+    @Enumerated(EnumType.STRING)
     private AssignmentStatus status;
     private LocalDateTime assigned_at;
+    private LocalDateTime returned_at;
 
     public long getId() {
         return id;
@@ -35,19 +40,19 @@ public class DeviceAssignment {
         this.device_instance_id = device_instance_id;
     }
 
-    public long getCompany_id() {
+    public UUID getCompany_id() {
         return company_id;
     }
 
-    public void setCompany_id(long company_id) {
+    public void setCompany_id(UUID company_id) {
         this.company_id = company_id;
     }
 
-    public long getEmployee_id() {
+    public UUID getEmployee_id() {
         return employee_id;
     }
 
-    public void setEmployee_id(long employee_id) {
+    public void setEmployee_id(UUID employee_id) {
         this.employee_id = employee_id;
     }
 
@@ -65,5 +70,13 @@ public class DeviceAssignment {
 
     public void setAssigned_at(LocalDateTime assigned_at) {
         this.assigned_at = assigned_at;
+    }
+
+    public LocalDateTime getReturned_at() {
+        return returned_at;
+    }
+
+    public void setReturned_at(LocalDateTime returned_at) {
+        this.returned_at = returned_at;
     }
 }

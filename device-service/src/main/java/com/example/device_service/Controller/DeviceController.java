@@ -33,7 +33,7 @@ public class DeviceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DeviceResponseDTO> getDeviceById(@PathVariable long id) {
+    public ResponseEntity<DeviceResponseDTO> getDeviceById(@PathVariable("id") long id) {
         return ResponseEntity.ok(deviceService.getDeviceById(id));
     }
 

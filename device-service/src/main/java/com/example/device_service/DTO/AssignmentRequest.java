@@ -1,22 +1,24 @@
 package com.example.device_service.DTO;
 
+import java.util.UUID;
+
 public class AssignmentRequest {
-    private long deviceId;
-    private long userId;
+    private long deviceInstanceId;
+    private UUID employeeId;
 
-    public long getDeviceId() {
-        return deviceId;
+    public long getDeviceInstanceId() {
+        return deviceInstanceId;
     }
 
-    public void setDeviceId(long deviceId) {
-        this.deviceId = deviceId;
+    public void setDeviceInstanceId(long deviceInstanceId) {
+        this.deviceInstanceId = deviceInstanceId;
     }
 
-    public long getUserId() {
-        return userId;
+    public UUID getEmployeeId() {
+        return employeeId;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setEmployeeId(UUID employeeId) {
+        this.employeeId = employeeId;
     }
 }

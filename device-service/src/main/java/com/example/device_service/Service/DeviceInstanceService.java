@@ -48,4 +48,8 @@ public class DeviceInstanceService {
         }
         return ResponseEntity.ok("update the device status to purchased");
     }
+
+    public List<DeviceInstance> getDeviceInstancesByCompany(UUID companyId) {
+        return deviceInstanceRepository.findByCompanyId(companyId);
+    }
 }
