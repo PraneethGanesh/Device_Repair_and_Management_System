@@ -3,12 +3,16 @@ package com.example.customer_service.service;
 
 import com.example.customer_service.dto.CompanyRequest;
 import com.example.customer_service.dto.CompanyResponse;
+import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
 import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,9 +22,11 @@ import java.util.stream.Collectors;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final RestClient orderClient;
 
-    public CompanyService(CompanyRepository companyRepository) {
+    public CompanyService(CompanyRepository companyRepository, @LoadBalanced RestClient.Builder orderClientBuilder) {
         this.companyRepository = companyRepository;
+        this.orderClient = orderClientBuilder.baseUrl("http://order-service").build();
     }
 
     public CompanyResponse registerCompany(String userId, CompanyRequest request) {
@@ -90,5 +96,17 @@ public class CompanyService {
             throw new ResourceNotFoundException("Company not found with id: " + id);
         }
         companyRepository.deleteById(id);
+    }
+
+    public ResponseEntity<String> placeOrder(String userId, OrderRequest orderRequest) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()-> new RuntimeException("Company not found")
+        );
+        ResponseEntity<String> response=orderClient.post()
+                .uri("/api/order/{companyId}",company.getId())
+                .body(orderRequest)
+                .retrieve()
+                .toEntity(String.class);
+        return response;
     }
 }

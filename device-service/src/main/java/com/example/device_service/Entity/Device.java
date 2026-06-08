@@ -15,8 +15,7 @@ public class Device {
     private long vendorId;
     @Enumerated(EnumType.STRING)
     private DeviceType deviceType;
-    @Enumerated(EnumType.STRING)
-    private DeviceStatus deviceStatus;
+    private int stockQuantity;
     private LocalDate warrantyExpiry;
 
 
@@ -28,15 +27,6 @@ public class Device {
         this.deviceType = deviceType;
     }
 
-    public DeviceStatus getDeviceStatus() {
-        return deviceStatus;
-    }
-
-    public void setDeviceStatus(DeviceStatus deviceStatus) {
-        this.deviceStatus = deviceStatus;
-    }
-
-
     public LocalDate getWarrantyExpiry() {
         return warrantyExpiry;
     }
@@ -44,7 +34,6 @@ public class Device {
     public void setWarrantyExpiry(LocalDate warrantyExpiry) {
         this.warrantyExpiry = warrantyExpiry;
     }
-
 
     public long getVendorId() {
         return vendorId;
@@ -68,5 +57,13 @@ public class Device {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
     }
 }

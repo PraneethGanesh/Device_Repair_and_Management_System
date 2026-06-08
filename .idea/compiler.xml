@@ -11,6 +11,7 @@
         <module name="customer-service" />
         <module name="api-gateway" />
         <module name="user-service" />
+        <module name="order-service" />
         <module name="device-service" />
         <module name="eureka-server" />
         <module name="notification-service" />
@@ -24,6 +25,7 @@
       <module name="device-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="notification-service" options="-parameters" />
+      <module name="order-service" options="-parameters" />
       <module name="repair-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
       <module name="vendor-service" options="-parameters" />

@@ -1,6 +1,4 @@
-package com.example.device_service.DTO;
-
-
+package com.example.order_service.DTO;
 
 public class DeviceResponseDTO {
     private long vendorId;

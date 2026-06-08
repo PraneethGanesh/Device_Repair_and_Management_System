@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: order-service
+
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/device_db
+    username: ${env.USER_NAME}
+    password: ${env.PASSWORD}
+
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+
