@@ -25,6 +25,7 @@ public class DeviceService {
         device.setDeviceName(deviceDTO.getDeviceName());
         device.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
         device.setVendorId(vendorId);
+        device.setDeviceType(deviceDTO.getDeviceType());
         device.setStockQuantity(deviceDTO.getStockQuantity());
         Device saved=deviceRepository.save(device);
         return toDeviceDto(saved);
