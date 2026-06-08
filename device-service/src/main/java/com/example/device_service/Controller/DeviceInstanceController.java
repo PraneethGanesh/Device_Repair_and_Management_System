@@ -19,8 +19,8 @@ public class DeviceInstanceController {
         return deviceInstanceService.addDeviceInstance(orderDTO);
     }
 
-    @PutMapping("/{deviceId}")
-    public ResponseEntity<?> updateDeviceInstance(@PathVariable long deviceId){
-        return deviceInstanceService.updateDeviceInstance(deviceId);
+    @PutMapping("/{orderId}")
+    public ResponseEntity<?> updateDeviceInstance(@PathVariable long orderId){
+        return deviceInstanceService.updateDeviceInstance(orderId);
     }
 }

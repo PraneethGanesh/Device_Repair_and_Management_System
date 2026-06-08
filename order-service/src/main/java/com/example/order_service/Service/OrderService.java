@@ -7,10 +7,10 @@ import com.example.order_service.DTO.OrderRequest;
 import com.example.order_service.Entity.Order;
 import com.example.order_service.Enum.OrderStatus;
 import com.example.order_service.Repository.OrderRepository;
-import com.netflix.appinfo.InstanceInfo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -39,6 +39,7 @@ public class OrderService {
         order.setVendor_id(orderRequest.getVendor_id());
         order.setQuantity(orderRequest.getQuantity());
         order.setStatus(OrderStatus.REQUESTED);
+        order.setPlaced_at(LocalDateTime.now());
         Order saved=orderRepository.save(order);
         OrderDTO orderDTO=toOrderDTO(saved);
         deviceServiceClient.addDeviceInstance(orderDTO);
@@ -48,7 +49,7 @@ public class OrderService {
     private OrderDTO toOrderDTO(Order order){
         OrderDTO orderDTO=new OrderDTO();
         orderDTO.setOrder_id(order.getId());
-        orderDTO.setCompany_id(orderDTO.getCompany_id());
+        orderDTO.setCompany_id(order.getCompany_id());
         orderDTO.setDevice_id(order.getDevice_id());
         orderDTO.setQuantity(order.getQuantity());
         return orderDTO;
@@ -60,7 +61,8 @@ public class OrderService {
                         ()->new RuntimeException("orderNotFound")
                 );
         order.setStatus(OrderStatus.APPROVED);
-        deviceServiceClient.updateDeviceInstance(order.getDevice_id());
+        orderRepository.save(order);
+        deviceServiceClient.updateDeviceInstance(order.getId());
         return ResponseEntity.ok("Accepted the order of the comapny:"+order.getCompany_id());
     }
 }

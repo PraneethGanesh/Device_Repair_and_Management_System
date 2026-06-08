@@ -82,8 +82,7 @@ public class DeviceService {
         Device device=deviceRepository.findById(orderDTO.getDevice_id()).orElseThrow(
                 ()->new RuntimeException("Device not found:"+orderDTO.getDevice_id())
         );
-        int totalQuantity= orderDTO.getQuantity();
-        device.setStockQuantity(totalQuantity- orderDTO.getQuantity());
+        device.setStockQuantity(device.getStockQuantity() - orderDTO.getQuantity());
         deviceRepository.save(device);
     }
 }
