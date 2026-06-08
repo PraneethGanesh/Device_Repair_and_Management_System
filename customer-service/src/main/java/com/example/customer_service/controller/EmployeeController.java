@@ -49,6 +49,14 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getEmployeesByCompanyIdAndStatus(companyId, status));
     }
 
+    // GET /api/employees/{employeeId}/company/{companyId}/exists — Check employee belongs to company
+    @GetMapping("/{employeeId}/company/{companyId}/exists")
+    public ResponseEntity<Boolean> employeeBelongsToCompany(
+            @PathVariable UUID employeeId,
+            @PathVariable UUID companyId) {
+        return ResponseEntity.ok(employeeService.employeeBelongsToCompany(employeeId, companyId));
+    }
+
     // PATCH /api/employees/{id}/accept — Accept an invite
     @PatchMapping("/{id}/accept")
     public ResponseEntity<EmployeeResponse> acceptInvite(@PathVariable UUID id) {

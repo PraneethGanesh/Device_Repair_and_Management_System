@@ -88,6 +88,16 @@ public class EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    public boolean employeeBelongsToCompany(UUID employeeId, UUID companyId) {
+        if (!companyRepository.existsById(companyId)) {
+            throw new ResourceNotFoundException("Company not found with id: " + companyId);
+        }
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new ResourceNotFoundException("Employee not found with id: " + employeeId);
+        }
+        return employeeRepository.existsByIdAndCompanyId(employeeId, companyId);
+    }
+
     public EmployeeResponse acceptInvite(UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
