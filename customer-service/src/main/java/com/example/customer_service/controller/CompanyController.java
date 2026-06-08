@@ -3,6 +3,7 @@ package com.example.customer_service.controller;
 
 import com.example.customer_service.dto.CompanyRequest;
 import com.example.customer_service.dto.CompanyResponse;
+import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.service.CompanyService;
 import jakarta.validation.Valid;
@@ -79,4 +80,11 @@ public class CompanyController {
         companyService.deleteCompany(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/order")
+    public ResponseEntity<?> placeOrder(@RequestHeader("X-Auth-Id") String userId, @RequestBody OrderRequest orderRequest){
+        return companyService.placeOrder(userId,orderRequest);
+    }
+
+
 }

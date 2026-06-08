@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 public class DeviceDTO {
     private String DeviceName;
+    private int stockQuantity;
     private DeviceType deviceType;
     private LocalDate warrantyExpiry;
 
@@ -26,6 +27,13 @@ public class DeviceDTO {
         this.deviceType = deviceType;
     }
 
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
 
     public LocalDate getWarrantyExpiry() {
         return warrantyExpiry;

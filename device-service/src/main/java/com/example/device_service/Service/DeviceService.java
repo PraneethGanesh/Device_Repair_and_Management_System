@@ -1,16 +1,15 @@
 package com.example.device_service.Service;
 
-import com.example.device_service.DTO.AssignmentRequest;
 import com.example.device_service.DTO.DeviceDTO;
-import com.example.device_service.DTO.DeviceStatusDTO;
+import com.example.device_service.DTO.DeviceResponseDTO;
+import com.example.device_service.DTO.OrderDTO;
 import com.example.device_service.Entity.Device;
 import com.example.device_service.Exception.DeviceNotFoundException;
-import com.example.device_service.Enum.DeviceStatus;
 import com.example.device_service.Repository.DeviceRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,26 +23,9 @@ public class DeviceService {
     public DeviceDTO addDevice(DeviceDTO deviceDTO,long vendorId){
         Device device=new Device();
         device.setDeviceName(deviceDTO.getDeviceName());
-        device.setDeviceType(deviceDTO.getDeviceType());
-        device.setDeviceStatus(DeviceStatus.AVAILABLE);
         device.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
         device.setVendorId(vendorId);
-        Device saved=deviceRepository.save(device);
-        return toDeviceDto(saved);
-    }
-    private DeviceDTO ToDeviceDTO(Device device){
-        DeviceDTO deviceDTO=new DeviceDTO();
-        deviceDTO.setDeviceName(device.getDeviceName());
-        deviceDTO.setDeviceType(device.getDeviceType());
-        deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
-        return deviceDTO;
-    }
-
-    public DeviceDTO assignDevice(AssignmentRequest assignmentRequest){
-        Device device=deviceRepository.findById(assignmentRequest.getDeviceId())
-                .orElseThrow(() -> new DeviceNotFoundException(
-                        "Device not found with id: " + assignmentRequest.getDeviceId()));
-        device.setDeviceStatus(DeviceStatus.ASSIGNED);
+        device.setStockQuantity(deviceDTO.getStockQuantity());
         Device saved=deviceRepository.save(device);
         return toDeviceDto(saved);
     }
@@ -52,10 +34,19 @@ public class DeviceService {
         return deviceRepository.findAll();
     }
 
-    public Device getDeviceById(long deviceId) {
-        return deviceRepository.findById(deviceId)
+    public DeviceResponseDTO getDeviceById(long deviceId) {
+        Device device=deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new DeviceNotFoundException("Device not found with id: " + deviceId));
+        return deviceResponseDTO(device);
     }
+
+    private DeviceResponseDTO deviceResponseDTO(Device device){
+        DeviceResponseDTO deviceResponseDTO=new DeviceResponseDTO();
+        deviceResponseDTO.setVendorId(device.getVendorId());
+        deviceResponseDTO.setStockQuantity(device.getStockQuantity());
+        return deviceResponseDTO;
+    }
+
 
     public List<DeviceDTO> getDeviceByVendor(long vendorId) {
         List<Device> devices = deviceRepository.findByVendorId(vendorId);
@@ -65,41 +56,34 @@ public class DeviceService {
     }
 
 
-    public Device updateDevice(long deviceId, DeviceDTO deviceDTO) {
-        Device existingDevice = getDeviceById(deviceId);
-        existingDevice.setDeviceName(deviceDTO.getDeviceName());
-        existingDevice.setDeviceType(deviceDTO.getDeviceType());
-        existingDevice.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
-        return deviceRepository.save(existingDevice);
-    }
-
-    public void deleteDevice(long deviceId) {
-        Device existingDevice = getDeviceById(deviceId);
-        deviceRepository.delete(existingDevice);
-    }
+//    public Device updateDevice(long deviceId, DeviceDTO deviceDTO) {
+//        Device existingDevice = getDeviceById(deviceId);
+//        existingDevice.setDeviceName(deviceDTO.getDeviceName());
+//        existingDevice.setDeviceType(deviceDTO.getDeviceType());
+//        existingDevice.setWarrantyExpiry(deviceDTO.getWarrantyExpiry());
+//        return deviceRepository.save(existingDevice);
+//    }
+//
+//    public void deleteDevice(long deviceId) {
+//        Device existingDevice = getDeviceById(deviceId);
+//        deviceRepository.delete(existingDevice);
+//    }
 
     private DeviceDTO toDeviceDto(Device device) {
         DeviceDTO deviceDTO = new DeviceDTO();
         deviceDTO.setDeviceName(device.getDeviceName());
         deviceDTO.setDeviceType(device.getDeviceType());
+        deviceDTO.setStockQuantity(device.getStockQuantity());
         deviceDTO.setWarrantyExpiry(device.getWarrantyExpiry());
         return deviceDTO;
     }
 
-    public List<Device> getDevicesByEmployeeId(long employeeId) {
-        return deviceRepository.findByAssignedToId(employeeId);
-    }
-
-    public Device updateDeviceStatus(DeviceStatusDTO statusDTO) {
-        Device device = getDeviceById(statusDTO.getDeviceId());
-        device.setDeviceStatus(DeviceStatus.valueOf(statusDTO.getStatus()));
-        return deviceRepository.save(device);
-    }
-
-    public List<DeviceDTO> getDevicesByEmployee(long employeeId) {
-        return deviceRepository.findByAssignedToId(employeeId)
-                .stream()
-                .map(this::toDeviceDto)
-                .toList();
+    public void reduceDeviceStock(OrderDTO orderDTO) {
+        Device device=deviceRepository.findById(orderDTO.getDevice_id()).orElseThrow(
+                ()->new RuntimeException("Device not found:"+orderDTO.getDevice_id())
+        );
+        int totalQuantity= orderDTO.getQuantity();
+        device.setStockQuantity(totalQuantity- orderDTO.getQuantity());
+        deviceRepository.save(device);
     }
 }
