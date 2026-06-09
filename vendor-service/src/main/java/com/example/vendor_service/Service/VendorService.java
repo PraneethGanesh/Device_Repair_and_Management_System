@@ -4,6 +4,7 @@
     import com.example.vendor_service.Entity.Vendor;
     import com.example.vendor_service.Enum.ApprovalStatus;
     import com.example.vendor_service.Exception.VendorNotFoundException;
+    import com.example.vendor_service.Publisher.MessagePublisher;
     import com.example.vendor_service.Repository.VendorRepository;
     import org.springframework.cloud.client.loadbalancer.LoadBalanced;
     import org.springframework.http.ResponseEntity;
@@ -27,11 +28,13 @@
         private final VendorRepository vendorRepository;
         private final RestClient deviceClient;
         private final RestClient orderClient;
+        private final MessagePublisher messagePublisher;
 
-        public VendorService(VendorRepository vendorRepository,@LoadBalanced RestClient.Builder restClientBuilder) {
+        public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder, MessagePublisher messagePublisher) {
             this.vendorRepository = vendorRepository;
             this.deviceClient=restClientBuilder.clone().baseUrl("http://device-service").build();
             this.orderClient=restClientBuilder.clone().baseUrl("http://order-service").build();
+            this.messagePublisher = messagePublisher;
         }
 
         public Vendor registerVendor(RegisterDTO registerDTO,
@@ -104,6 +107,12 @@
                   .body(deviceDTO)
                   .retrieve()
                   .toEntity(DeviceDTO.class);
+          NotificationMessage notificationMessage=new NotificationMessage();
+          notificationMessage.setSenderName(vendor.getCompanyName());
+          notificationMessage.setReceiverType("COMPANY_ADMIN");
+          notificationMessage.setTitle("Device added by the vendor:"+vendor.getCompanyName());
+          notificationMessage.setMessage("Device:"+deviceDTO.getDeviceName()+", Quantity:"+deviceDTO.getStockQuantity());
+          messagePublisher.publishMessage(notificationMessage);
           return deviceDTOResponseEntity;
         }
 
