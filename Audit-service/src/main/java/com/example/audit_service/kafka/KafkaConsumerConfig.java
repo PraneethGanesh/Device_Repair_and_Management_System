@@ -1,5 +1,6 @@
 package com.example.audit_service.kafka;
 
+import com.example.audit_service.dto.RepairEventDTO;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;

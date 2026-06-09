@@ -30,4 +30,4 @@ kafka:
     repair-events: repair-events
 
 server:
-  port: 8086
+  port: 8088

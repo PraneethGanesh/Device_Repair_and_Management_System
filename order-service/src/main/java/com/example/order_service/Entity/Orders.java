@@ -8,72 +8,46 @@ import java.util.UUID;
 
 @Entity
 public class Orders {
+
     @Id
     @GeneratedValue
     private long id;
-    private UUID company_id;
-    private long vendor_id;
-    private long device_id;
+
+    @Column(name = "company_id")
+    private UUID companyId;
+
+    @Column(name = "vendor_id")
+    private long vendorId;
+
+    @Column(name = "device_id")
+    private long deviceId;
+
     private int quantity;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    private LocalDateTime placed_at;
 
-    public OrderStatus getStatus() {
-        return status;
-    }
+    @Column(name = "placed_at")
+    private LocalDateTime placedAt;
 
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
+    public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
 
+    public UUID getCompanyId() { return companyId; }
+    public void setCompanyId(UUID companyId) { this.companyId = companyId; }
 
+    public long getVendorId() { return vendorId; }
+    public void setVendorId(long vendorId) { this.vendorId = vendorId; }
 
-    public long getVendor_id() {
-        return vendor_id;
-    }
+    public long getDeviceId() { return deviceId; }
+    public void setDeviceId(long deviceId) { this.deviceId = deviceId; }
 
-    public void setVendor_id(long vendor_id) {
-        this.vendor_id = vendor_id;
-    }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
-    public long getId() {
-        return id;
-    }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public UUID getCompany_id() {
-        return company_id;
-    }
-
-    public void setCompany_id(UUID company_id) {
-        this.company_id = company_id;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public long getDevice_id() {
-        return device_id;
-    }
-
-    public void setDevice_id(long device_id) {
-        this.device_id = device_id;
-    }
-
-    public LocalDateTime getPlaced_at() {
-        return placed_at;
-    }
-
-    public void setPlaced_at(LocalDateTime placed_at) {
-        this.placed_at = placed_at;
-    }
+    public LocalDateTime getPlacedAt() { return placedAt; }
+    public void setPlacedAt(LocalDateTime placedAt) { this.placedAt = placedAt; }
 }
