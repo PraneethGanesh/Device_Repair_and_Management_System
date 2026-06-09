@@ -1,6 +1,7 @@
-package com.example.Audit_service.repository;
+package com.example.audit_service.repository;
 
-import com.example.Audit_service.entity.AuditRecord;
+
+import com.example.audit_service.entity.AuditRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,3 +16,4 @@ public interface AuditRecordRepository extends JpaRepository<AuditRecord, Long> 
 
     List<AuditRecord> findByCompanyIdOrderByTimestampDesc(Long companyId);
 }
+

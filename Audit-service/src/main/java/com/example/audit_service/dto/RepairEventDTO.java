@@ -1,4 +1,4 @@
-package com.example.Audit_service.dto;
+package com.example.audit_service.dto;
 
 import java.time.LocalDateTime;
 

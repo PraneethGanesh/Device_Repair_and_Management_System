@@ -1,6 +1,6 @@
-package com.example.Audit_service.entity;
+package com.example.audit_service.entity;
 
-import com.example.Audit_service.dto.RepairEventDTO;
+import com.example.audit_service.dto.RepairEventDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -172,3 +172,4 @@ public class AuditRecord {
         return record;
     }
 }
+

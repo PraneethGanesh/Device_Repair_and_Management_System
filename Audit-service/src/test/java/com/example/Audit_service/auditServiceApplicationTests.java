@@ -1,4 +1,4 @@
-package com.example.Audit_service;
+package com.example.audit_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

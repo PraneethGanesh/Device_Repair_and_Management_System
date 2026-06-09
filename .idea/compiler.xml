@@ -6,6 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="orders-service" />
         <module name="vendor-service" />
         <module name="repair-service" />
         <module name="customer-service" />
@@ -17,6 +18,9 @@
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="order-service" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -26,6 +30,7 @@
       <module name="eureka-server" options="-parameters" />
       <module name="notification-service" options="-parameters" />
       <module name="order-service" options="-parameters" />
+      <module name="orders-service" options="-parameters" />
       <module name="repair-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
       <module name="vendor-service" options="-parameters" />
