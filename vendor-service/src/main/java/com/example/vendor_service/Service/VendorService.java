@@ -1,9 +1,6 @@
     package com.example.vendor_service.Service;
 
-    import com.example.vendor_service.DTO.ActionDTO;
-    import com.example.vendor_service.DTO.DeviceDTO;
-    import com.example.vendor_service.DTO.RegisterDTO;
-    import com.example.vendor_service.DTO.VendorResponseDTO;
+    import com.example.vendor_service.DTO.*;
     import com.example.vendor_service.Entity.Vendor;
     import com.example.vendor_service.Enum.ApprovalStatus;
     import com.example.vendor_service.Exception.VendorNotFoundException;
@@ -29,11 +26,12 @@
     public class VendorService {
         private final VendorRepository vendorRepository;
         private final RestClient deviceClient;
-
+        private final RestClient orderClient;
 
         public VendorService(VendorRepository vendorRepository,@LoadBalanced RestClient.Builder restClientBuilder) {
             this.vendorRepository = vendorRepository;
-            this.deviceClient=restClientBuilder.baseUrl("http://device-service").build();
+            this.deviceClient=restClientBuilder.clone().baseUrl("http://device-service").build();
+            this.orderClient=restClientBuilder.clone().baseUrl("http://order-service").build();
         }
 
         public Vendor registerVendor(RegisterDTO registerDTO,
@@ -123,6 +121,28 @@
           return ResponseEntity.ok(deviceDTOS);
         }
 
+        public ResponseEntity<String> acceptOrders(long orderId,String userId) {
+            Vendor vendor=vendorRepository.findByUserId(userId).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id: "+userId)
+            );
+            String response=orderClient.put()
+                    .uri("/api/order/{orderId}/{vendorId}",orderId,vendor.getId())
+                    .retrieve()
+                    .body(String.class);
+            return ResponseEntity.ok(response);
+        }
+
+        public List<OrderDTO> getOrders(String userId) {
+            Vendor vendor=vendorRepository.findByUserId(userId).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id: "+userId)
+            );
+            List<OrderDTO> orderDTOS=orderClient
+                    .get()
+                    .uri("/api/order/{vendorId}",vendor.getId())
+                    .retrieve()
+                    .body(List.class);
+            return orderDTOS;
+        }
 
 
 //        private final VendorRepository vendorRepository;
