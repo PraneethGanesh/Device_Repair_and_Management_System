@@ -3,9 +3,10 @@ spring:
     name: audit-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/audit_service_db
+    url: jdbc:mysql://localhost:3306/audit_service_db?createDatabaseIfNotExist=true
     username: ${USER_NAME}
     password: ${PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:

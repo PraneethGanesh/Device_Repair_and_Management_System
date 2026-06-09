@@ -15,8 +15,9 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class RepairEventConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(RepairEventConsumer.class);
