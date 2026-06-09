@@ -4,8 +4,11 @@ import com.example.user_service.dto.AuthRequest;
 import com.example.user_service.dto.AuthResponse;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
+import jdk.dynalink.linker.LinkerServices;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,6 +27,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(userService.login(authRequest));
+    }
+
+    @GetMapping("/{role}")
+    public List<UserDTO> getByRole(@PathVariable String role){
+        return userService.getByRole(role);
     }
 
 }

@@ -12,6 +12,18 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: nireekshakulal2004@gmail.com
+    password: mjrvimfnpxniglfm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 eureka:
   client:
     register-with-eureka: true

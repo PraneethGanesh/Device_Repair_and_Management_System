@@ -11,6 +11,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 
 
 @Service
@@ -56,4 +57,18 @@ public class UserService {
         return authResponse;
     }
 
+    public List<UserDTO> getByRole(String role) {
+        Role roleEnum=Role.valueOf(role.toUpperCase());
+        List<User> users=userRepository.findByRole(roleEnum);
+        return users.stream()
+                .map(user -> toUserDTO(user))
+                .toList();
+    }
+    public UserDTO toUserDTO(User user){
+        UserDTO userDTO=new UserDTO();
+        userDTO.setName(user.getName());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setPassword(user.getPassword());
+        return userDTO;
+    }
 }
