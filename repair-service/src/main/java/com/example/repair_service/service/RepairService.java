@@ -5,13 +5,16 @@ import com.example.repair_service.entity.RepairRequest;
 import com.example.repair_service.enums.RecipientRole;
 import com.example.repair_service.enums.RepairStatus;
 import com.example.repair_service.feign.DeviceServiceClient;
+import com.example.repair_service.kafka.RepairEventProducer;
 import com.example.repair_service.publisher.NotificationPublisher;
 import com.example.repair_service.repository.RepairRequestRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class RepairService {
@@ -19,13 +22,16 @@ public class RepairService {
     private final RepairRequestRepository repairRepository;
     private final DeviceServiceClient deviceServiceClient;
     private final NotificationPublisher notificationPublisher;
+    private final RepairEventProducer repairEventProducer;
 
     public RepairService(RepairRequestRepository repairRepository,
                          DeviceServiceClient deviceServiceClient,
-                         NotificationPublisher notificationPublisher) {
+                         NotificationPublisher notificationPublisher,
+                         RepairEventProducer repairEventProducer) {
         this.repairRepository = repairRepository;
         this.deviceServiceClient = deviceServiceClient;
         this.notificationPublisher = notificationPublisher;
+        this.repairEventProducer = repairEventProducer;
     }
 
     // ─── 1. Employee/Admin raises a repair request ────────────────────────────
@@ -51,6 +57,14 @@ public class RepairService {
                         " | Issue: " + dto.getIssueDescription()
         ));
 
+        publishRepairEvent(
+                "REPAIR_CREATED",
+                saved,
+                null,
+                RepairStatus.PENDING,
+                false
+        );
+
         return saved;
     }
 
@@ -62,11 +76,18 @@ public class RepairService {
             throw new IllegalStateException(
                     "Only PENDING requests can be acknowledged. Current status: " + request.getStatus());
         }
+        RepairStatus previousStatus = request.getStatus();
 
         request.setAdminId(adminId);
         request.setStatus(RepairStatus.ASSIGNED_TO_VENDOR);
         RepairRequest saved = repairRepository.save(request);
-
+        publishRepairEvent(
+                "REPAIR_ACKNOWLEDGED",
+                saved,
+                previousStatus,
+                RepairStatus.ASSIGNED_TO_VENDOR,
+                true
+        );
         // Notify vendors — new repair request available (broadcast to VENDOR role)
         notificationPublisher.publishRepairAcknowledged(new NotificationDTO(
                 adminId,
@@ -118,6 +139,14 @@ public class RepairService {
         deviceStatusDTO.setDeviceId(request.getDeviceId());
         deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
         request.setStatus(RepairStatus.IN_PROGRESS);
+        RepairStatus previousStatus = request.getStatus();
+        publishRepairEvent(
+                "REPAIR_IN_PROGRESS",
+                request,
+                previousStatus,
+                RepairStatus.IN_PROGRESS,
+                false
+        );
         return repairRepository.save(request);
     }
 
@@ -149,6 +178,15 @@ public class RepairService {
                         ". Please close the ticket and reassign the device."
         ));
 
+        RepairStatus previousStatus = request.getStatus();
+        publishRepairEvent(
+                "REPAIR_COMPLETED",
+                saved,
+                previousStatus,
+                RepairStatus.COMPLETED,
+                false
+        );
+
         return saved;
     }
 
@@ -178,6 +216,15 @@ public class RepairService {
                         + ") has been repaired and assigned back to you. Repair request #"
                         + request.getRequestId() + " is now CLOSED."
         ));
+
+        RepairStatus previousStatus = request.getStatus();
+        publishRepairEvent(
+                "DEVICE_RETURNED",
+                saved,
+                previousStatus,
+                RepairStatus.CLOSED,
+                false
+        );
 
         return saved;
     }
@@ -241,5 +288,37 @@ public class RepairService {
         }
 
         return dto;
+    }
+
+    //-- helper code
+    private void publishRepairEvent(
+            String eventType,
+            RepairRequest request,
+            RepairStatus previousStatus,
+            RepairStatus newStatus,
+            boolean assignedAutomatically
+    ) {
+        RepairEventDTO event = new RepairEventDTO();
+
+        event.setEventId(UUID.randomUUID().toString());
+        event.setEventType(eventType);
+
+        event.setRepairId(request.getRequestId());
+        event.setDeviceId(request.getDeviceId());
+
+        event.setRaisedBy(request.getRaisedBy());
+        event.setCompanyAdminId(request.getAdminId());
+        event.setVendorId(request.getVendorId());
+
+        event.setIssueDescription(request.getIssueDescription());
+        event.setUrgent(request.isUrgent());
+
+        event.setPreviousStatus(previousStatus);
+        event.setNewStatus(newStatus);
+
+        event.setAssignedAutomatically(assignedAutomatically);
+        event.setTimestamp(LocalDateTime.now());
+
+        repairEventProducer.PublishRepairEvent(event);
     }
 }
