@@ -13,5 +13,5 @@ public interface DeviceServiceClient {
     @PostMapping("/api/device_instance")
     ResponseEntity<String> addDeviceInstance(@RequestBody OrderDTO orderDTO);
     @PutMapping("/api/device_instance/{orderId}")
-    ResponseEntity<?> updateDeviceInstance(@PathVariable long orderId);
+    ResponseEntity<String> updateDeviceInstance(@PathVariable long orderId);
 }

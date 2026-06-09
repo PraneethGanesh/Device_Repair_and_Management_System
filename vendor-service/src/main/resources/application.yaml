@@ -33,3 +33,10 @@ eureka:
 jwt:
   secret: drmsSuperSecretKeyForJwtTokenGenerationMustBe32CharsLong
   expiration: 86400000
+
+rabbitmq:
+  exchange:
+    name: email-exchange
+  routing:
+    key:
+      admin: admin-key

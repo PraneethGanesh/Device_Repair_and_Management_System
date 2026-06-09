@@ -21,14 +21,13 @@ eureka:
 
 rabbitmq:
   exchange:
-    name: notification_exchange
-  device:
-    added:
-      routing:
-        key: device_added_key
-    assigned:
-      routing:
-        key: device_assigned_key
+    name: email-exchange
+  routing:
+    key:
+      admin: admin-key
+  admin:
+    queue:
+      name: admin-queue
 
 
 server:
