@@ -71,7 +71,7 @@ public class OrderService {
     }
 
     public List<OrderDTO> getOrdersByVendor(long vendorId) {
-        List<Orders> orders=orderRepository.findByVendorIdAndStatus(vendorId,OrderStatus.REQUESTED);
+        List<Orders> orders=orderRepository.findOrders(vendorId,OrderStatus.REQUESTED);
         List<OrderDTO> orderDTOS=orders.stream().map(orders1 -> toOrderDTO(orders1))
                 .toList();
         return orderDTOS;
