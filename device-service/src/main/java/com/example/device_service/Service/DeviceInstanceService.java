@@ -21,7 +21,7 @@ public class DeviceInstanceService {
         this.deviceService = deviceService;
     }
 
-    public ResponseEntity<?> addDeviceInstance(OrderDTO orderDTO) {
+    public ResponseEntity<String> addDeviceInstance(OrderDTO orderDTO) {
         List<DeviceInstance> instances = new ArrayList<>();
         int quantity= orderDTO.getQuantity();
         for(int i=0;i<quantity;i++){
@@ -39,7 +39,7 @@ public class DeviceInstanceService {
         return ResponseEntity.ok("Added the device instances with status reserved");
     }
 
-    public ResponseEntity<?> updateDeviceInstance(long orderId) {
+    public ResponseEntity<String> updateDeviceInstance(long orderId) {
         List<DeviceInstance> instances=deviceInstanceRepository.findByOrder_id(orderId);
         for(int i=0;i<instances.size();i++){
             DeviceInstance instance= instances.get(i);
