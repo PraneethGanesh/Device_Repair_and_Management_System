@@ -10,24 +10,18 @@ public class Notification {
     private long id;
 
     // Who triggered the event
-    @Column(nullable = false)
-    private long senderId;
-
-    @Enumerated(EnumType.STRING)
-    private Role senderType;
+    private String senderName;
 
     // Who should receive it
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role recipientType;
 
     private long recipientId;
 
+    private String title;
+
     @Column(nullable = false)
     private String message;
-
-    @Enumerated(EnumType.STRING)
-    private NotificationStatus notificationStatus;
 
     public long getId() {
         return id;
@@ -53,21 +47,6 @@ public class Notification {
         this.recipientType = recipientType;
     }
 
-    public Role getSenderType() {
-        return senderType;
-    }
-
-    public void setSenderType(Role senderType) {
-        this.senderType = senderType;
-    }
-
-    public long getSenderId() {
-        return senderId;
-    }
-
-    public void setSenderId(long senderId) {
-        this.senderId = senderId;
-    }
 
     public String getMessage() {
         return message;
@@ -77,11 +56,20 @@ public class Notification {
         this.message = message;
     }
 
-    public NotificationStatus getNotificationStatus() {
-        return notificationStatus;
+    public String getTitle() {
+        return title;
     }
 
-    public void setNotificationStatus(NotificationStatus notificationStatus) {
-        this.notificationStatus = notificationStatus;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getSenderName() {
+        return senderName;
+    }
+
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
     }
 }
+

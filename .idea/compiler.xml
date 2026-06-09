@@ -9,6 +9,7 @@
         <module name="vendor-service" />
         <module name="repair-service" />
         <module name="customer-service" />
+        <module name="Audit-service" />
         <module name="api-gateway" />
         <module name="user-service" />
         <module name="order-service" />
@@ -20,6 +21,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Audit-service" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
       <module name="customer-service" options="-parameters" />
       <module name="device-service" options="-parameters" />

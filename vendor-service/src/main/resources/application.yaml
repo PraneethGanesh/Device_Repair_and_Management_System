@@ -37,3 +37,6 @@ jwt:
 rabbitmq:
   exchange:
     name: email-exchange
+  routing:
+    key:
+      admin: admin-key
