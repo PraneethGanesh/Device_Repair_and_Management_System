@@ -13,6 +13,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
 server:
   port: 8086
 springdoc:
@@ -30,10 +36,4 @@ eureka:
     prefer-ip-address: true
 feign:
   circuitbreaker:
-    enable: true
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    enabled: true
