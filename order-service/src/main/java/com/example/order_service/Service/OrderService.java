@@ -4,7 +4,7 @@ import com.example.order_service.Client.DeviceServiceClient;
 import com.example.order_service.DTO.DeviceResponseDTO;
 import com.example.order_service.DTO.OrderDTO;
 import com.example.order_service.DTO.OrderRequest;
-import com.example.order_service.Entity.Order;
+import com.example.order_service.Entity.Orders;
 import com.example.order_service.Enum.OrderStatus;
 import com.example.order_service.Repository.OrderRepository;
 import org.springframework.http.ResponseEntity;
@@ -33,36 +33,36 @@ public class OrderService {
         if(deviceResponseDTO.getStockQuantity()< orderRequest.getQuantity()){
             return ResponseEntity.ok("Insufficient Stock!!");
         }
-        Order order=new Order();
-        order.setCompany_id(companyId);
-        order.setDevice_id(orderRequest.getDevice_id());
-        order.setVendor_id(orderRequest.getVendor_id());
-        order.setQuantity(orderRequest.getQuantity());
-        order.setStatus(OrderStatus.REQUESTED);
-        order.setPlaced_at(LocalDateTime.now());
-        Order saved=orderRepository.save(order);
+        Orders orders =new Orders();
+        orders.setCompany_id(companyId);
+        orders.setDevice_id(orderRequest.getDevice_id());
+        orders.setVendor_id(orderRequest.getVendor_id());
+        orders.setQuantity(orderRequest.getQuantity());
+        orders.setStatus(OrderStatus.REQUESTED);
+        orders.setPlaced_at(LocalDateTime.now());
+        Orders saved=orderRepository.save(orders);
         OrderDTO orderDTO=toOrderDTO(saved);
         deviceServiceClient.addDeviceInstance(orderDTO);
         return ResponseEntity.ok("placed order for device:"+orderRequest.getDevice_id()+", Quantity:"+orderRequest.getQuantity());
     }
 
-    private OrderDTO toOrderDTO(Order order){
+    private OrderDTO toOrderDTO(Orders orders){
         OrderDTO orderDTO=new OrderDTO();
-        orderDTO.setOrder_id(order.getId());
-        orderDTO.setCompany_id(order.getCompany_id());
-        orderDTO.setDevice_id(order.getDevice_id());
-        orderDTO.setQuantity(order.getQuantity());
+        orderDTO.setOrder_id(orders.getId());
+        orderDTO.setCompany_id(orders.getCompany_id());
+        orderDTO.setDevice_id(orders.getDevice_id());
+        orderDTO.setQuantity(orders.getQuantity());
         return orderDTO;
     }
 
     public ResponseEntity<String> acceptOrder(long orderId) {
-        Order order=orderRepository.findById(orderId)
+        Orders orders =orderRepository.findById(orderId)
                 .orElseThrow(
                         ()->new RuntimeException("orderNotFound")
                 );
-        order.setStatus(OrderStatus.APPROVED);
-        orderRepository.save(order);
-        deviceServiceClient.updateDeviceInstance(order.getId());
-        return ResponseEntity.ok("Accepted the order of the comapny:"+order.getCompany_id());
+        orders.setStatus(OrderStatus.APPROVED);
+        orderRepository.save(orders);
+        deviceServiceClient.updateDeviceInstance(orders.getId());
+        return ResponseEntity.ok("Accepted the order of the comapny:"+ orders.getCompany_id());
     }
 }
