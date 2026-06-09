@@ -15,7 +15,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-
+kafka:
+  topic:
+    repair-events: repair-events
 server:
   port: 8084
 
@@ -50,7 +52,17 @@ rabbitmq:
     closed:
       routing:
         key: repair_closed_key
-
 feign:
   circuitbreaker:
     enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    kafka:
+      enabled: true
