@@ -19,12 +19,12 @@ public class DeviceInstanceController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addDeviceInstance(@RequestBody OrderDTO orderDTO){
+    public ResponseEntity<String> addDeviceInstance(@RequestBody OrderDTO orderDTO){
         return deviceInstanceService.addDeviceInstance(orderDTO);
     }
 
     @PutMapping("/{orderId}")
-    public ResponseEntity<?> updateDeviceInstance(@PathVariable("orderId") long orderId){
+    public ResponseEntity<String> updateDeviceInstance(@PathVariable("orderId") long orderId){
         return deviceInstanceService.updateDeviceInstance(orderId);
     }
 

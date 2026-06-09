@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -55,14 +56,24 @@ public class OrderService {
         return orderDTO;
     }
 
-    public ResponseEntity<String> acceptOrder(long orderId) {
+    public String acceptOrder(long orderId,long vendorId) {
         Orders orders =orderRepository.findById(orderId)
                 .orElseThrow(
                         ()->new RuntimeException("orderNotFound")
                 );
+        if(vendorId!= orders.getVendor_id()){
+            return "You cannot accept the orders that belongs to other vendors";
+        }
         orders.setStatus(OrderStatus.APPROVED);
         orderRepository.save(orders);
         deviceServiceClient.updateDeviceInstance(orders.getId());
-        return ResponseEntity.ok("Accepted the order of the comapny:"+ orders.getCompany_id());
+        return "Accepted the order of the company:"+ orders.getCompany_id();
+    }
+
+    public List<OrderDTO> getOrdersByVendor(long vendorId) {
+        List<Orders> orders=orderRepository.findByVendorIdAndStatus(vendorId,OrderStatus.REQUESTED);
+        List<OrderDTO> orderDTOS=orders.stream().map(orders1 -> toOrderDTO(orders1))
+                .toList();
+        return orderDTOS;
     }
 }

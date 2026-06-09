@@ -2,11 +2,15 @@ package com.example.vendor_service.Controller;
 
 import com.example.vendor_service.DTO.ActionDTO;
 import com.example.vendor_service.DTO.DeviceDTO;
+import com.example.vendor_service.DTO.OrderDTO;
 import com.example.vendor_service.DTO.RegisterDTO;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
+import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/vendors")
@@ -53,6 +57,17 @@ public class VendorController {
     public ResponseEntity<?> getDevices(@RequestHeader("X-Auth-User") String username,
                                                       @RequestHeader("X-Auth-Role") String role){
        return vendorService.getDevices(username,role);
+    }
+
+    @PutMapping("/review/{orderId}")
+    public ResponseEntity<String> acceptOrders(@PathVariable long orderId,
+                                               @RequestHeader("X-Auth-Id") String userId){
+        return vendorService.acceptOrders(orderId,userId);
+    }
+
+    @GetMapping("/orders")
+    public List<OrderDTO> getOrders(@RequestHeader("X-Auth-Id") String userId){
+        return vendorService.getOrders(userId);
     }
 
 //    @GetMapping("/profile")
