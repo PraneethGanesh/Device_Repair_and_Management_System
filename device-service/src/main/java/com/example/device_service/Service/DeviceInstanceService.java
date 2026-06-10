@@ -1,9 +1,12 @@
 package com.example.device_service.Service;
 
+import com.example.device_service.DTO.DeviceResponseDTO;
 import com.example.device_service.DTO.OrderDTO;
+import com.example.device_service.DTO.ResponseDTO;
 import com.example.device_service.Entity.DeviceInstance;
 import com.example.device_service.Enum.InstanceStatus;
 import com.example.device_service.Repository.DeviceInstanceRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -51,5 +54,24 @@ public class DeviceInstanceService {
 
     public List<DeviceInstance> getDeviceInstancesByCompany(UUID companyId) {
         return deviceInstanceRepository.findByCompanyId(companyId);
+    }
+
+    public ResponseEntity<ResponseDTO> getVendorId(long instanceId) {
+        DeviceInstance deviceInstance=deviceInstanceRepository.findById(instanceId).orElseThrow(
+                ()->new RuntimeException("not found")
+        );
+        DeviceResponseDTO deviceResponseDTO= deviceService.getDeviceById(deviceInstance.getDevice_id());
+        ResponseDTO responseDTO=new ResponseDTO();
+        responseDTO.setVendorId(deviceResponseDTO.getVendorId());
+        return ResponseEntity.ok(responseDTO);
+
+    }
+
+    public DeviceInstance updateDeviceStatus(String status, long instanceId) {
+        DeviceInstance deviceInstance=deviceInstanceRepository.findById(instanceId).orElseThrow(
+                ()->new RuntimeException("not found")
+        );
+        deviceInstance.setStatus(InstanceStatus.valueOf(status.toUpperCase()));
+        return deviceInstanceRepository.save(deviceInstance);
     }
 }

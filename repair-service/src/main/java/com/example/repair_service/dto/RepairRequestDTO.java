@@ -4,30 +4,25 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.util.UUID;
+
 public class RepairRequestDTO {
+  private long deviceInstanceId;
+  private String issueDescription;
 
-    @NotNull(message = "Device ID is required")
-    @Positive(message = "Device ID must be positive")
-    private Long deviceId;
+    public long getDeviceInstanceId() {
+        return deviceInstanceId;
+    }
 
-    @NotNull(message = "Raised by (employee/admin ID) is required")
-    @Positive(message = "Raised by ID must be positive")
-    private Long raisedBy;
+    public void setDeviceInstanceId(long deviceInstanceId) {
+        this.deviceInstanceId = deviceInstanceId;
+    }
 
-    @NotBlank(message = "Issue description is required")
-    private String issueDescription;
+    public String getIssueDescription() {
+        return issueDescription;
+    }
 
-    private boolean urgent = false;
-
-    public Long getDeviceId() { return deviceId; }
-    public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
-
-    public Long getRaisedBy() { return raisedBy; }
-    public void setRaisedBy(Long raisedBy) { this.raisedBy = raisedBy; }
-
-    public String getIssueDescription() { return issueDescription; }
-    public void setIssueDescription(String issueDescription) { this.issueDescription = issueDescription; }
-
-    public boolean isUrgent() { return urgent; }
-    public void setUrgent(boolean urgent) { this.urgent = urgent; }
+    public void setIssueDescription(String issueDescription) {
+        this.issueDescription = issueDescription;
+    }
 }

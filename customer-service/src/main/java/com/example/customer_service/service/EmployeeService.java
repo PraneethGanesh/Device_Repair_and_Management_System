@@ -1,10 +1,7 @@
 package com.example.customer_service.service;
 
 import com.example.customer_service.client.UserServiceClient;
-import com.example.customer_service.dto.EmployeeRequest;
-import com.example.customer_service.dto.EmployeeResponse;
-import com.example.customer_service.dto.UserRegistrationRequest;
-import com.example.customer_service.dto.UserRegistrationResponse;
+import com.example.customer_service.dto.*;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
 import com.example.customer_service.entity.Employee;
@@ -13,6 +10,7 @@ import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
 import com.example.customer_service.repository.EmployeeRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,10 +63,26 @@ public class EmployeeService {
         return EmployeeResponse.from(saved);
     }
 
-    public EmployeeResponse getEmployeeById(UUID id) {
+    public EmployeeDTO getEmployeeById(UUID id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
-        return EmployeeResponse.from(employee);
+        return toEmployeeDTO(employee);
+    }
+
+    private EmployeeDTO toEmployeeDTO(Employee employee){
+        EmployeeDTO employeeDTO=new EmployeeDTO();
+        employeeDTO.setId(employee.getId());
+        employeeDTO.setEmail(employee.getEmail());
+        employeeDTO.setCompanyId(employee.getCompany().getId());
+        employeeDTO.setUserId(employee.getUserId());
+        return employeeDTO;
+    }
+
+    public EmployeeResponse getEmployeeByUserId(String id) {
+       Employee employee=employeeRepository.findByUserId(id).orElseThrow(
+               () -> new ResourceNotFoundException("Employee not found with id: " + id)
+       );
+       return EmployeeResponse.from(employee);
     }
 
     public List<EmployeeResponse> getEmployeesByCompanyId(UUID companyId) {

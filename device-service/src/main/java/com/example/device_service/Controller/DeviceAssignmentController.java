@@ -34,4 +34,9 @@ public class DeviceAssignmentController {
     public ResponseEntity<DeviceAssignment> returnDevice(@PathVariable long assignmentId) {
         return ResponseEntity.ok(deviceAssignmentService.returnDevice(assignmentId));
     }
+
+    @GetMapping("/{instanceId}")
+    public ResponseEntity<UUID> getDeviceAssignment(@PathVariable long instanceId){
+        return ResponseEntity.ok(deviceAssignmentService.getDeviceAssignment(instanceId));
+    }
 }

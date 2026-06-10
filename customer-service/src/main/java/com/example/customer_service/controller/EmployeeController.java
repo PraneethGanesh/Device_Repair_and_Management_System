@@ -1,5 +1,6 @@
 package com.example.customer_service.controller;
 
+import com.example.customer_service.dto.EmployeeDTO;
 import com.example.customer_service.dto.EmployeeRequest;
 import com.example.customer_service.dto.EmployeeResponse;
 import com.example.customer_service.entity.InviteStatus;
@@ -31,8 +32,13 @@ public class EmployeeController {
 
     // GET /api/employees/{id} — Get employee by ID
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeResponse> getEmployeeById(@PathVariable UUID id) {
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id));
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<EmployeeResponse> getEmployeeByUserId(@PathVariable String id) {
+        return ResponseEntity.ok(employeeService.getEmployeeByUserId(id));
     }
 
     // GET /api/employees/company/{companyId} — Get all employees of a company

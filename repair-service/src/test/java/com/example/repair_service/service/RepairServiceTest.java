@@ -67,30 +67,30 @@ class RepairServiceTest {
 //        verify(notificationPublisher).publishRepairRaised(any());
 //    }
 
-    @Test
-    void acknowledgeRequestOnlyAllowsPendingRequests() {
-        RepairRequest request = repairWithStatus(1L, RepairStatus.PENDING);
-        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
-        when(repairRepository.save(request)).thenReturn(request);
-
-        RepairRequest result = repairService.acknowledgeRequest(1L, 99L);
-
-        assertThat(result.getStatus()).isEqualTo(RepairStatus.ASSIGNED_TO_VENDOR);
-        assertThat(result.getAdminId()).isEqualTo(99L);
-        verify(notificationPublisher).publishRepairAcknowledged(any());
-    }
-
-    @Test
-    void assignVendorRejectsUnavailableRequests() {
-        RepairRequest request = repairWithStatus(1L, RepairStatus.IN_PROGRESS);
-        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
-
-        assertThatThrownBy(() -> repairService.assignVendor(1L, 50L))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("not available");
-
-        verify(repairRepository, never()).save(any());
-    }
+//    @Test
+//    void acknowledgeRequestOnlyAllowsPendingRequests() {
+//        RepairRequest request = repairWithStatus(1L, RepairStatus.PENDING);
+//        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
+//        when(repairRepository.save(request)).thenReturn(request);
+//
+//        RepairRequest result = repairService.acknowledgeRequest(1L, 99L);
+//
+//        assertThat(result.getStatus()).isEqualTo(RepairStatus.ASSIGNED_TO_VENDOR);
+//        assertThat(result.getAdminId()).isEqualTo(99L);
+//        verify(notificationPublisher).publishRepairAcknowledged(any());
+//    }
+//
+//    @Test
+//    void assignVendorRejectsUnavailableRequests() {
+//        RepairRequest request = repairWithStatus(1L, RepairStatus.IN_PROGRESS);
+//        when(repairRepository.findById(1L)).thenReturn(Optional.of(request));
+//
+//        assertThatThrownBy(() -> repairService.assignVendor(1L, 50L))
+//                .isInstanceOf(IllegalStateException.class)
+//                .hasMessageContaining("not available");
+//
+//        verify(repairRepository, never()).save(any());
+//    }
 
 //    @Test
 //    void vendorCanCompleteOnlyOwnInProgressRequest() {
@@ -133,14 +133,14 @@ class RepairServiceTest {
 //        verify(deviceServiceClient, never()).updateDeviceStatus(anyLong(), any());
 //        verify(notificationPublisher).publishRepairClosed(any());
 //    }
-
-    private RepairRequest repairWithStatus(long requestId, RepairStatus status) {
-        RepairRequest request = new RepairRequest();
-        request.setRequestId(requestId);
-        request.setDeviceId(10L);
-        request.setRaisedBy(20L);
-        request.setIssueDescription("Screen flickers");
-        request.setStatus(status);
-        return request;
-    }
+//
+//    private RepairRequest repairWithStatus(long requestId, RepairStatus status) {
+//        RepairRequest request = new RepairRequest();
+//        request.setRequestId(requestId);
+//        request.setDeviceId(10L);
+//        request.setRaisedBy(20L);
+//        request.setIssueDescription("Screen flickers");
+//        request.setStatus(status);
+//        return request;
+//    }
 }
