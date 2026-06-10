@@ -6,394 +6,336 @@
   <title>DeviceSupply — Vendor Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
-    :root{--bg:#0a0c10;--surface:#10141c;--surface2:#161b26;--border:#1e2535;--accent:#4af0a4;--accent2:#4a8fff;--text:#e8edf5;--muted:#5a6478;--error:#ff5c6a;--vendor:#f0a44a}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;overflow:hidden}
-
-    /* SIDEBAR */
-    .sidebar{width:220px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:relative;overflow:hidden;flex-shrink:0}
-    .sidebar::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(74,240,164,0.06) 0%,transparent 70%);pointer-events:none}
-    .grid-overlay{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
-    .brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);position:relative;z-index:1}
-    .brand-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-    .brand-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center}
-    .brand-icon svg{width:16px;height:16px;fill:var(--bg)}
-    .brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.5px;color:var(--text)}
-    .brand-name span{color:var(--accent)}
-    .brand-tag{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
-    .nav{padding:12px 0;flex:1;position:relative;z-index:1}
-    .nav-section{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);padding:12px 20px 6px}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;cursor:pointer;color:var(--muted);border-left:2px solid transparent;transition:all 0.2s;letter-spacing:0.02em;user-select:none}
-    .nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
-    .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
-    .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(74,240,164,0.05)}
-    .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);position:relative;z-index:1}
-
-    /* MAIN */
-    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-    .topbar{padding:22px 32px 0;border-bottom:1px solid var(--border)}
-    .page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
-    .page-sub{font-size:11px;color:var(--muted);margin-top:4px;margin-bottom:18px}
-    .content{padding:28px 32px;overflow-y:auto;flex:1}
-    .page{display:none}.page.active{display:block}
-
-    /* CARDS */
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
-    .card-title{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
-
-    /* FORM */
-    .field{margin-bottom:14px}
-    .field label{display:block;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-    .field input,.field textarea{width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;resize:none}
-    .field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:0.5}
-    .field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,240,164,0.08)}
-    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-
-    /* BUTTONS */
-    .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:9px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);background:transparent;color:var(--muted);letter-spacing:0.03em}
-    .btn:hover{color:var(--text);border-color:var(--muted)}
-    .btn:active{transform:scale(0.98)}
-    .btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),#2dd48a);color:var(--bg);border-color:transparent;font-family:'Syne',sans-serif;font-weight:700}
-    .btn-primary:hover{box-shadow:0 6px 20px rgba(74,240,164,0.25);transform:translateY(-1px);color:var(--bg)}
-    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
-    .btn-sm{padding:6px 13px;font-size:11px}
-    .btn-accept{background:rgba(74,240,164,0.1);border-color:rgba(74,240,164,0.3);color:var(--accent)}
-    .btn-accept:hover{background:rgba(74,240,164,0.18);color:var(--accent)}
-
-    /* ALERTS */
-    .status-msg{margin-top:14px;padding:12px 14px;border-radius:8px;font-size:12px;display:none;line-height:1.6;white-space:pre-wrap;word-break:break-word}
-    .status-msg.show{display:block;animation:fadeIn 0.3s ease}
-    .status-msg.error{background:rgba(255,92,106,0.1);border:1px solid rgba(255,92,106,0.2);color:var(--error)}
-    .status-msg.success{background:rgba(74,240,164,0.08);border:1px solid rgba(74,240,164,0.2);color:var(--accent)}
-
-    /* STATS */
-    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
-    .stat-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-    .stat-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--text)}
-    .stat-value.accent{color:var(--accent)}
-
-    /* BADGES */
-    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase}
-    .badge-pending{background:rgba(240,164,74,0.12);border:1px solid rgba(240,164,74,0.25);color:var(--vendor)}
-    .badge-approved{background:rgba(74,240,164,0.1);border:1px solid rgba(74,240,164,0.25);color:var(--accent)}
-    .badge-rejected{background:rgba(255,92,106,0.1);border:1px solid rgba(255,92,106,0.2);color:var(--error)}
-
-    /* DEVICE GRID */
-    .device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-top:4px}
-    .device-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;transition:border-color 0.2s}
-    .device-card:hover{border-color:var(--muted)}
-    .device-cat{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
-    .device-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;font-family:'Syne',sans-serif;line-height:1.3}
-    .device-price{font-size:15px;color:var(--accent);font-weight:500}
-    .device-stock{font-size:11px;color:var(--muted);margin-top:3px}
-    .device-spec{font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5}
-
-    /* ORDERS */
-    .order-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
-    .order-row:last-child{border-bottom:none}
-    .order-id{font-size:11px;color:var(--muted);margin-bottom:4px}
-    .order-name{font-size:13px;color:var(--text)}
-
-    /* ACCOUNT */
-    .acct-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
-    .acct-row:last-child{border-bottom:none}
-    .acct-key{color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-size:10px}
-    .acct-val{color:var(--text)}
-
-    /* EMPTY */
-    .empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:12px}
-    .empty-icon{font-size:36px;margin-bottom:14px;opacity:0.4}
-
-    /* SPINNER */
-    .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(10,12,16,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px}
-    .spinner-muted{border:2px solid var(--border);border-top-color:var(--muted)}
-    .loading-msg{padding:24px;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:10px}
-
-    /* QUICK ACTIONS */
-    .actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
-
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
-    @media(max-width:768px){
-      .sidebar{width:180px}
-      .stat-grid{grid-template-columns:1fr 1fr}
-      .stat-grid .stat-card:last-child{grid-column:span 2}
+    :root {
+      --bg: #0a0c10; --surface: #10141c; --surface2: #161b26;
+      --border: #1e2535; --accent: #4af0a4; --accent2: #4a8fff;
+      --text: #e8edf5; --muted: #5a6478; --error: #ff5c6a; --vendor: #f0a44a;
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; display: flex; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px; min-height: 100vh; background: var(--surface);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      padding: 28px 0; position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px 28px; border-bottom: 1px solid var(--border);
+    }
+    .brand-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 16px; height: 16px; fill: var(--bg); }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; }
+    .brand-name span { color: var(--accent); }
+    .nav { flex: 1; padding: 16px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; font-size: 12px; letter-spacing: 0.04em;
+      color: var(--muted); cursor: pointer; transition: all 0.2s;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active { color: var(--vendor); border-left-color: var(--vendor); background: rgba(240,164,74,0.05); }
+    .nav-item .nav-icon { font-size: 15px; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .logout-btn {
+      width: 100%; padding: 9px; border: 1px solid var(--border);
+      border-radius: 8px; background: transparent; color: var(--muted);
+      font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--error); color: var(--error); }
+
+    /* ── Main ── */
+    .main { margin-left: 220px; flex: 1; padding: 32px; min-height: 100vh; }
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .page-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Cards / grid ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 10px 12px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; letter-spacing: 0.06em; font-weight: 500; }
+    .badge-approved { background: rgba(74,240,164,0.1); color: var(--accent); border: 1px solid rgba(74,240,164,0.2); }
+    .badge-pending  { background: rgba(240,164,74,0.1); color: var(--vendor); border: 1px solid rgba(240,164,74,0.2); }
+    .badge-rejected { background: rgba(255,92,106,0.1); color: var(--error);  border: 1px solid rgba(255,92,106,0.2); }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field input, .field textarea {
+      width: 100%; padding: 11px 14px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-family: 'DM Mono', monospace; font-size: 12px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--accent); }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 10px 20px; border-radius: 8px; border: none;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #2dd48a); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,240,164,0.2); }
+    .btn-sm { padding: 6px 14px; font-size: 11px; }
+    .btn-accept { background: rgba(74,240,164,0.1); color: var(--accent); border: 1px solid rgba(74,240,164,0.2); font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+    .btn-accept:hover { background: rgba(74,240,164,0.2); }
+
+    /* ── Alert ── */
+    .alert { padding: 11px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; display: none; }
+    .alert.show { display: block; }
+    .alert.error   { background: rgba(255,92,106,0.1); border: 1px solid rgba(255,92,106,0.2); color: var(--error); }
+    .alert.success { background: rgba(74,240,164,0.08); border: 1px solid rgba(74,240,164,0.2); color: var(--accent); }
+
+    /* ── Account rows ── */
+    .acct-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .acct-row:last-child { border-bottom: none; }
+    .acct-key { color: var(--muted); }
+    .acct-val { color: var(--text); text-align: right; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
   </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<nav class="sidebar">
-  <div class="grid-overlay"></div>
-  <div class="brand">
-    <div class="brand-mark">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      </div>
-      <span class="brand-name">Device<span>Supply</span></span>
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
     </div>
-    <div class="brand-tag">Vendor Portal</div>
+    <span class="brand-name">Device<span>Supply</span></span>
   </div>
-
-  <div class="nav">
-    <div class="nav-section">Overview</div>
-    <div class="nav-item active" id="nav-home" onclick="go('home')">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Dashboard
-    </div>
-    <div class="nav-item" id="nav-account" onclick="go('account'); loadAccount()">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      My account
-    </div>
-
-    <div class="nav-section">Catalog</div>
-    <div class="nav-item" id="nav-add-device" onclick="go('add-device')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Add device
-    </div>
-    <div class="nav-item" id="nav-devices" onclick="go('devices'); loadDevices()">
-      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      My devices
-    </div>
-
-    <div class="nav-section">Operations</div>
-    <div class="nav-item" id="nav-register" onclick="go('register')">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      Register company
-    </div>
-    <div class="nav-item" id="nav-orders" onclick="go('orders'); loadOrders()">
-      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
-      Orders
-    </div>
-  </div>
-
-  <div class="sidebar-footer">© 2025 DeviceSupply</div>
-</nav>
-
-<!-- MAIN -->
-<div class="main">
-  <div class="topbar">
-    <div class="page-title" id="topbar-title">Dashboard</div>
-    <div class="page-sub" id="topbar-sub">Overview of your vendor activity</div>
-  </div>
-
-  <div class="content">
-
-    <!-- HOME -->
-    <div class="page active" id="page-home">
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label">Devices listed</div>
-          <div class="stat-value accent" id="stat-devices">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Pending orders</div>
-          <div class="stat-value" id="stat-orders">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Account status</div>
-          <div class="stat-value" id="stat-status" style="font-size:13px;padding-top:4px">—</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Quick actions</div>
-        <div class="actions-row">
-          <button class="btn" onclick="go('add-device')">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            Add device
-          </button>
-          <button class="btn" onclick="go('devices'); loadDevices()">
-            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            My devices
-          </button>
-          <button class="btn" onclick="go('orders'); loadOrders()">
-            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-            View orders
-          </button>
-          <button class="btn" onclick="go('account'); loadAccount()">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            My account
-          </button>
-        </div>
-      </div>
-      <div class="status-msg" id="al-home"></div>
-    </div>
-
-    <!-- REGISTER COMPANY -->
-    <div class="page" id="page-register">
-      <div class="card">
-        <div class="card-title">Company details</div>
-        <div class="field"><label>Company name</label><input id="r-company" type="text" placeholder="Acme Devices Pvt. Ltd."/></div>
-        <div class="field"><label>GST number</label><input id="r-gst" type="text" placeholder="27AABCU9603R1Z"/></div>
-        <div class="row2">
-          <div class="field"><label>Phone</label><input id="r-phone" type="text" placeholder="+91 98765 43210"/></div>
-          <div class="field"><label>Address</label><input id="r-address" type="text" placeholder="Bangalore, KA"/></div>
-        </div>
-        <button class="btn btn-primary" id="btn-register" onclick="registerVendor()">Submit registration</button>
-        <div class="status-msg" id="al-register"></div>
-      </div>
-    </div>
-
-    <!-- ACCOUNT -->
-    <div class="page" id="page-account">
-      <div style="margin-bottom:16px">
-        <button class="btn" onclick="loadAccount()">
-          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div class="status-msg" id="al-account"></div>
-      <div id="account-body"></div>
-    </div>
-
-    <!-- ADD DEVICE -->
-    <div class="page" id="page-add-device">
-      <div class="card">
-        <div class="card-title">Device details</div>
-        <div class="field"><label>Device name</label><input id="d-name" type="text" placeholder="Lenovo ThinkPad X1"/></div>
-        <div class="row2">
-          <div class="field"><label>Category</label><input id="d-category" type="text" placeholder="Laptop"/></div>
-          <div class="field"><label>Price (₹)</label><input id="d-price" type="number" placeholder="75000"/></div>
-        </div>
-        <div class="row2">
-          <div class="field"><label>Stock quantity</label><input id="d-qty" type="number" placeholder="50"/></div>
-          <div class="field"><label>Specifications</label><input id="d-spec" type="text" placeholder="16GB RAM, 512GB SSD"/></div>
-        </div>
-        <div class="field"><label>Description</label><textarea id="d-desc" rows="2" placeholder="Short description…"></textarea></div>
-        <button class="btn btn-primary" id="btn-add-device" onclick="addDevice()">Add device</button>
-        <div class="status-msg" id="al-add-device"></div>
-      </div>
-    </div>
-
-    <!-- MY DEVICES -->
-    <div class="page" id="page-devices">
-      <div style="margin-bottom:16px">
-        <button class="btn" onclick="loadDevices()">
-          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div class="status-msg" id="al-devices"></div>
-      <div id="devices-body"></div>
-    </div>
-
-    <!-- ORDERS -->
-    <div class="page" id="page-orders">
-      <div style="margin-bottom:16px">
-        <button class="btn" onclick="loadOrders()">
-          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div class="status-msg" id="al-orders"></div>
-      <div id="orders-body"></div>
-    </div>
-
+  <nav class="nav">
+    <div class="nav-item active" onclick="showPage('account')"><span class="nav-icon">👤</span> My Account</div>
+    <div class="nav-item" onclick="showPage('devices')"><span class="nav-icon">📦</span> My Devices</div>
+    <div class="nav-item" onclick="showPage('add-device')"><span class="nav-icon">➕</span> Add Device</div>
+    <div class="nav-item" onclick="showPage('orders')"><span class="nav-icon">🛒</span> Orders</div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
   </div>
 </div>
 
+<!-- Main -->
+<div class="main">
+
+  <!-- Account page -->
+  <div id="page-account" class="page active">
+    <div class="page-header">
+      <div class="page-title">My Account</div>
+      <div class="page-sub">Your vendor profile and approval status</div>
+    </div>
+    <div class="grid-2">
+      <div class="stat-card">
+        <div class="stat-label">Approval Status</div>
+        <div class="stat-value" id="stat-status">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Role</div>
+        <div class="stat-value" style="color:var(--vendor)">VENDOR</div>
+      </div>
+    </div>
+    <div class="alert" id="al-account"></div>
+    <div id="account-body"><div style="color:var(--muted);font-size:12px;"><span class="spinner"></span>Loading…</div></div>
+  </div>
+
+  <!-- Devices page -->
+  <div id="page-devices" class="page">
+    <div class="page-header">
+      <div class="page-title">My Devices</div>
+      <div class="page-sub">All devices listed under your vendor account</div>
+    </div>
+    <div class="alert" id="al-devices"></div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Device Name</th><th>Category</th><th>Warranty</th><th>Stock</th><th>Status</th>
+          </tr>
+          </thead>
+          <tbody id="devices-body">
+          <tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Device page -->
+  <div id="page-add-device" class="page">
+    <div class="page-header">
+      <div class="page-title">Add Device</div>
+      <div class="page-sub">List a new device in your catalogue</div>
+    </div>
+    <div class="alert" id="al-add"></div>
+    <div class="card" style="max-width:540px;">
+      <div class="form-grid">
+        <div class="field">
+          <label>Device Name</label>
+          <input type="text" id="d-name" placeholder="e.g. ThinkPad X1"/>
+        </div>
+        <div class="field">
+          <label>Device Type</label>
+          <select id="d-type">
+            <option value="LAPTOP">Laptop</option>
+            <option value="DESKTOP">Desktop</option>
+            <option value="PRINTER">Printer</option>
+            <option value="MONITOR">Monitor</option>
+            <!-- add your DeviceType enum values here -->
+          </select>
+        </div>
+        <div class="field">
+          <label>Stock Quantity</label>
+          <input type="number" id="d-stock" placeholder="0"/>
+        </div>
+        <div class="field">
+          <label>Warranty Expiry</label>
+          <input type="date" id="d-warranty"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="d-desc" placeholder="Brief description of the device…"></textarea>
+      </div>
+      <button class="btn btn-primary" id="add-device-btn" onclick="handleAddDevice()">Add Device</button>
+    </div>
+  </div>
+
+  <!-- Orders page -->
+  <div id="page-orders" class="page">
+    <div class="page-header">
+      <div class="page-title">Orders</div>
+      <div class="page-sub">Incoming orders from company admins</div>
+    </div>
+    <div class="alert" id="al-orders"></div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Order ID</th><th>Device</th><th>Qty</th><th>Company</th><th>Status</th><th>Action</th>
+          </tr>
+          </thead>
+          <tbody id="orders-body">
+          <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px;"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
 <script>
-  const GATEWAY = 'http://localhost:8085';
+  // ── Config ───────────────────────────────────────────────
+  const GATEWAY   = 'http://localhost:8085';
+  const TOKEN_KEY = 'devicesupply_token';
 
-  const PAGES = {
-    home:       { title: 'Dashboard',         sub: 'Overview of your vendor activity' },
-    register:   { title: 'Register company',  sub: 'Submit your company details for admin approval' },
-    account:    { title: 'My account',        sub: 'Your vendor profile and approval status' },
-    'add-device': { title: 'Add device',      sub: 'List a new device in your catalog' },
-    devices:    { title: 'My devices',        sub: 'Devices you have listed on the platform' },
-    orders:     { title: 'Orders',            sub: 'Review and accept incoming orders' }
-  };
+  // ── Auth header helper ───────────────────────────────────
+  // Attach to every authenticated request.
+  // GET:      headers: authHeaders()
+  // POST/PUT: headers: { ...authHeaders(), 'Content-Type': 'application/json' }
+  function authHeaders() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    return token ? { 'Authorization': 'Bearer ' + token } : {};
+  }
 
-  function go(id) {
+  // ── Guard: redirect to login if no token ─────────────────
+  (function guard() {
+    if (!localStorage.getItem(TOKEN_KEY)) {
+      window.location.href = '/auth.html';
+    }
+  })();
+
+  // ── Navigation ───────────────────────────────────────────
+  function showPage(name) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
-    const nav = document.getElementById('nav-' + id);
-    if (nav) nav.classList.add('active');
-    const meta = PAGES[id] || {};
-    document.getElementById('topbar-title').textContent = meta.title || '';
-    document.getElementById('topbar-sub').textContent = meta.sub || '';
+    document.getElementById('page-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    if (name === 'account')    loadAccount();
+    if (name === 'devices')    loadDevices();
+    if (name === 'orders')     loadOrders();
   }
 
-  function loading(containerId) {
-    document.getElementById(containerId).innerHTML =
-      '<div class="loading-msg"><span class="spinner spinner-muted"></span> Loading…</div>';
-  }
-
-  async function bodyText(res) {
-    const ct = res.headers.get('content-type') || '';
-    if (ct.includes('application/json')) {
-      const j = await res.json();
-      if (typeof j === 'string') return j;
-      if (j.message) return j.message;
-      if (j.error) return j.error;
-      return JSON.stringify(j, null, 2);
-    }
-    return await res.text();
+  // ── Helpers ──────────────────────────────────────────────
+  function loading(id) {
+    document.getElementById(id).innerHTML =
+      '<div style="color:var(--muted);font-size:12px;padding:20px 0;"><span class="spinner"></span>Loading…</div>';
   }
 
   function showAlert(id, msg, type) {
     const el = document.getElementById(id);
     el.textContent = msg;
-    el.className = 'status-msg ' + type + ' show';
+    el.className = `alert ${type} show`;
   }
 
-  function setLoading(btnId, on, label) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.disabled = on;
-    btn.innerHTML = on ? '<span class="spinner"></span> Please wait…' : label;
+  async function bodyText(res) {
+    try { const d = await res.json(); return d.message || d.error || res.statusText; }
+    catch { return res.statusText; }
   }
 
-  /* ── REGISTER ─────────────────────────────── */
-  async function registerVendor() {
-    setLoading('btn-register', true, 'Submit registration');
-    try {
-      const res = await fetch(GATEWAY + '/api/vendors/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          companyName: document.getElementById('r-company').value,
-          gstNumber:   document.getElementById('r-gst').value,
-          phone:       document.getElementById('r-phone').value,
-          address:     document.getElementById('r-address').value
-        })
-      });
-      const txt = await bodyText(res);
-      if (res.ok) {
-        showAlert('al-register', '✓ Company registered — awaiting admin approval.', 'success');
-        ['r-company','r-gst','r-phone','r-address'].forEach(id => { document.getElementById(id).value = ''; });
-      } else {
-        showAlert('al-register', '✗ ' + txt, 'error');
-      }
-    } catch (e) {
-      showAlert('al-register', '✗ Network error: ' + e.message, 'error');
-    }
-    setLoading('btn-register', false, 'Submit registration');
+  // ── Logout ───────────────────────────────────────────────
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/auth.html';
   }
 
-  /* ── ACCOUNT ──────────────────────────────── */
+  // ── Load Account ─────────────────────────────────────────
   async function loadAccount() {
     loading('account-body');
     document.getElementById('al-account').classList.remove('show');
     try {
-      const res = await fetch(GATEWAY + '/api/vendors/me');
+      const res = await fetch(GATEWAY + '/api/vendors/me', {
+        headers: authHeaders()   // ← JWT attached here
+      });
+
       if (!res.ok) {
         showAlert('al-account', '✗ ' + await bodyText(res), 'error');
         document.getElementById('account-body').innerHTML = '';
         return;
       }
+
       const data = await res.json();
       const v = data['Vendor Account:'] || data;
       const statusStr = data['Approval status:'] || '';
       const isApproved = statusStr.toLowerCase().includes('approved') && !statusStr.toLowerCase().includes('not');
       const isRejected = statusStr.toLowerCase().includes('reject');
       const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
-      const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
+      const badgeTxt = isApproved ? 'Approved'       : isRejected ? 'Rejected'       : 'Pending';
 
       document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
       document.getElementById('account-body').innerHTML = `
@@ -414,142 +356,149 @@
     }
   }
 
-  /* ── ADD DEVICE ───────────────────────────── */
-  async function addDevice() {
-    setLoading('btn-add-device', true, 'Add device');
+  // ── Load Devices ─────────────────────────────────────────
+  async function loadDevices() {
+    document.getElementById('al-devices').classList.remove('show');
+    document.getElementById('devices-body').innerHTML =
+      '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;"><span class="spinner"></span>Loading…</td></tr>';
+    try {
+      const res = await fetch(GATEWAY + '/api/vendors/devices', {
+        headers: authHeaders()   // ← JWT attached here
+      });
+
+      if (!res.ok) {
+        showAlert('al-devices', '✗ ' + await bodyText(res), 'error');
+        document.getElementById('devices-body').innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;">No data.</td></tr>';
+        return;
+      }
+
+      const devices = await res.json();
+      if (!devices.length) {
+        document.getElementById('devices-body').innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;">No devices listed yet.</td></tr>';
+        return;
+      }
+
+      document.getElementById('devices-body').innerHTML = devices.map(d => `
+        <tr>
+          <td>${d.DeviceName || '—'}</td>
+          <td>${d.deviceType   || '—'}</td>
+          <td>₹${d.warrantyExpiry  || '0'}</td>
+          <td>${d.stockQuantity ?? '—'}</td>
+          <td><span class="badge badge-approved">Active</span></td>
+        </tr>`).join('');
+    } catch (e) {
+      showAlert('al-devices', '✗ Network error: ' + e.message, 'error');
+    }
+  }
+
+  // ── Add Device ───────────────────────────────────────────
+  async function handleAddDevice() {
+    document.getElementById('al-add').classList.remove('show');
+    const payload = {
+  deviceName:    document.getElementById('d-name').value.trim(),
+  deviceType:    document.getElementById('d-type').value,
+  stockQuantity: parseInt(document.getElementById('d-stock').value) || 0,
+  warrantyExpiry: document.getElementById('d-warranty').value || null,
+};
+
+if (!payload.deviceName || !payload.deviceType) {
+  showAlert('al-add', '⚠ Device name and type are required.', 'error');
+  return;
+}
+
+    const btn = document.getElementById('add-device-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Adding…';
+
     try {
       const res = await fetch(GATEWAY + '/api/vendors/devices', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deviceName:    document.getElementById('d-name').value,
-          category:      document.getElementById('d-category').value,
-          price:         parseFloat(document.getElementById('d-price').value) || 0,
-          stockQuantity: parseInt(document.getElementById('d-qty').value) || 0,
-          specifications:document.getElementById('d-spec').value,
-          description:   document.getElementById('d-desc').value
-        })
+        headers: {
+          ...authHeaders(),                    // ← JWT attached here
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
-      const txt = await bodyText(res);
-      if (res.ok) {
-        showAlert('al-add-device', '✓ Device added successfully!', 'success');
-        ['d-name','d-category','d-price','d-qty','d-spec','d-desc'].forEach(id => { document.getElementById(id).value = ''; });
-      } else {
-        showAlert('al-add-device', '✗ ' + txt, 'error');
-      }
-    } catch (e) {
-      showAlert('al-add-device', '✗ Network error: ' + e.message, 'error');
-    }
-    setLoading('btn-add-device', false, 'Add device');
-  }
 
-  /* ── DEVICES ──────────────────────────────── */
-  async function loadDevices() {
-    loading('devices-body');
-    document.getElementById('al-devices').classList.remove('show');
-    try {
-      const res = await fetch(GATEWAY + '/api/vendors/devices');
       if (!res.ok) {
-        showAlert('al-devices', '✗ ' + await bodyText(res), 'error');
-        document.getElementById('devices-body').innerHTML = '';
+        showAlert('al-add', '✗ ' + await bodyText(res), 'error');
         return;
       }
-      const list = await res.json();
-      document.getElementById('stat-devices').textContent = list.length || 0;
-      if (!list || !list.length) {
-        document.getElementById('devices-body').innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>No devices listed yet.</div>';
-        return;
-      }
-      document.getElementById('devices-body').innerHTML = `<div class="device-grid">${list.map(d => `
-        <div class="device-card">
-          <div class="device-cat">${d.category || 'Device'}</div>
-          <div class="device-name">${d.deviceName || d.name || '—'}</div>
-          ${d.specifications ? `<div class="device-spec">${d.specifications}</div>` : '<div style="margin-bottom:10px"></div>'}
-          <div class="device-price">₹${(d.price || 0).toLocaleString('en-IN')}</div>
-          <div class="device-stock">${d.stockQuantity || 0} in stock</div>
-        </div>`).join('')}</div>`;
+
+      showAlert('al-add', '✓ Device added successfully!', 'success');
+      ['d-name','d-category','d-price','d-stock','d-desc'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
     } catch (e) {
-      showAlert('al-devices', '✗ Network error: ' + e.message, 'error');
-      document.getElementById('devices-body').innerHTML = '';
+      showAlert('al-add', '✗ Network error: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Add Device';
     }
   }
 
-  /* ── ORDERS ───────────────────────────────── */
+  // ── Load Orders ──────────────────────────────────────────
   async function loadOrders() {
-    loading('orders-body');
     document.getElementById('al-orders').classList.remove('show');
+    document.getElementById('orders-body').innerHTML =
+      '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px;"><span class="spinner"></span>Loading…</td></tr>';
     try {
-      const res = await fetch(GATEWAY + '/api/vendors/orders');
+      const res = await fetch(GATEWAY + '/api/vendors/orders', {
+        headers: authHeaders()   // ← JWT attached here
+      });
+
       if (!res.ok) {
         showAlert('al-orders', '✗ ' + await bodyText(res), 'error');
-        document.getElementById('orders-body').innerHTML = '';
+        document.getElementById('orders-body').innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px;">No data.</td></tr>';
         return;
       }
-      const list = await res.json();
-      const pending = (list || []).filter(o => o.orderStatus === 'PENDING').length;
-      document.getElementById('stat-orders').textContent = pending;
-      if (!list || !list.length) {
-        document.getElementById('orders-body').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No orders yet.</div>';
+
+      const orders = await res.json();
+      if (!orders.length) {
+        document.getElementById('orders-body').innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px;">No orders yet.</td></tr>';
         return;
       }
-      document.getElementById('orders-body').innerHTML = `<div class="card">${list.map(o => {
-        const s = o.orderStatus || 'PENDING';
-        const cls = s === 'PENDING' ? 'badge-pending' : (s === 'ACCEPTED' || s === 'APPROVED') ? 'badge-approved' : 'badge-rejected';
-        return `<div class="order-row">
-          <div>
-            <div class="order-id">Order #${o.orderId || o.id || '—'}${o.createdAt ? ' · ' + o.createdAt : ''}</div>
-            <div class="order-name">${o.deviceName || 'Device'}${o.quantity ? ' × ' + o.quantity : ''}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span class="badge ${cls}">${s}</span>
-            ${s === 'PENDING' ? `<button class="btn btn-sm btn-accept" onclick="acceptOrder(${o.orderId || o.id})">Accept</button>` : ''}
-          </div>
-        </div>`;
-      }).join('')}</div>`;
+
+      document.getElementById('orders-body').innerHTML = orders.map(o => `
+        <tr>
+          <td>#${o.orderId   || o.id || '—'}</td>
+          <td>${o.deviceName || '—'}</td>
+          <td>${o.quantity   || '—'}</td>
+          <td>${o.companyName|| '—'}</td>
+          <td><span class="badge badge-pending">${o.status || 'PENDING'}</span></td>
+          <td>
+            ${o.status === 'PENDING'
+              ? `<button class="btn-accept" onclick="acceptOrder(${o.orderId || o.id})">Accept</button>`
+              : '—'}
+          </td>
+        </tr>`).join('');
     } catch (e) {
       showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
-      document.getElementById('orders-body').innerHTML = '';
     }
   }
 
+  // ── Accept Order ─────────────────────────────────────────
   async function acceptOrder(orderId) {
     try {
-      const res = await fetch(GATEWAY + '/api/vendors/review/' + orderId, { method: 'PUT' });
-      const txt = await bodyText(res);
-      if (res.ok) { showAlert('al-orders', '✓ Order #' + orderId + ' accepted!', 'success'); loadOrders(); }
-      else showAlert('al-orders', '✗ ' + txt, 'error');
+      const res = await fetch(`${GATEWAY}/api/vendors/orders/${orderId}/accept`, {
+        method: 'PUT',
+        headers: authHeaders()   // ← JWT attached here
+      });
+
+      if (!res.ok) {
+        showAlert('al-orders', '✗ ' + await bodyText(res), 'error');
+        return;
+      }
+
+      showAlert('al-orders', `✓ Order #${orderId} accepted.`, 'success');
+      loadOrders();   // refresh table
     } catch (e) {
       showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
     }
   }
 
-  /* ── HOME STATS ───────────────────────────── */
-  async function loadHomeStats() {
-    const [dr, or, ar] = await Promise.allSettled([
-      fetch(GATEWAY + '/api/vendors/devices'),
-      fetch(GATEWAY + '/api/vendors/orders'),
-      fetch(GATEWAY + '/api/vendors/me')
-    ]);
-    if (dr.status === 'fulfilled' && dr.value.ok) {
-      const d = await dr.value.json();
-      document.getElementById('stat-devices').textContent = d.length || 0;
-    }
-    if (or.status === 'fulfilled' && or.value.ok) {
-      const o = await or.value.json();
-      document.getElementById('stat-orders').textContent = (o || []).filter(x => x.orderStatus === 'PENDING').length;
-    }
-    if (ar.status === 'fulfilled' && ar.value.ok) {
-      const data = await ar.value.json();
-      const s = data['Approval status:'] || '';
-      const isApproved = s.toLowerCase().includes('approved') && !s.toLowerCase().includes('not');
-      const isRejected = s.toLowerCase().includes('reject');
-      const cls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
-      const txt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
-      document.getElementById('stat-status').innerHTML = `<span class="badge ${cls}">${txt}</span>`;
-    }
-  }
-
-  loadHomeStats();
+  // ── Init: load default page ──────────────────────────────
+  loadAccount();
 </script>
 </body>
 </html>
