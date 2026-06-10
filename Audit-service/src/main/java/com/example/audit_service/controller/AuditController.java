@@ -1,7 +1,7 @@
-package com.example.Audit_service.controller;
+package com.example.audit_service.controller;
 
-import com.example.Audit_service.entity.AuditRecord;
-import com.example.Audit_service.repository.AuditRecordRepository;
+import com.example.audit_service.entity.AuditRecord;
+import com.example.audit_service.repository.AuditRecordRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,3 +39,4 @@ public class AuditController {
         return auditRecordRepository.findByCompanyIdOrderByTimestampDesc(companyId);
     }
 }
+

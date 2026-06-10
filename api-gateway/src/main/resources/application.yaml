@@ -71,13 +71,19 @@ spring:
             - Path=/v3/api-docs/repairs
           filters:
             - RewritePath=/v3/api-docs/repairs,/v3/api-docs
+
         - id: audit-service
           uri: lb://AUDIT-SERVICE
           predicates:
             - Path=/api/audit/**
+
+        - id: audit-service-openapi
+          uri: lb://AUDIT-SERVICE
+          predicates:
+            - Path=/v3/api-docs/audit
           filters:
             - RewritePath=/v3/api-docs/audit,/v3/api-docs
-
+            -
       # Global CORS config
       globalcors:
         cors-configurations:

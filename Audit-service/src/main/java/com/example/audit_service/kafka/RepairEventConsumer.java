@@ -1,10 +1,13 @@
-package com.example.Audit_service.kafka;
-import com.example.Audit_service.dto.RepairEventDTO;
-import com.example.Audit_service.entity.AuditRecord;
+package com.example.audit_service.kafka;
+
+
+import com.example.audit_service.dto.RepairEventDTO;
+import com.example.audit_service.entity.AuditRecord;
+import com.example.audit_service.repository.AuditRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
-import com.example.Audit_service.repository.AuditRecordRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,8 +15,9 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class RepairEventConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(RepairEventConsumer.class);

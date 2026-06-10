@@ -35,12 +35,12 @@ public class OrderService {
             return ResponseEntity.ok("Insufficient Stock!!");
         }
         Orders orders =new Orders();
-        orders.setCompany_id(companyId);
-        orders.setDevice_id(orderRequest.getDevice_id());
-        orders.setVendor_id(orderRequest.getVendor_id());
+        orders.setCompanyId(companyId);
+        orders.setDeviceId(orderRequest.getDevice_id());
+        orders.setVendorId(orderRequest.getVendor_id());
         orders.setQuantity(orderRequest.getQuantity());
         orders.setStatus(OrderStatus.REQUESTED);
-        orders.setPlaced_at(LocalDateTime.now());
+        orders.setPlacedAt(LocalDateTime.now());
         Orders saved=orderRepository.save(orders);
         OrderDTO orderDTO=toOrderDTO(saved);
         deviceServiceClient.addDeviceInstance(orderDTO);
@@ -50,8 +50,8 @@ public class OrderService {
     private OrderDTO toOrderDTO(Orders orders){
         OrderDTO orderDTO=new OrderDTO();
         orderDTO.setOrder_id(orders.getId());
-        orderDTO.setCompany_id(orders.getCompany_id());
-        orderDTO.setDevice_id(orders.getDevice_id());
+        orderDTO.setCompany_id(orders.getCompanyId());
+        orderDTO.setDevice_id(orders.getDeviceId());
         orderDTO.setQuantity(orders.getQuantity());
         return orderDTO;
     }
@@ -61,13 +61,13 @@ public class OrderService {
                 .orElseThrow(
                         ()->new RuntimeException("orderNotFound")
                 );
-        if(vendorId!= orders.getVendor_id()){
+        if(vendorId!= orders.getVendorId()){
             return "You cannot accept the orders that belongs to other vendors";
         }
         orders.setStatus(OrderStatus.APPROVED);
         orderRepository.save(orders);
         deviceServiceClient.updateDeviceInstance(orders.getId());
-        return "Accepted the order of the company:"+ orders.getCompany_id();
+        return "Accepted the order of the company:"+ orders.getCompanyId();
     }
 
     public List<OrderDTO> getOrdersByVendor(long vendorId) {
