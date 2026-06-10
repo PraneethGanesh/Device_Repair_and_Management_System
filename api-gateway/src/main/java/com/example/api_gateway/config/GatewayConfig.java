@@ -37,6 +37,11 @@ public class GatewayConfig {
                         .filters(f -> f
                                 .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://device-service"))
+                .route("device-assignment-service", r -> r
+                        .path("/api/assignments/**", "/api/device_instance/**")
+                        .filters(f -> f
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
+                        .uri("lb://device-service"))
 
                 // Vendor Service - PROTECTED
                 .route("vendor-service", r -> r
@@ -59,10 +64,20 @@ public class GatewayConfig {
                                 .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://repair-service"))
                 .route("customer-service", r -> r
-                        .path("/api/companies/**")
+                        .path("/api/companies/**", "/api/employees/**")
                         .filters(f -> f
                                 .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
                         .uri("lb://customer-service"))
+                .route("order-service", r -> r
+                        .path("/api/order/**")
+                        .filters(f -> f
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
+                        .uri("lb://order-service"))
+                .route("audit-service", r -> r
+                        .path("/api/audit/**")
+                        .filters(f -> f
+                                .filter(jwtAuthFilter.apply(new JwtAuthFilter.Config())))
+                        .uri("lb://audit-service"))
                 .build();
     }
 }

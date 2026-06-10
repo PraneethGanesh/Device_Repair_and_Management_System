@@ -51,7 +51,7 @@
         <div class="field-group">
           <label>Role</label>
           <div class="role-select">
-            <button class="role-btn active" data-role="user">Employee</button>
+            <button class="role-btn active" data-role="company_employee">Employee</button>
             <button class="role-btn" data-role="admin">Admin</button>
             <button class="role-btn" data-role="vendor">Vendor</button>
           </div>
@@ -88,7 +88,7 @@
         <div class="field-group">
           <label>Register as</label>
           <div class="role-select">
-            <button class="role-btn active" data-role="user">Employee</button>
+            <button class="role-btn active" data-role="company_employee">Employee</button>
             <button class="role-btn" data-role="vendor">Vendor</button>
           </div>
         </div>
@@ -110,6 +110,25 @@
             <button class="eye-btn" type="button" onclick="togglePass('reg-pass',this)">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
+          </div>
+        </div>
+
+        <div id="vendor-fields" class="hidden">
+          <div class="field-group">
+            <label for="reg-company">Company Name</label>
+            <input id="reg-company" type="text" placeholder="Lal Repairs">
+          </div>
+          <div class="field-group">
+            <label for="reg-gst">GST Number</label>
+            <input id="reg-gst" type="text" placeholder="GST123456">
+          </div>
+          <div class="field-group">
+            <label for="reg-phone">Phone</label>
+            <input id="reg-phone" type="text" placeholder="9876543210">
+          </div>
+          <div class="field-group">
+            <label for="reg-address">Address</label>
+            <input id="reg-address" type="text" placeholder="Hyderabad">
           </div>
         </div>
 

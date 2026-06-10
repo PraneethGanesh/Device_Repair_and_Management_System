@@ -33,7 +33,7 @@ async function loadStats() {
     const [devices, requests, vendors] = await Promise.allSettled([
       apiGet('/api/devices'),
       apiGet('/api/repairs'),
-      apiGet('/api/vendors')
+      apiGet('/api/vendors/pending')
     ]);
 
     const devList = devices.status === 'fulfilled' ? (devices.value || []) : [];
@@ -80,7 +80,7 @@ async function loadAdminRequests() {
   try {
     const [requests, vendors] = await Promise.all([
       apiGet('/api/repairs'),
-      apiGet('/api/vendors').catch(() => [])
+      apiGet('/api/vendors/pending').catch(() => [])
     ]);
     allAdminRequests = requests || [];
     window._vendorList = vendors || [];
@@ -236,14 +236,20 @@ async function submitAddDevice() {
   const name   = document.getElementById('admin-dev-name').value.trim();
   const type   = document.getElementById('admin-dev-type').value.trim();
   const serial = document.getElementById('admin-dev-serial').value.trim();
-  const userId = document.getElementById('admin-dev-user').value.trim();
+  const vendorId = document.getElementById('admin-dev-user').value.trim();
 
   if (!name) return toast('Device name is required.', 'error');
+  if (!vendorId) return toast('Vendor ID is required.', 'error');
 
   const btn = document.getElementById('add-device-btn');
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
-    await apiPost('/api/devices', { name, type, serialNumber: serial, userId: userId || undefined });
+    await apiPost(`/api/devices/${vendorId}`, {
+      deviceName: name,
+      deviceType: type.toUpperCase(),
+      warrantyExpiry: new Date().toISOString().slice(0, 10),
+      stockQuantity: Number(serial || 1)
+    });
     closeModal('add-device-modal');
     toast('Device added!', 'success');
     await loadAdminDevices();
@@ -375,11 +381,11 @@ async function openAcknowledgeModal(id) {
   const sel = document.getElementById('ack-vendor');
   sel.innerHTML = '<option value="">— Skip assignment (assign later) —</option>';
   try {
-    const vendors = await apiGet('/api/vendors');
+    const vendors = await apiGet('/api/vendors/pending');
     (vendors || []).forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.id;
-      opt.textContent = `${v.name || v.email} (ID: ${v.id})`;
+      opt.textContent = `${v.companyName || v.email} (ID: ${v.id})`;
       sel.appendChild(opt);
     });
   } catch {
@@ -395,10 +401,9 @@ async function submitAcknowledge() {
   const btn = document.getElementById('ack-submit-btn');
   btn.disabled = true; btn.textContent = 'Acknowledging…';
   try {
-    await apiPatch(`/api/repairs/${acknowledgeRequestId}/acknowledge`, vendorId ? { vendorId } : {});
-    // Optionally assign vendor separately if the acknowledge endpoint doesn't support it
+    await apiPut(`/api/repairs/${acknowledgeRequestId}/acknowledge?adminId=${adminUser.id}`);
     if (vendorId) {
-      await apiPatch(`/api/repairs/${acknowledgeRequestId}/assign`, { vendorId }).catch(() => {});
+      await apiPut(`/api/repairs/${acknowledgeRequestId}/assign-vendor?vendorId=${vendorId}`).catch(() => {});
     }
     closeModal('ack-modal');
     toast('Request acknowledged!', 'success');
@@ -420,9 +425,9 @@ async function openAssignModal(id) {
   const sel = document.getElementById('assign-vendor');
   sel.innerHTML = '<option value="">Loading vendors…</option>';
   try {
-    const vendors = await apiGet('/api/vendors');
+    const vendors = await apiGet('/api/vendors/pending');
     sel.innerHTML = (vendors || []).length
-        ? (vendors || []).map(v => `<option value="${v.id}">${v.name || v.email} (ID: ${v.id})</option>`).join('')
+        ? (vendors || []).map(v => `<option value="${v.id}">${v.companyName || v.email} (ID: ${v.id})</option>`).join('')
         : '<option value="">No vendors available</option>';
   } catch {
     sel.innerHTML = '<option value="">Failed to load vendors</option>';
@@ -438,7 +443,7 @@ async function submitAssignVendor() {
   const btn = document.getElementById('assign-submit-btn');
   btn.disabled = true; btn.textContent = 'Assigning…';
   try {
-    await apiPatch(`/api/repairs/${assignRequestId}/assign`, { vendorId });
+    await apiPut(`/api/repairs/${assignRequestId}/assign-vendor?vendorId=${vendorId}`);
     closeModal('assign-modal');
     toast('Vendor assigned!', 'success');
     loadAdminRequests();
@@ -466,7 +471,7 @@ async function submitCloseRequest() {
   const btn = document.getElementById('close-submit-btn');
   btn.disabled = true; btn.textContent = 'Closing…';
   try {
-    await apiPatch(`/api/repairs/${closeRequestId}/close`, { remark });
+    await apiPut(`/api/repairs/${closeRequestId}/close`);
     closeModal('close-modal');
     toast('Request marked as Closed!', 'success');
     loadOverviewRequests();

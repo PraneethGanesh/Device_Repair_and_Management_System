@@ -3,6 +3,26 @@ const API_BASE = ''; // Same-host gateway. Change to http://localhost:8080 for l
 
 function getToken() { return localStorage.getItem('token') || ''; }
 
+function getStoredSession() {
+  try { return JSON.parse(localStorage.getItem('userInfo') || '{}'); }
+  catch { return {}; }
+}
+
+function normalizeRole(role) {
+  return (role || '').toLowerCase();
+}
+
+function roleMatches(actualRole, expectedRole) {
+  const actual = normalizeRole(actualRole);
+  const expected = normalizeRole(expectedRole);
+  const groups = {
+    admin: ['admin', 'company_admin'],
+    employee: ['employee', 'company_employee', 'user'],
+    vendor: ['vendor']
+  };
+  return (groups[expected] || [expected]).includes(actual);
+}
+
 function authHeaders() {
   return {
     'Content-Type': 'application/json',
@@ -89,18 +109,19 @@ function guardRole(expectedRole) {
   if (!token) { window.location.href = 'index.html'; return false; }
   const claims = decodeJwt(token);
   if (!claims || claims.exp * 1000 < Date.now()) { logout(); return false; }
-  const role = (claims.role || '').toLowerCase();
-  if (expectedRole && role !== expectedRole.toLowerCase()) {
+  const session = getStoredSession();
+  const role = normalizeRole(session.role || claims.role);
+  if (expectedRole && !roleMatches(role, expectedRole)) {
     window.location.href = 'index.html';
     return false;
   }
-  return claims;
+  return { ...claims, ...session, role };
 }
 
 // ── Current user ────────────────────────────────────────────────────────────
 function getCurrentUser() {
   const token = getToken();
-  return decodeJwt(token) || {};
+  return { ...(decodeJwt(token) || {}), ...getStoredSession() };
 }
 
 function getUserInitials(name) {

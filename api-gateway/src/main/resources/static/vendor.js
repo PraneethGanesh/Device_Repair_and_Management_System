@@ -4,6 +4,14 @@ const vendorUser = guardRole('vendor');
 let allRequests  = [];
 let activeFilter = 'ALL';
 let vendorDevSearch = '';
+let vendorAccount = null;
+
+async function loadVendorAccount() {
+  if (vendorAccount) return vendorAccount;
+  const res = await apiGet('/api/vendors/me');
+  vendorAccount = res['Vendor Account:'] || res.vendor || res;
+  return vendorAccount;
+}
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,15 +34,16 @@ async function loadVendorOverview() {
   tableLoading('vendor-ack-body', 6);
   tableLoading('vendor-inprogress-body', 6);
   try {
+    const vendor = await loadVendorAccount();
     const [requestsRes, devicesRes] = await Promise.allSettled([
-      apiGet('/api/repairs'),
-      apiGet('/api/devices')
+      apiGet(`/api/repairs/vendor/${vendor.id}`).catch(() => apiGet('/api/repairs/available')),
+      apiGet('/api/vendors/devices')
     ]);
 
     allRequests = requestsRes.status === 'fulfilled' ? (requestsRes.value || []) : [];
     const devices = devicesRes.status === 'fulfilled' ? (devicesRes.value || []) : [];
 
-    const acked  = allRequests.filter(r => r.status === 'ACKNOWLEDGED');
+    const acked  = allRequests.filter(r => r.status === 'ACKNOWLEDGED' || r.status === 'PENDING');
     const inprog = allRequests.filter(r => ['IN_PROGRESS','INPROGRESS'].includes(r.status));
     const done   = allRequests.filter(r => r.status === 'COMPLETED');
     const closed = allRequests.filter(r => r.status === 'CLOSED');
@@ -83,7 +92,8 @@ function renderActionTable(tbodyId, requests, mode) {
 async function loadVendorRequests() {
   tableLoading('vendor-all-requests-body', 7);
   try {
-    const requests = await apiGet('/api/repairs');
+    const vendor = await loadVendorAccount();
+    const requests = await apiGet(`/api/repairs/vendor/${vendor.id}`).catch(() => apiGet('/api/repairs/available'));
     allRequests = requests || [];
     renderFilteredTable();
   } catch (err) {
@@ -136,7 +146,9 @@ function renderFilteredTable() {
 async function markInProgress(id, btn) {
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
   try {
-    await apiPatch(`/api/repairs/${id}/inprogress`);
+    const vendor = await loadVendorAccount();
+    await apiPut(`/api/repairs/${id}/assign-vendor?vendorId=${vendor.id}`).catch(() => {});
+    await apiPut('/api/repairs/progress', { repairId: id, vendorId: vendor.id });
     toast('Marked as In Progress!', 'success');
     await loadVendorOverview();
     if (document.getElementById('page-repair').classList.contains('active')) loadVendorRequests();
@@ -162,7 +174,8 @@ async function submitComplete() {
   const btn = document.getElementById('complete-submit-btn');
   btn.disabled = true; btn.textContent = 'Completing…';
   try {
-    await apiPatch(`/api/repairs/${completeRequestId}/complete`, notes ? { notes } : {});
+    const vendor = await loadVendorAccount();
+    await apiPut('/api/repairs/complete', { repairId: completeRequestId, vendorId: vendor.id });
     closeModal('complete-modal');
     toast('Marked as Completed!', 'success');
     await loadVendorOverview();
@@ -180,7 +193,7 @@ let vendorDevices = [];
 async function loadVendorDevices() {
   tableLoading('vendor-devices-body', 5);
   try {
-    const devices = await apiGet('/api/devices');
+    const devices = await apiGet('/api/vendors/devices');
     vendorDevices = devices || [];
     renderVendorDevicesTable();
   } catch (err) {
@@ -232,7 +245,12 @@ async function submitAddDevice() {
   const btn = document.getElementById('add-dev-btn');
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
-    await apiPost('/api/devices', { name, type, serialNumber: serial, userId: userId || undefined });
+    await apiPost('/api/vendors/devices', {
+      deviceName: name,
+      deviceType: type.toUpperCase(),
+      warrantyExpiry: new Date().toISOString().slice(0, 10),
+      stockQuantity: Number(userId || 1)
+    });
     closeModal('add-device-modal');
     toast('Device added!', 'success');
     loadVendorDevices();
@@ -248,8 +266,7 @@ async function loadVendorProfile() {
   const body = document.getElementById('vendor-profile-body');
   body.innerHTML = `<div style="color:var(--muted)">Loading…</div>`;
   try {
-    const profile = await apiGet('/api/vendors/me');
-    const u = profile || vendorUser;
+    const u = await loadVendorAccount();
     body.innerHTML = `
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px">
         <div class="user-avatar" style="width:60px;height:60px;font-size:22px;border-radius:16px;background:linear-gradient(135deg,var(--accent2),#2563eb)">${getUserInitials(u.name || '')}</div>

@@ -1,6 +1,8 @@
 package com.example.vendor_service.DTO;
 
 public class VendorResponseDTO {
+    private long id;
+
     private String companyName;
 
     private String email;
@@ -8,6 +10,14 @@ public class VendorResponseDTO {
     private String gstNumber;
 
     private String phone;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getCompanyName() {
         return companyName;

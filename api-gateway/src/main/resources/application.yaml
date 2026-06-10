@@ -83,7 +83,6 @@ spring:
             - Path=/v3/api-docs/audit
           filters:
             - RewritePath=/v3/api-docs/audit,/v3/api-docs
-            -
       # Global CORS config
       globalcors:
         cors-configurations:

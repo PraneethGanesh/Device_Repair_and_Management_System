@@ -87,6 +87,7 @@
 
         private VendorResponseDTO toVendorResponseDTO(Vendor vendor){
             VendorResponseDTO vendorResponseDTO=new VendorResponseDTO();
+            vendorResponseDTO.setId(vendor.getId());
             vendorResponseDTO.setCompanyName(vendor.getCompanyName());
             vendorResponseDTO.setEmail(vendor.getEmail());
             vendorResponseDTO.setPhone(vendor.getPhone());
