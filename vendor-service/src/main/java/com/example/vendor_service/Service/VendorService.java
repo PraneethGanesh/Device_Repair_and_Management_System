@@ -51,7 +51,7 @@
         }
 
         public ResponseEntity<?> approveVendor(ActionDTO actionDTO, String role) {
-            if(!role.equals("ADMIN")){
+            if(!role.equalsIgnoreCase("ADMIN")){
              return ResponseEntity.badRequest().body("Only admin can approve or reject the vendor account");
             }
             Vendor vendor=vendorRepository.findById(actionDTO.getVendorId()).orElseThrow(
@@ -75,7 +75,7 @@
         }
 
         public ResponseEntity<?> getPendingAccount(String role) {
-            if(!role.equals("ADMIN")){
+            if(!role.equalsIgnoreCase("ADMIN")){
                 return ResponseEntity.badRequest().body("Only admin can see the pending vendor account");
             }
             List<Vendor> vendorsList=vendorRepository.findByApproval(ApprovalStatus.PENDING.name());
@@ -95,7 +95,7 @@
         }
 
         public ResponseEntity<?> addDevice(DeviceDTO deviceDTO, String username, String role){
-            if(!role.equals("VENDOR")){
+            if(!role.equalsIgnoreCase("VENDOR")){
                 return ResponseEntity.badRequest().body("only vendor has the access to add the device");
             }
             Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
@@ -117,7 +117,7 @@
         }
 
         public ResponseEntity<?> getDevices(String username,String role){
-            if(!role.equals("VENDOR")){
+            if(!role.equalsIgnoreCase("VENDOR")){
                 return ResponseEntity.badRequest().body("only vendor has the access to see his device");
             }
             Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
