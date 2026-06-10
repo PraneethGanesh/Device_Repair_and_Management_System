@@ -123,6 +123,9 @@
             Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
                     ()-> new VendorNotFoundException("vendor not found:"+username)
             );
+            if(vendor.getApprovalStatus().equals(ApprovalStatus.PENDING)){
+                return ResponseEntity.badRequest().body("Vendor not approved yet!!");
+            }
           List<DeviceDTO> deviceDTOS= deviceClient.get()
                   .uri("/api/devices/vendor/{vendorId}",vendor.getId())
                   .retrieve()

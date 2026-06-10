@@ -596,7 +596,7 @@
 
 <script>
   // ── Config ──────────────────────────────────────────────
-  const API_BASE = 'http://localhost:8080';   // change to your gateway/user-service port
+  const API_BASE = 'http://localhost:8085';   // change to your gateway/user-service port
   const TOKEN_KEY = 'devicesupply_token';
 
   // ── State ────────────────────────────────────────────────
@@ -655,7 +655,7 @@
   // ── Redirect by role ─────────────────────────────────────
   function redirectByRole(role) {
     const routes = {
-      VENDOR:        '/vendor-dashboard.html',
+      VENDOR:        '/vendor_dashboard.html',
       COMPANY_ADMIN: '/company-dashboard.html',
       ADMIN:         '/admin-dashboard.html',
     };
@@ -716,7 +716,7 @@
 
     setLoading('login-btn', true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
