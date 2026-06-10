@@ -6,17 +6,17 @@ import com.example.device_service.Enum.DeviceType;
 import java.time.LocalDate;
 
 public class DeviceDTO {
-    private String DeviceName;
+    private String deviceName;
     private int stockQuantity;
     private DeviceType deviceType;
     private LocalDate warrantyExpiry;
 
     public String getDeviceName() {
-        return DeviceName;
+        return deviceName;
     }
 
     public void setDeviceName(String deviceName) {
-        DeviceName = deviceName;
+        this.deviceName = deviceName;
     }
 
     public DeviceType getDeviceType() {
