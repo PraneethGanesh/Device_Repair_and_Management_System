@@ -39,7 +39,7 @@ rabbitmq:
       admin: admin-key
   admin:
     queue:
-      name: admin-queue
+      name: admin-notification-queue
 
 
 server:

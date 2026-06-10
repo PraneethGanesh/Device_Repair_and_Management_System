@@ -6,7 +6,12 @@ import com.example.notification_service.DTO.UserDTO;
 import com.example.notification_service.Entity.Notification;
 import com.example.notification_service.Entity.Role;
 import com.example.notification_service.Repository.NotificationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -22,7 +27,9 @@ public class NotificationService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public NotificationService(NotificationRepository notificationRepository, RestClient.Builder userClientBuilder, JavaMailSender mailSender) {
+    private static final Logger LOGGER= LoggerFactory.getLogger(NotificationService.class);
+
+    public NotificationService(NotificationRepository notificationRepository, @LoadBalanced RestClient.Builder userClientBuilder, JavaMailSender mailSender) {
         this.notificationRepository = notificationRepository;
         this.userClient = userClientBuilder.baseUrl("http://user-service").build();
         this.mailSender = mailSender;
@@ -50,7 +57,7 @@ public class NotificationService {
            List<UserDTO> userDTOS=userClient.get()
                    .uri("/api/users/{role}",notificationMessage.getReceiverType())
                    .retrieve()
-                   .body(List.class);
+                   .body(new ParameterizedTypeReference<List<UserDTO>>() {});
             List<String> adminEmails=userDTOS.stream().map(userDTO ->userDTO.getEmail()).toList();
             subject= notificationMessage.getTitle();
             body=String.format(
@@ -69,12 +76,19 @@ public class NotificationService {
     }
 
     public void sendBulkEmail(List<String> toEmails, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmails.toArray(new String[0]));  // all admins in one call
-        message.setSubject(subject);
-        message.setText(body);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmails.toArray(new String[0]));
+            message.setSubject(subject);
+            message.setText(body);
 
-        mailSender.send(message);  // single SMTP call, not a loop
+            mailSender.send(message);
+
+            LOGGER.info("✅ Email sent successfully to {} recipients: {}", toEmails.size(), toEmails);
+
+        } catch (MailException e) {
+            LOGGER.error("❌ Failed to send email to {}: {}", toEmails, e.getMessage());
+        }
     }
 }

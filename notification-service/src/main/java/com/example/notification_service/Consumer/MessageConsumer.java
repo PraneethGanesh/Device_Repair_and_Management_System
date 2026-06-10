@@ -19,7 +19,7 @@ public class MessageConsumer {
 
     @RabbitListener(queues = {"${rabbitmq.admin.queue.name}"})
     public void consumeMessage(NotificationMessage notificationMessage){
-        LOGGER.info("Notification:",notificationMessage.getMessage());
+        LOGGER.info("Notification: {}",notificationMessage.getMessage());
         notificationService.sendMessage(notificationMessage);
     }
 }
