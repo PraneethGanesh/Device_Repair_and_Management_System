@@ -10,18 +10,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DeviceAssignmentRepository extends JpaRepository<DeviceAssignment, Long> {
-    @Query("select count(assignment) > 0 from DeviceAssignment assignment where assignment.device_instance_id = :deviceInstanceId and assignment.status = :status")
+    @Query("select count(assignment) > 0 from DeviceAssignment assignment " +
+            "where assignment.deviceInstanceId = :deviceInstanceId and assignment.status = :status")
     boolean existsByDeviceInstanceIdAndStatus(
             @Param("deviceInstanceId") long deviceInstanceId,
             @Param("status") AssignmentStatus status);
 
     @Query("select assignment from DeviceAssignment assignment where assignment.employee_id = :employeeId")
     List<DeviceAssignment> findByEmployeeId(@Param("employeeId") UUID employeeId);
-    @Query("""
-       SELECT d
-       FROM DeviceAssignment d
-       WHERE d.device_instance_id = :instanceId
-       """)
-    DeviceAssignment findByDeviceInstanceId(
-            @Param("instanceId") long instanceId);
+    DeviceAssignment findByDeviceInstanceId(long instanceId);
 }
