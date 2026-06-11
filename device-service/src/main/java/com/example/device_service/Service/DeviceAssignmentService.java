@@ -98,7 +98,7 @@ public class DeviceAssignmentService {
     }
 
     public UUID getDeviceAssignment(long instanceId) {
-       return deviceAssignmentRepository.findByDevice_instance_id(instanceId).getEmployee_id();
+       return deviceAssignmentRepository.findByDeviceInstanceId(instanceId).getEmployee_id();
 
     }
 }
