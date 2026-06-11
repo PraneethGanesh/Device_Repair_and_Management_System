@@ -36,7 +36,7 @@ jwt:
 
 rabbitmq:
   exchange:
-    name: email-exchange
+    name: notification.exchange
   routing:
     key:
-      admin: admin-key
+      admin: notification.broadcast
