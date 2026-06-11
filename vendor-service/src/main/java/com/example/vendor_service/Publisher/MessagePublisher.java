@@ -11,12 +11,11 @@ import org.springframework.stereotype.Component;
 public class MessagePublisher {
     private final RabbitTemplate rabbitTemplate;
     private static final Logger LOGGER= LoggerFactory.getLogger(MessagePublisher.class);
-    public static final String EXCHANGE = "notification.exchange";
+    @Value("${rabbitmq.exchange.name}")
+    private String exchangeName;
+    @Value("${rabbitmq.routing.key.admin}")
+    private String adminKey;
 
-    public static final String KEY_BROADCAST         = "notification.broadcast";
-    public static final String KEY_VENDOR            = "notification.vendor.#";
-    public static final String KEY_COMPANY           = "notification.company.#";
-    public static final String KEY_EMPLOYEE          = "notification.employee.#";
 
     public MessagePublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
@@ -24,6 +23,6 @@ public class MessagePublisher {
 
     public void publishBroadcastMessage(NotificationMessage notificationMessage){
         LOGGER.info("Notification sent !!");
-        rabbitTemplate.convertAndSend(EXCHANGE,KEY_BROADCAST,notificationMessage);
+        rabbitTemplate.convertAndSend(exchangeName,adminKey,notificationMessage);
     }
 }

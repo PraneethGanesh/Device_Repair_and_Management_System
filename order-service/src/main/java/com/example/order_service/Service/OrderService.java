@@ -72,7 +72,14 @@ public class OrderService {
         notificationMessage.setEventType("Order Approved");
         notificationMessage.setRecipientEmail(response.getEmail());
         notificationMessage.setTitle("Order approved by vendor:"+vendorId);
-        notificationMessage.setBody("");
+        notificationMessage.setBody("Dear Customer,\n\n" +
+                "Your order has been approved by Vendor ID: " + vendorId + ".\n\n" +
+                "Order Details:\n" +
+                "Order ID: " + orders.getId() + "\n" +
+                "Device ID: " + orders.getDeviceId() + "\n" +
+                "Quantity: " + orders.getQuantity() + "\n\n" +
+                "The order is now being processed.\n\n" +
+                "Thank you.");
 
         return "Accepted the order of the company:"+ orders.getCompanyId();
     }
