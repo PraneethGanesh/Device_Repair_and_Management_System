@@ -1,6 +1,6 @@
 package com.example.notification_service.Service;
 
-import com.example.notification_service.DTO.UserDTO;
+
 import com.example.notification_service.Repository.NotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class NotificationService {
 
     private static final Logger LOGGER= LoggerFactory.getLogger(NotificationService.class);
 
-    public NotificationService(NotificationRepository notificationRepository, @LoadBalanced RestClient.Builder userClientBuilder, JavaMailSender mailSender) {
+    public NotificationService(NotificationRepository notificationRepository, JavaMailSender mailSender) {
         this.notificationRepository = notificationRepository;
         this.mailSender = mailSender;
     }
