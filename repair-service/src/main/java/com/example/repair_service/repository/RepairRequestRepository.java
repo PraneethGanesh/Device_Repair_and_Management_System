@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface RepairRequestRepository extends JpaRepository<RepairRequest, Long> {
@@ -35,4 +36,6 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
     List<RepairRequest> findByStatusAndVendorId(
             @Param("status") RepairStatus status,
             @Param("vendorId") long vendorId);
+
+    List<RepairRequest> findByCompanyIdAndStatus(UUID companyId,RepairStatus status);
 }

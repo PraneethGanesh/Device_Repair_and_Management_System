@@ -1,5 +1,6 @@
 package com.example.repair_service.feign;
 
+import com.example.repair_service.dto.CompanyResponse;
 import com.example.repair_service.dto.EmployeeDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -10,4 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CustomerServiceClient {
     @GetMapping("/api/employees/user/{id}")
     ResponseEntity<EmployeeDTO> getEmployeeByUserId(@PathVariable String id);
+    @GetMapping("/api/companies/user/{userId}")
+    ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable String userId);
 }
