@@ -58,7 +58,7 @@ public class DeviceAssignmentService {
         }
 
         DeviceAssignment assignment = new DeviceAssignment();
-        assignment.setDevice_instance_id(deviceInstance.getId());
+        assignment.setDeviceInstanceId(deviceInstance.getId());
         assignment.setCompany_id(companyId);
         assignment.setEmployee_id(request.getEmployeeId());
         assignment.setStatus(AssignmentStatus.ASSIGNED);
@@ -84,8 +84,8 @@ public class DeviceAssignmentService {
             throw new RuntimeException("Only assigned devices can be returned");
         }
 
-        DeviceInstance deviceInstance = deviceInstanceRepository.findById(assignment.getDevice_instance_id())
-                .orElseThrow(() -> new RuntimeException("Device instance not found: " + assignment.getDevice_instance_id()));
+        DeviceInstance deviceInstance = deviceInstanceRepository.findById(assignment.getDeviceInstanceId())
+                .orElseThrow(() -> new RuntimeException("Device instance not found: " + assignment.getDeviceInstanceId()));
 
         assignment.setStatus(AssignmentStatus.RETURNED);
         assignment.setReturned_at(LocalDateTime.now());
