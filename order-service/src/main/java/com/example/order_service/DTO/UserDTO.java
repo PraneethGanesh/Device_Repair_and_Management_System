@@ -1,4 +1,4 @@
-package com.example.user_service.dto;
+package com.example.order_service.DTO;
 
 public class UserDTO {
     private String name;

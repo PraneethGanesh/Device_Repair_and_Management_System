@@ -1,30 +1,29 @@
 package com.example.vendor_service.DTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public class NotificationMessage {
-    private String senderName;
-
-    private String receiverType;  // ADMIN, VENDOR, USER
-    private UUID receiverId;
-
+    private String eventType;
     private String title;
-    private String message;
+    private String body;
+    private String recipientEmail;
+    private List<String> recipientEmails;
 
-    public String getSenderName() {
-        return senderName;
+    public String getEventType() {
+        return eventType;
     }
 
-    public void setSenderName(String senderName) {
-        this.senderName = senderName;
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
     }
 
-    public String getMessage() {
-        return message;
+    public String getRecipientEmail() {
+        return recipientEmail;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setRecipientEmail(String recipientEmail) {
+        this.recipientEmail = recipientEmail;
     }
 
     public String getTitle() {
@@ -35,19 +34,19 @@ public class NotificationMessage {
         this.title = title;
     }
 
-    public UUID getReceiverId() {
-        return receiverId;
+    public String getBody() {
+        return body;
     }
 
-    public void setReceiverId(UUID receiverId) {
-        this.receiverId = receiverId;
+    public void setBody(String body) {
+        this.body = body;
     }
 
-    public String getReceiverType() {
-        return receiverType;
+    public List<String> getRecipientEmails() {
+        return recipientEmails;
     }
 
-    public void setReceiverType(String receiverType) {
-        this.receiverType = receiverType;
+    public void setRecipientEmails(List<String> recipientEmails) {
+        this.recipientEmails = recipientEmails;
     }
 }
