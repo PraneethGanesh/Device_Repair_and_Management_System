@@ -1,10 +1,9 @@
 package com.example.repair_service.enums;
 
 public enum RepairStatus {
-    PENDING,            // Employee/Admin raised request
-    ACKNOWLEDGED,       // Admin acknowledged and forwarded to vendor pool
-    ASSIGNED_TO_VENDOR, // Vendor self-assigned
-    IN_PROGRESS,        // Vendor started work
-    COMPLETED,          // Vendor marked done — waiting for Admin to close
-    CLOSED              // Admin closed ticket and reassigned device
+    RAISED,             // employee raised the ticket
+    ASSIGNED_TO_VENDOR, // company admin assigned it to vendor
+    IN_PROGRESS,        // vendor started working
+    REPAIR_DONE,        // vendor completed repair
+    CLOSED          // Admin closed ticket and reassigned device
 }

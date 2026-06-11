@@ -9,6 +9,7 @@ import com.example.device_service.Enum.InstanceStatus;
 import com.example.device_service.Repository.DeviceAssignmentRepository;
 import com.example.device_service.Repository.DeviceInstanceRepository;
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -94,5 +95,10 @@ public class DeviceAssignmentService {
         deviceInstanceRepository.save(deviceInstance);
 
         return savedAssignment;
+    }
+
+    public UUID getDeviceAssignment(long instanceId) {
+       return deviceAssignmentRepository.findByDevice_instance_id(instanceId).getEmployee_id();
+
     }
 }

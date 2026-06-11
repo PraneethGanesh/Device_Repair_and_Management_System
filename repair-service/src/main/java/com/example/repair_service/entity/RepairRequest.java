@@ -3,85 +3,113 @@ package com.example.repair_service.entity;
 import com.example.repair_service.enums.RepairStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "repair_requests")
 public class RepairRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long requestId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
-    // Device being repaired
-    @Column(nullable = false)
-    private long deviceId;
+    private long deviceInstanceId;    // which physical device needs repair
 
-    // Employee or Admin who raised the request
-    @Column(nullable = false)
-    private long raisedBy;
+    private UUID companyId;           // which company raised this
 
-    // Admin who acknowledged the request (null until acknowledged)
-    private Long adminId;
+    private UUID raisedBy;          // userId from JWT — who raised it
 
-    // Vendor who self-assigned (null until vendor picks it up)
-    private Long vendorId;
+    private long vendorId;          // who handles the repair
 
-    @Column(nullable = false)
-    private String issueDescription;
-
-    // If urgent, vendors can see even in PENDING status
-    @Column(nullable = false)
-    private boolean urgent = false;
+    private String issueDescription;  // what is the problem
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RepairStatus status = RepairStatus.PENDING;
+    private RepairStatus status;      // OPEN, IN_PROGRESS, RESOLVED, CLOSED
 
-    @Column(nullable = false, updatable = false)
+    private String resolutionNotes;   // filled by vendor when resolved
+
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime resolvedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+
+    public long getId() {
+        return id;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void setId(long id) {
+        this.id = id;
     }
 
-    // Getters and Setters
+    public long getDeviceInstanceId() {
+        return deviceInstanceId;
+    }
 
-    public long getRequestId() { return requestId; }
-    public void setRequestId(long requestId) { this.requestId = requestId; }
+    public void setDeviceInstanceId(long deviceInstanceId) {
+        this.deviceInstanceId = deviceInstanceId;
+    }
 
-    public long getDeviceId() { return deviceId; }
-    public void setDeviceId(long deviceId) { this.deviceId = deviceId; }
+    public long getVendorId() {
+        return vendorId;
+    }
 
-    public long getRaisedBy() { return raisedBy; }
-    public void setRaisedBy(long raisedBy) { this.raisedBy = raisedBy; }
+    public void setVendorId(long vendorId) {
+        this.vendorId = vendorId;
+    }
 
-    public Long getAdminId() { return adminId; }
-    public void setAdminId(Long adminId) { this.adminId = adminId; }
+    public UUID getCompanyId() {
+        return companyId;
+    }
 
-    public Long getVendorId() { return vendorId; }
-    public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
 
-    public String getIssueDescription() { return issueDescription; }
-    public void setIssueDescription(String issueDescription) { this.issueDescription = issueDescription; }
+    public UUID getRaisedBy() {
+        return raisedBy;
+    }
 
-    public boolean isUrgent() { return urgent; }
-    public void setUrgent(boolean urgent) { this.urgent = urgent; }
+    public void setRaisedBy(UUID raisedBy) {
+        this.raisedBy = raisedBy;
+    }
 
-    public RepairStatus getStatus() { return status; }
-    public void setStatus(RepairStatus status) { this.status = status; }
+    public String getIssueDescription() {
+        return issueDescription;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setIssueDescription(String issueDescription) {
+        this.issueDescription = issueDescription;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public RepairStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RepairStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getResolutionNotes() {
+        return resolutionNotes;
+    }
+
+    public void setResolutionNotes(String resolutionNotes) {
+        this.resolutionNotes = resolutionNotes;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
 }

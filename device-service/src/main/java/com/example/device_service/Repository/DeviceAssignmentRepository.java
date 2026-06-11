@@ -17,4 +17,5 @@ public interface DeviceAssignmentRepository extends JpaRepository<DeviceAssignme
 
     @Query("select assignment from DeviceAssignment assignment where assignment.employee_id = :employeeId")
     List<DeviceAssignment> findByEmployeeId(@Param("employeeId") UUID employeeId);
+    DeviceAssignment findByDevice_instance_id(long instanceId);
 }
