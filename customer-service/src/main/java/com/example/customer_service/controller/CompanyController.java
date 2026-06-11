@@ -29,9 +29,10 @@ public class CompanyController {
     @PostMapping
     public ResponseEntity<CompanyResponse> registerCompany(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Auth-User") String username,
             @Valid @RequestBody CompanyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(companyService.registerCompany(userId, request));
+                .body(companyService.registerCompany(userId,username, request));
     }
 
     // GET /api/companies — Get all companies

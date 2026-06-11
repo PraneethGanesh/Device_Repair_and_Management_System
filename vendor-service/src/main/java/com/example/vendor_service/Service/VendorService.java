@@ -7,10 +7,12 @@
     import com.example.vendor_service.Publisher.MessagePublisher;
     import com.example.vendor_service.Repository.VendorRepository;
     import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+    import org.springframework.core.ParameterizedTypeReference;
     import org.springframework.http.ResponseEntity;
     import org.springframework.stereotype.Service;
     import org.springframework.web.client.RestClient;
 
+    import java.lang.reflect.Type;
     import java.time.LocalDateTime;
     import java.util.HashMap;
     import java.util.List;
@@ -29,12 +31,14 @@
         private final VendorRepository vendorRepository;
         private final RestClient deviceClient;
         private final RestClient orderClient;
+        private final RestClient userClient;
         private final MessagePublisher messagePublisher;
 
         public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder, MessagePublisher messagePublisher) {
             this.vendorRepository = vendorRepository;
             this.deviceClient=restClientBuilder.clone().baseUrl("http://device-service").build();
             this.orderClient=restClientBuilder.clone().baseUrl("http://order-service").build();
+            this.userClient=restClientBuilder.clone().baseUrl("http://user-service").build();
             this.messagePublisher = messagePublisher;
         }
 
@@ -110,11 +114,17 @@
                   .retrieve()
                   .toEntity(DeviceDTO.class);
           NotificationMessage notificationMessage=new NotificationMessage();
-          notificationMessage.setSenderName(vendor.getCompanyName());
-          notificationMessage.setReceiverType("COMPANY_ADMIN");
+          List<UserDTO> userDTOS=userClient.get()
+                          .uri("/api/users/{role}","COMPANY_ADMIN")
+                                  .retrieve()
+                                          .body(new ParameterizedTypeReference<List<UserDTO>>() {});
+
+          List<String> emails=userDTOS.stream().map(userDTO -> userDTO.getEmail()).toList();
+          notificationMessage.setEventType("DEVICE ADDED");
+          notificationMessage.setRecipientEmails(emails);
           notificationMessage.setTitle("Device added by the vendor:"+vendor.getCompanyName());
-          notificationMessage.setMessage("Device:"+deviceDTO.getDeviceName()+", Quantity:"+deviceDTO.getStockQuantity());
-          messagePublisher.publishMessage(notificationMessage);
+          notificationMessage.setBody("Device:"+deviceDTO.getDeviceName()+", Quantity:"+deviceDTO.getStockQuantity());
+          messagePublisher.publishBroadcastMessage(notificationMessage);
           return deviceDTOResponseEntity;
         }
 

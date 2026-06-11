@@ -17,9 +17,43 @@ public class MessageConsumer {
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = {"${rabbitmq.admin.queue.name}"})
-    public void consumeMessage(NotificationMessage notificationMessage){
-        LOGGER.info("Notification: {}",notificationMessage.getMessage());
-        notificationService.sendMessage(notificationMessage);
+    @RabbitListener(queues = "queue.vendor.specific")
+    public void consumeVendorMessage(NotificationMessage message) {
+        LOGGER.info("Vendor notification received: {}", message.getEventType());
+        notificationService.sendSingleEmail(
+                message.getRecipientEmail(),   // vendor email — already in payload
+                message.getTitle(),
+                message.getBody()
+        );
+    }
+
+    @RabbitListener(queues = "queue.company.specific")
+    public void consumeCompanyMessage(NotificationMessage message) {
+        LOGGER.info("Company notification received: {}", message.getEventType());
+        notificationService.sendSingleEmail(
+                message.getRecipientEmail(),
+                message.getTitle(),
+                message.getBody()
+        );
+    }
+
+    @RabbitListener(queues = "queue.employee.specific")
+    public void consumeEmployeeMessage(NotificationMessage message) {
+        LOGGER.info("Employee notification received: {}", message.getEventType());
+        notificationService.sendSingleEmail(
+                message.getRecipientEmail(),
+                message.getTitle(),
+                message.getBody()
+        );
+    }
+
+    @RabbitListener(queues = "queue.all.company.admins")
+    public void consumeBroadcast(NotificationMessage message) {
+        LOGGER.info("Broadcast notification received: {}", message.getEventType());
+        notificationService.sendBulkEmail(
+                message.getRecipientEmails(),
+                message.getTitle(),
+                message.getBody()
+        );
     }
 }

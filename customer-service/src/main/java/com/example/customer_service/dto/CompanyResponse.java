@@ -11,6 +11,7 @@ public class CompanyResponse {
     private UUID id;
     private String userId;
     private String companyName;
+    private String email;
     private String gstNumber;
     private String address;
     private ApprovalStatus approvalStatus;
@@ -30,12 +31,24 @@ public class CompanyResponse {
         this.createdAt = createdAt;
     }
 
+    public CompanyResponse(UUID id, String userId, String companyName, String email, String gstNumber, String address, ApprovalStatus approvalStatus, LocalDateTime createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.companyName = companyName;
+        this.email = email;
+        this.gstNumber = gstNumber;
+        this.address = address;
+        this.approvalStatus = approvalStatus;
+        this.createdAt = createdAt;
+    }
+
     // Static factory method — converts entity to response
     public static CompanyResponse from(Company company) {
         return new CompanyResponse(
                 company.getId(),
                 company.getUserId(),
                 company.getCompanyName(),
+                company.getEmail(),
                 company.getGstNumber(),
                 company.getAddress(),
                 company.getApprovalStatus(),

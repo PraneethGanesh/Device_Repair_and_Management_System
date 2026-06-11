@@ -11,17 +11,19 @@ import org.springframework.stereotype.Component;
 public class MessagePublisher {
     private final RabbitTemplate rabbitTemplate;
     private static final Logger LOGGER= LoggerFactory.getLogger(MessagePublisher.class);
-    @Value("${rabbitmq.routing.key.admin}")
-    private String routingKey;
-    @Value("${rabbitmq.exchange.name}")
-    private String exchangeName;
+    public static final String EXCHANGE = "notification.exchange";
+
+    public static final String KEY_BROADCAST         = "notification.broadcast";
+    public static final String KEY_VENDOR            = "notification.vendor.#";
+    public static final String KEY_COMPANY           = "notification.company.#";
+    public static final String KEY_EMPLOYEE          = "notification.employee.#";
 
     public MessagePublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void publishMessage(NotificationMessage notificationMessage){
+    public void publishBroadcastMessage(NotificationMessage notificationMessage){
         LOGGER.info("Notification sent !!");
-        rabbitTemplate.convertAndSend(exchangeName,routingKey,notificationMessage);
+        rabbitTemplate.convertAndSend(EXCHANGE,KEY_BROADCAST,notificationMessage);
     }
 }

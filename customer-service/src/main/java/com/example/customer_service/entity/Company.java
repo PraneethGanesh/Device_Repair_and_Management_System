@@ -20,6 +20,8 @@ public class Company {
     @Column(nullable = false)
     private String companyName;
 
+    private String email;
+
     @Column(unique = true)
     private String gstNumber;
 
@@ -42,6 +44,22 @@ public class Company {
         this.companyName = companyName;
         this.gstNumber = gstNumber;
         this.address = address;
+    }
+
+    public Company(String userId, String companyName, String email, String gstNumber, String address) {
+        this.userId = userId;
+        this.companyName = companyName;
+        this.email = email;
+        this.gstNumber = gstNumber;
+        this.address = address;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     // Getters

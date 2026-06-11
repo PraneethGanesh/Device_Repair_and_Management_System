@@ -1,9 +1,8 @@
 package com.example.order_service.Service;
 
+import com.example.order_service.Client.CustomerServiceClient;
 import com.example.order_service.Client.DeviceServiceClient;
-import com.example.order_service.DTO.DeviceResponseDTO;
-import com.example.order_service.DTO.OrderDTO;
-import com.example.order_service.DTO.OrderRequest;
+import com.example.order_service.DTO.*;
 import com.example.order_service.Entity.Orders;
 import com.example.order_service.Enum.OrderStatus;
 import com.example.order_service.Repository.OrderRepository;
@@ -18,10 +17,11 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final DeviceServiceClient deviceServiceClient;
-
-    public OrderService(OrderRepository orderRepository, DeviceServiceClient deviceServiceClient) {
+    private final CustomerServiceClient customerServiceClient;
+    public OrderService(OrderRepository orderRepository, DeviceServiceClient deviceServiceClient, CustomerServiceClient customerServiceClient) {
         this.orderRepository = orderRepository;
         this.deviceServiceClient = deviceServiceClient;
+        this.customerServiceClient = customerServiceClient;
     }
 
     public ResponseEntity<String> placeOrder(OrderRequest orderRequest, UUID companyId) {
@@ -67,6 +67,13 @@ public class OrderService {
         orders.setStatus(OrderStatus.APPROVED);
         orderRepository.save(orders);
         deviceServiceClient.updateDeviceInstance(orders.getId());
+        CompanyResponse response=customerServiceClient.getCompanyById(orders.getCompanyId()).getBody();
+        NotificationMessage notificationMessage=new NotificationMessage();
+        notificationMessage.setEventType("Order Approved");
+        notificationMessage.setRecipientEmail(response.getEmail());
+        notificationMessage.setTitle("Order approved by vendor:"+vendorId);
+        notificationMessage.setBody("");
+
         return "Accepted the order of the company:"+ orders.getCompanyId();
     }
 
