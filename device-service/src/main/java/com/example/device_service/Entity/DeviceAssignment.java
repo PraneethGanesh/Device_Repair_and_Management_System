@@ -16,7 +16,7 @@ public class DeviceAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private long device_instance_id;
+    private long deviceInstanceId;
     private UUID company_id;
     private UUID employee_id;
     @Enumerated(EnumType.STRING)
@@ -32,13 +32,11 @@ public class DeviceAssignment {
         this.id = id;
     }
 
-    public long getDevice_instance_id() {
-        return device_instance_id;
+    public long getDeviceInstanceId() {
+        return deviceInstanceId;
     }
 
-    public void setDevice_instance_id(long device_instance_id) {
-        this.device_instance_id = device_instance_id;
-    }
+    public void setDeviceInstanceId(long deviceInstanceId) { this.deviceInstanceId = deviceInstanceId; }
 
     public UUID getCompany_id() {
         return company_id;
