@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class RepairEventProducer {
     private final KafkaTemplate<String, RepairEventDTO>  kafkaTemplate ;
 
-    @Value("$(kafka.topic.repair-events)")
+    @Value("${kafka.topic.repair-events}")
     private String RepairEventTopic;
     public RepairEventProducer(KafkaTemplate<String, RepairEventDTO> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;

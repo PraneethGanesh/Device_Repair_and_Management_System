@@ -59,13 +59,11 @@ public class RepairService {
         request.setCreatedAt(LocalDateTime.now());
         request.setStatus(RepairStatus.RAISED);
 
-//        publishRepairEvent(
-//                "REPAIR_CREATED",
-//                saved,
-//                null,
-//                RepairStatus.PENDING,
-//                false
-//        );
+        publishRepairEvent("REPAIR_CREATED",
+                request,
+                null,
+                RepairStatus.RAISED,
+                false);
 
 
         return repairRepository.save(request);
@@ -92,13 +90,11 @@ public class RepairService {
         deviceServiceClient.updateDeviceStatus("SENT_TO_REPAIR",request.getDeviceInstanceId());
         RepairRequest saved = repairRepository.save(request);
 
-//        publishRepairEvent(
-//                "REPAIR_ACKNOWLEDGED",
-//                saved,
-//                previousStatus,
-//                RepairStatus.ASSIGNED_TO_VENDOR,
-//                true
-//        );
+        publishRepairEvent("REPAIR_ACKNOWLEDGED",
+                saved,
+                previousStatus,
+                RepairStatus.ASSIGNED_TO_VENDOR,
+                true);
 
         return saved;
     }
@@ -122,14 +118,11 @@ public class RepairService {
 
         deviceServiceClient.updateDeviceStatus("UNDER_REPAIR", request.getDeviceInstanceId());
         request.setStatus(RepairStatus.IN_PROGRESS);
-        RepairStatus previousStatus = request.getStatus();
-//        publishRepairEvent(
-//                "REPAIR_IN_PROGRESS",
-//                request,
-//                previousStatus,
-//                RepairStatus.IN_PROGRESS,
-//                false
-//        );
+        publishRepairEvent("REPAIR_IN_PROGRESS",
+                request,
+                RepairStatus.ASSIGNED_TO_VENDOR,
+                RepairStatus.IN_PROGRESS,
+                false);
         return repairRepository.save(request);
     }
     private void validateVendorOwnership(RepairRequest request, long vendorId) {
@@ -155,14 +148,10 @@ public class RepairService {
 
         deviceServiceClient.updateDeviceStatus("REPAIRED",request.getDeviceInstanceId());
 
-        RepairStatus previousStatus = request.getStatus();
-//        publishRepairEvent(
-//                "REPAIR_COMPLETED",
-//                saved,
-//                previousStatus,
-//                RepairStatus.COMPLETED,
-//                false
-//        );
+        publishRepairEvent("REPAIR_COMPLETED",
+                saved, RepairStatus.IN_PROGRESS,
+                RepairStatus.REPAIR_DONE,
+                false);
 
         return saved;
     }
@@ -184,14 +173,13 @@ public class RepairService {
         request.setStatus(RepairStatus.CLOSED);
         RepairRequest saved = repairRepository.save(request);
         deviceServiceClient.updateDeviceStatus("ASSIGNED",request.getDeviceInstanceId());
-//        RepairStatus previousStatus = request.getStatus();
-//        publishRepairEvent(
-//                "DEVICE_RETURNED",
-//                saved,
-//                previousStatus,
-//                RepairStatus.CLOSED,
-//                false
-//        );
+        publishRepairEvent(
+                "DEVICE_RETURNED",
+                saved,
+                RepairStatus.REPAIR_DONE,
+                RepairStatus.CLOSED,
+                false
+        );
 
         return saved;
     }
@@ -279,34 +267,25 @@ public class RepairService {
 //    }
 //
 //    //-- helper code
-//    private void publishRepairEvent(
-//            String eventType,
-//            RepairRequest request,
-//            RepairStatus previousStatus,
-//            RepairStatus newStatus,
-//            boolean assignedAutomatically
-//    ) {
-//        RepairEventDTO event = new RepairEventDTO();
-//
-//        event.setEventId(UUID.randomUUID().toString());
-//        event.setEventType(eventType);
-//
-//        event.setRepairId(request.getRequestId());
-//        event.setDeviceId(request.getDeviceId());
-//
-//        event.setRaisedBy(request.getRaisedBy());
-//        event.setCompanyAdminId(request.getAdminId());
-//        event.setVendorId(request.getVendorId());
-//
-//        event.setIssueDescription(request.getIssueDescription());
-//        event.setUrgent(request.isUrgent());
-//
-//        event.setPreviousStatus(previousStatus);
-//        event.setNewStatus(newStatus);
-//
-//        event.setAssignedAutomatically(assignedAutomatically);
-//        event.setTimestamp(LocalDateTime.now());
-//
-//        repairEventProducer.PublishRepairEvent(event);
-//    }
+private void publishRepairEvent(
+        String eventType,
+        RepairRequest request,
+        RepairStatus previousStatus,
+        RepairStatus newStatus,
+        boolean assignedAutomatically
+) {
+    RepairEventDTO event = new RepairEventDTO();
+    event.setEventId(UUID.randomUUID().toString());
+    event.setEventType(eventType);
+    event.setRepairId(request.getId());
+    event.setDeviceId(request.getDeviceInstanceId());
+    event.setRaisedBy(request.getRaisedBy().getMostSignificantBits()); // UUID → long
+    event.setVendorId(request.getVendorId());
+    event.setIssueDescription(request.getIssueDescription());
+    event.setPreviousStatus(previousStatus);
+    event.setNewStatus(newStatus);
+    event.setAssignedAutomatically(assignedAutomatically);
+    event.setTimestamp(LocalDateTime.now());
+    repairEventProducer.PublishRepairEvent(event);
+}
 }

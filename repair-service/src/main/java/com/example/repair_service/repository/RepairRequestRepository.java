@@ -23,12 +23,12 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
 //    List<RepairRequest> findByStatus(RepairStatus status);
 
 //    // Vendor sees: ACKNOWLEDGED requests OR (PENDING)
-//    @Query("SELECT r FROM RepairRequest r WHERE r.status = :acknowledged " +
-//            "OR (r.status = :pending)")
-//    List<RepairRequest> findAvailableForVendor(
-//            @Param("acknowledged") RepairStatus acknowledged,
-//            @Param("pending") RepairStatus pending
-//    );
+    @Query("SELECT r FROM RepairRequest r WHERE r.status = :acknowledged " +
+            "OR (r.status = :pending)")
+    List<RepairRequest> findAvailableForVendor(
+            @Param("acknowledged") RepairStatus acknowledged,
+            @Param("pending") RepairStatus pending
+    );
 
     @Query("""
        SELECT r

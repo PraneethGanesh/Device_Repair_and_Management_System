@@ -19,7 +19,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: audit-service
+      group-id: audit-service-group
       auto-offset-reset: earliest
 
 eureka:
