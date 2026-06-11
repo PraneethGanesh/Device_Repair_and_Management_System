@@ -22,6 +22,7 @@
     import java.util.List;
     import java.util.Map;
     import java.util.stream.Collectors;
+    import static java.util.stream.Collectors.toList;
 
     @Service
     public class VendorService {
@@ -173,6 +174,14 @@
             return dto;
         }
 
+        public ResponseEntity<?> getApprovalAccount(String role){
+            if(!role.equalsIgnoreCase("ADMIN"))
+                return ResponseEntity.badRequest().body("Admin has the access to the endpoint");
+            List<Vendor> vendors=vendorRepository.findByApproval(ApprovalStatus.APPROVED.name());
+            List<VendorResponseDTO> result=vendors.stream().map(this::toVendorResponseDTO)
+                    .toList();
+            return ResponseEntity.ok(result);
+        }
 
 //        private final VendorRepository vendorRepository;
 //        private final RestClient deviceClient;

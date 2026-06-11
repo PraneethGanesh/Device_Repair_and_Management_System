@@ -27,6 +27,26 @@ spring:
           predicates:
             - Path=/api/devices/**
 
+        - id: device-assignment-service
+          uri: lb://DEVICE-SERVICE
+          predicates:
+            - Path=/api/assignments/**
+
+        - id: device-instance-service
+          uri: lb://DEVICE-SERVICE
+          predicates:
+            - Path=/api/device_instance/**
+
+        - id: company-service
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/api/companies/**
+
+        - id: employee-service
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/api/employees/**
+
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:
@@ -71,6 +91,13 @@ spring:
             - Path=/v3/api-docs/repairs
           filters:
             - RewritePath=/v3/api-docs/repairs,/v3/api-docs
+
+        - id: customer-service-openapi
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/v3/api-docs/customer
+          filters:
+            - RewritePath=/v3/api-docs/customer,/v3/api-docs
 
         - id: audit-service
           uri: lb://AUDIT-SERVICE
@@ -134,6 +161,10 @@ springdoc:
         url: /v3/api-docs/notifications
       - name: Repair Service
         url: /v3/api-docs/repairs
+      - name: Customer Service
+        url: /v3/api-docs/customer
+      - name: Audit Service
+        url: /v3/api-docs/audit
 
 # Actuator
 management:

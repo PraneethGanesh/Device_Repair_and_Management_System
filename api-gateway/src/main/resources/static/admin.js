@@ -4,6 +4,8 @@ const adminUser = guardRole('admin');
 // ── State ──────────────────────────────────────────────────────────────────
 let allAdminRequests = [];
 let allAdminDevices  = [];
+let pendingVendors   = [];
+let approvedVendors  = [];
 let adminReqFilter   = 'ALL';
 let deviceSearch     = '';
 
@@ -30,18 +32,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Stats ──────────────────────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const [devices, requests, vendors] = await Promise.allSettled([
+    const [devices, requests, pendingVendorsResult, approvedVendorsResult] = await Promise.allSettled([
       apiGet('/api/devices'),
       apiGet('/api/repairs'),
-      apiGet('/api/vendors/pending')
+      apiGet('/api/vendors/pending'),
+      apiGet('/api/vendors/approvals')
     ]);
 
     const devList = devices.status === 'fulfilled' ? (devices.value || []) : [];
     const reqs    = requests.status === 'fulfilled' ? (requests.value || []) : [];
-    const venList = vendors.status  === 'fulfilled' ? (vendors.value  || []) : [];
+    const pendingVenList = pendingVendorsResult.status  === 'fulfilled' ? (pendingVendorsResult.value  || []) : [];
+    const approvedVenList = approvedVendorsResult.status  === 'fulfilled' ? (approvedVendorsResult.value  || []) : [];
 
     document.getElementById('stat-devices').textContent  = devList.length;
-    document.getElementById('stat-vendors').textContent  = venList.length;
+    document.getElementById('stat-vendors').textContent  = pendingVenList.length + approvedVenList.length;
+    const vendorBadge = document.getElementById('vendor-approval-badge');
+    if (vendorBadge) {
+      vendorBadge.textContent = pendingVenList.length;
+      vendorBadge.style.display = pendingVenList.length ? '' : 'none';
+    }
 
     const pending    = reqs.filter(r => r.status === 'PENDING').length;
     const inprogress = reqs.filter(r => ['IN_PROGRESS','INPROGRESS'].includes(r.status)).length;
@@ -57,6 +66,85 @@ async function loadStats() {
     }
   } catch (err) {
     console.error('Stats load failed:', err.message);
+  }
+}
+
+// ── Vendor Approvals ───────────────────────────────────────────────────────
+async function loadVendorApprovals() {
+  tableLoading('vendor-approvals-body', 6);
+  tableLoading('approved-vendors-body', 5);
+  try {
+    const [pending, approved] = await Promise.all([
+      apiGet('/api/vendors/pending'),
+      apiGet('/api/vendors/approvals').catch(() => [])
+    ]);
+    pendingVendors = pending || [];
+    approvedVendors = approved || [];
+    renderVendorApprovals();
+    renderApprovedVendors();
+    const badge = document.getElementById('vendor-approval-badge');
+    if (badge) {
+      badge.textContent = pendingVendors.length;
+      badge.style.display = pendingVendors.length ? '' : 'none';
+    }
+  } catch (err) {
+    tableEmpty('vendor-approvals-body', 6, `Failed to load: ${err.message}`);
+  }
+}
+
+function renderVendorApprovals() {
+  const tbody = document.getElementById('vendor-approvals-body');
+  if (!pendingVendors.length) {
+    tableEmpty('vendor-approvals-body', 6, 'No pending vendor approvals.');
+    return;
+  }
+
+  tbody.innerHTML = pendingVendors.map(v => `
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px">${v.id || '—'}</span></td>
+      <td>${v.companyName || '—'}</td>
+      <td>${v.email || '—'}</td>
+      <td>${v.gstNumber || '—'}</td>
+      <td>${v.phone || '—'}</td>
+      <td>
+        <button class="btn btn-sm btn-success" onclick="reviewVendor(${v.id}, 'APPROVED', this)">Approve</button>
+        <button class="btn btn-sm btn-danger" onclick="reviewVendor(${v.id}, 'REJECTED', this)" style="margin-left:4px">Reject</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderApprovedVendors() {
+  const tbody = document.getElementById('approved-vendors-body');
+  if (!approvedVendors.length) {
+    tableEmpty('approved-vendors-body', 5, 'No approved vendors yet.');
+    return;
+  }
+
+  tbody.innerHTML = approvedVendors.map(v => `
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px">${v.id || '—'}</span></td>
+      <td>${v.companyName || '—'}</td>
+      <td>${v.email || '—'}</td>
+      <td>${v.gstNumber || '—'}</td>
+      <td>${v.phone || '—'}</td>
+    </tr>
+  `).join('');
+}
+
+async function reviewVendor(vendorId, action, btn) {
+  if (!vendorId) return toast('Vendor ID missing.', 'error');
+  const original = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = action === 'APPROVED' ? 'Approving...' : 'Rejecting...'; }
+  try {
+    await apiPut('/api/vendors/review', { vendorId, action });
+    toast(`Vendor ${action.toLowerCase()}.`, 'success');
+    await loadVendorApprovals();
+    await loadStats();
+  } catch (err) {
+    toast(`Failed: ${err.message}`, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = original; }
   }
 }
 
@@ -80,7 +168,7 @@ async function loadAdminRequests() {
   try {
     const [requests, vendors] = await Promise.all([
       apiGet('/api/repairs'),
-      apiGet('/api/vendors/pending').catch(() => [])
+      apiGet('/api/vendors/approvals').catch(() => [])
     ]);
     allAdminRequests = requests || [];
     window._vendorList = vendors || [];
@@ -203,29 +291,29 @@ function renderDevicesTable() {
       <td style="font-family:'DM Mono',monospace;font-size:12px">${d.serialNumber || '—'}</td>
       <td>${d.assignedTo || d.userId || '—'}</td>
       <td>${statusBadge(d.status || 'ACTIVE')}</td>
-      <td>
+      <!--<td>
         <button class="btn btn-sm btn-secondary" onclick="openEditDeviceModal(${JSON.stringify(d).replace(/"/g, '&quot;')})" style="font-size:11px">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="deleteDevice(${d.id})" style="font-size:11px;margin-left:4px">Delete</button>
-      </td>
+      </td>-->
     </tr>`).join('');
 }
 
 // ── Delete Device ──────────────────────────────────────────────────────────
-async function deleteDevice(id) {
-  if (!confirm(`Delete device #${id}? This cannot be undone.`)) return;
-  try {
-    await apiDelete(`/api/devices/${id}`);
-    toast('Device deleted.', 'success');
-    await loadAdminDevices();
-    await loadStats();
-  } catch (err) {
-    toast(`Failed: ${err.message}`, 'error');
-  }
-}
+// async function deleteDevice(id) {
+//   if (!confirm(`Delete device #${id}? This cannot be undone.`)) return;
+//   try {
+//     await apiDelete(`/api/devices/${id}`);
+//     toast('Device deleted.', 'success');
+//     await loadAdminDevices();
+//     await loadStats();
+//   } catch (err) {
+//     toast(`Failed: ${err.message}`, 'error');
+//   }
+// }
 
 // ── Add Device Modal ───────────────────────────────────────────────────────
 function openAddDeviceModal() {
-  ['admin-dev-name','admin-dev-type','admin-dev-serial','admin-dev-user'].forEach(id => {
+  ['admin-dev-name','admin-dev-type','admin-dev-quantity','admin-dev-user'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -235,7 +323,7 @@ function openAddDeviceModal() {
 async function submitAddDevice() {
   const name   = document.getElementById('admin-dev-name').value.trim();
   const type   = document.getElementById('admin-dev-type').value.trim();
-  const serial = document.getElementById('admin-dev-serial').value.trim();
+  const stockQuantity = document.getElementById('admin-dev-quantity').value.trim();
   const vendorId = document.getElementById('admin-dev-user').value.trim();
 
   if (!name) return toast('Device name is required.', 'error');
@@ -248,7 +336,7 @@ async function submitAddDevice() {
       deviceName: name,
       deviceType: type.toUpperCase(),
       warrantyExpiry: new Date().toISOString().slice(0, 10),
-      stockQuantity: Number(serial || 1)
+      stockQuantity: Number(stockQuantity || 1)
     });
     closeModal('add-device-modal');
     toast('Device added!', 'success');
@@ -273,28 +361,28 @@ function openEditDeviceModal(device) {
   document.getElementById('edit-device-modal').classList.remove('hidden');
 }
 
-async function submitEditDevice() {
-  if (!editingDeviceId) return;
-  const name   = document.getElementById('edit-dev-name').value.trim();
-  const type   = document.getElementById('edit-dev-type').value.trim();
-  const serial = document.getElementById('edit-dev-serial').value.trim();
-  const userId = document.getElementById('edit-dev-user').value.trim();
-
-  if (!name) return toast('Device name is required.', 'error');
-
-  const btn = document.getElementById('edit-device-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  try {
-    await apiPut(`/api/devices/${editingDeviceId}`, { name, type, serialNumber: serial, userId: userId || undefined });
-    closeModal('edit-device-modal');
-    toast('Device updated!', 'success');
-    await loadAdminDevices();
-  } catch (err) {
-    toast(`Failed: ${err.message}`, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Save Changes';
-  }
-}
+// async function submitEditDevice() {
+//   if (!editingDeviceId) return;
+//   const name   = document.getElementById('edit-dev-name').value.trim();
+//   const type   = document.getElementById('edit-dev-type').value.trim();
+//   const serial = document.getElementById('edit-dev-serial').value.trim();
+//   const userId = document.getElementById('edit-dev-user').value.trim();
+//
+//   if (!name) return toast('Device name is required.', 'error');
+//
+//   const btn = document.getElementById('edit-device-btn');
+//   btn.disabled = true; btn.textContent = 'Saving…';
+//   try {
+//     await apiPut(`/api/devices/${editingDeviceId}`, { name, type, serialNumber: serial, userId: userId || undefined });
+//     closeModal('edit-device-modal');
+//     toast('Device updated!', 'success');
+//     await loadAdminDevices();
+//   } catch (err) {
+//     toast(`Failed: ${err.message}`, 'error');
+//   } finally {
+//     btn.disabled = false; btn.textContent = 'Save Changes';
+//   }
+// }
 
 // ── Admin Profile ──────────────────────────────────────────────────────────
 async function loadAdminProfile() {
@@ -381,7 +469,7 @@ async function openAcknowledgeModal(id) {
   const sel = document.getElementById('ack-vendor');
   sel.innerHTML = '<option value="">— Skip assignment (assign later) —</option>';
   try {
-    const vendors = await apiGet('/api/vendors/pending');
+    const vendors = await apiGet('/api/vendors/approvals');
     (vendors || []).forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.id;
@@ -425,7 +513,7 @@ async function openAssignModal(id) {
   const sel = document.getElementById('assign-vendor');
   sel.innerHTML = '<option value="">Loading vendors…</option>';
   try {
-    const vendors = await apiGet('/api/vendors/pending');
+    const vendors = await apiGet('/api/vendors/approvals');
     sel.innerHTML = (vendors || []).length
         ? (vendors || []).map(v => `<option value="${v.id}">${v.companyName || v.email} (ID: ${v.id})</option>`).join('')
         : '<option value="">No vendors available</option>';
