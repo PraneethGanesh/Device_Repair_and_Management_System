@@ -5,6 +5,7 @@ import com.example.order_service.Client.DeviceServiceClient;
 import com.example.order_service.DTO.*;
 import com.example.order_service.Entity.Orders;
 import com.example.order_service.Enum.OrderStatus;
+import com.example.order_service.Publisher.MessageProducer;
 import com.example.order_service.Repository.OrderRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,13 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final DeviceServiceClient deviceServiceClient;
     private final CustomerServiceClient customerServiceClient;
-    public OrderService(OrderRepository orderRepository, DeviceServiceClient deviceServiceClient, CustomerServiceClient customerServiceClient) {
+    private final MessageProducer messageProducer;
+
+    public OrderService(OrderRepository orderRepository, DeviceServiceClient deviceServiceClient, CustomerServiceClient customerServiceClient, MessageProducer messageProducer) {
         this.orderRepository = orderRepository;
         this.deviceServiceClient = deviceServiceClient;
         this.customerServiceClient = customerServiceClient;
+        this.messageProducer = messageProducer;
     }
 
     public ResponseEntity<String> placeOrder(OrderRequest orderRequest, UUID companyId) {
@@ -80,7 +84,7 @@ public class OrderService {
                 "Quantity: " + orders.getQuantity() + "\n\n" +
                 "The order is now being processed.\n\n" +
                 "Thank you.");
-
+        messageProducer.publishCompanyMessage(notificationMessage);
         return "Accepted the order of the company:"+ orders.getCompanyId();
     }
 
