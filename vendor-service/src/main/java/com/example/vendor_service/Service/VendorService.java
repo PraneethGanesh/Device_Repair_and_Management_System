@@ -7,10 +7,12 @@
     import com.example.vendor_service.Publisher.MessagePublisher;
     import com.example.vendor_service.Repository.VendorRepository;
     import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+    import org.springframework.core.ParameterizedTypeReference;
     import org.springframework.http.ResponseEntity;
     import org.springframework.stereotype.Service;
     import org.springframework.web.client.RestClient;
 
+    import java.lang.reflect.Type;
     import java.time.LocalDateTime;
     import java.util.HashMap;
     import java.util.List;
@@ -28,12 +30,14 @@
         private final VendorRepository vendorRepository;
         private final RestClient deviceClient;
         private final RestClient orderClient;
+        private final RestClient userClient;
         private final MessagePublisher messagePublisher;
 
         public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder, MessagePublisher messagePublisher) {
             this.vendorRepository = vendorRepository;
             this.deviceClient=restClientBuilder.clone().baseUrl("http://device-service").build();
             this.orderClient=restClientBuilder.clone().baseUrl("http://order-service").build();
+            this.userClient=restClientBuilder.clone().baseUrl("http://user-service").build();
             this.messagePublisher = messagePublisher;
         }
 
@@ -109,11 +113,17 @@
                   .retrieve()
                   .toEntity(DeviceDTO.class);
           NotificationMessage notificationMessage=new NotificationMessage();
-          notificationMessage.setSenderName(vendor.getCompanyName());
-          notificationMessage.setReceiverType("COMPANY_ADMIN");
+          List<UserDTO> userDTOS=userClient.get()
+                          .uri("/api/users/{role}","COMPANY_ADMIN")
+                                  .retrieve()
+                                          .body(new ParameterizedTypeReference<List<UserDTO>>() {});
+
+          List<String> emails=userDTOS.stream().map(userDTO -> userDTO.getEmail()).toList();
+          notificationMessage.setEventType("DEVICE ADDED");
+          notificationMessage.setRecipientEmails(emails);
           notificationMessage.setTitle("Device added by the vendor:"+vendor.getCompanyName());
-          notificationMessage.setMessage("Device:"+deviceDTO.getDeviceName()+", Quantity:"+deviceDTO.getStockQuantity());
-          messagePublisher.publishMessage(notificationMessage);
+          notificationMessage.setBody("Device:"+deviceDTO.getDeviceName()+", Quantity:"+deviceDTO.getStockQuantity());
+          messagePublisher.publishBroadcastMessage(notificationMessage);
           return deviceDTOResponseEntity;
         }
 
@@ -173,124 +183,4 @@
             return dto;
         }
 
-
-//        private final VendorRepository vendorRepository;
-//        private final RestClient deviceClient;
-//        private final RestClient notificationClient;
-//        private final RestClient repairClient;
-//        private final PasswordEncoder passwordEncoder;
-//        private final JwtUtil jwtUtil;
-//
-//
-//        public VendorService(VendorRepository vendorRepository, @LoadBalanced RestClient.Builder restClientBuilder, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-//            this.vendorRepository = vendorRepository;
-//            this.deviceClient = restClientBuilder.clone().baseUrl("http://DEVICE-SERVICE").build();
-//            this.notificationClient = restClientBuilder.clone().baseUrl("http://NOTIFICATION-SERVICE").build();
-//            this.repairClient = restClientBuilder.clone().baseUrl("http://REPAIR-SERVICE").build();
-//            this.passwordEncoder = passwordEncoder;
-//            this.jwtUtil = jwtUtil;
-//        }
-//
-//        public AuthResponse createVendor(VendorDTO vendorDTO){
-//            Vendor vendor=new Vendor();
-//            vendor.setVendorName(vendorDTO.getVendorName());
-//            vendor.setPassword(passwordEncoder.encode(vendorDTO.getPassword()));
-//            vendor.setEmail(vendorDTO.getEmail());
-//            vendor.setNumber(vendorDTO.getPhoneNumber());
-//            Vendor saved=vendorRepository.save(vendor);
-//
-//            String token= jwtUtil.generate(saved.getEmail(), saved.getRole().name());
-//            return buildAuthResponse(saved,token);
-//        }
-//
-//        public ResponseEntity<?> addDevice(DeviceDTO deviceDTO,String username,String role){
-//            if(!role.equals(Role.VENDOR.name())){
-//                return ResponseEntity.badRequest().body("only vendor has the access to add the device");
-//            }
-//            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
-//                    ()-> new VendorNotFoundException("vendor not found:"+username)
-//            );
-//
-//          ResponseEntity<DeviceDTO> deviceDTOResponseEntity=deviceClient.post()
-//                  .uri("/api/devices/{vendorId}",vendor.getVendorId())
-//                  .body(deviceDTO)
-//                  .retrieve()
-//                  .toEntity(DeviceDTO.class);
-//          NotificationDTO notificationDTO=new NotificationDTO(vendor.getVendorId(),
-//                  Role.VENDOR,
-//                  Role.ADMIN,
-//                  "Device:"+deviceDTO.getDeviceName()+" is added");
-//          ResponseEntity responseEntity=notificationClient.post()
-//                  .uri("/api/notifications")
-//                  .body(notificationDTO)
-//                  .retrieve()
-//                  .toBodilessEntity();
-//            System.out.println("Notification status:"+responseEntity.getStatusCode());
-//          return deviceDTOResponseEntity;
-//        }
-//
-//        public ResponseEntity<?> getDevices(String username,String role){
-//            if(!role.equals(Role.VENDOR.name())){
-//                return ResponseEntity.badRequest().body("only vendor has the access to see his device");
-//            }
-//            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
-//                    ()-> new VendorNotFoundException("vendor not found:"+username)
-//            );
-//          List<DeviceDTO> deviceDTOS= deviceClient.get()
-//                  .uri("/api/devices/vendor/{vendorId}",vendor.getVendorId())
-//                  .retrieve()
-//                  .body(List.class);
-//          return ResponseEntity.ok(deviceDTOS);
-//        }
-//
-//
-//        public ResponseEntity<?> getMyprofile(String username) {
-//            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
-//                    ()-> new VendorNotFoundException("vendor not found:"+username)
-//            );
-//
-//            return ResponseEntity.ok(vendorResponseDTO(vendor));
-//
-//        }
-//
-//        private VendorResponseDTO vendorResponseDTO(Vendor vendor){
-//            VendorResponseDTO vendorResponseDTO=new VendorResponseDTO();
-//            vendorResponseDTO.setVendorName(vendor.getVendorName());
-//            vendorResponseDTO.setEmail(vendor.getEmail());
-//            vendorResponseDTO.setNumber(vendor.getNumber());
-//            return vendorResponseDTO;
-//        }
-//
-//        public ResponseEntity<?> markInProgress(String username, long repairId) {
-//            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
-//                    ()-> new VendorNotFoundException("vendor not found:"+username)
-//            );
-//            UpdateRepairStatusRequest updateRepairStatusRequest=new UpdateRepairStatusRequest();
-//            updateRepairStatusRequest.setRepairId(repairId);
-//            updateRepairStatusRequest.setVendorId(vendor.getVendorId());
-//            ResponseEntity responseEntity=repairClient.put()
-//                    .uri("/api/repairs/progress")
-//                    .body(updateRepairStatusRequest)
-//                    .retrieve()
-//                    .toBodilessEntity();
-//            System.out.println(responseEntity.getStatusCode());
-//            return ResponseEntity.ok("Repair request:"+repairId+" marked as in progress");
-//
-//        }
-//
-//        public ResponseEntity<?> markCompleted(String username, long repairId) {
-//            Vendor vendor=vendorRepository.findByEmail(username).orElseThrow(
-//                    ()-> new VendorNotFoundException("vendor not found:"+username)
-//            );
-//            UpdateRepairStatusRequest updateRepairStatusRequest=new UpdateRepairStatusRequest();
-//            updateRepairStatusRequest.setRepairId(repairId);
-//            updateRepairStatusRequest.setVendorId(vendor.getVendorId());
-//            ResponseEntity responseEntity=repairClient.put()
-//                    .uri("/api/repairs/complete")
-//                    .body(updateRepairStatusRequest)
-//                    .retrieve()
-//                    .toBodilessEntity();
-//            System.out.println(responseEntity.getStatusCode());
-//            return ResponseEntity.ok("Repair request:"+repairId+" marked as in completed");
-//        }
     }

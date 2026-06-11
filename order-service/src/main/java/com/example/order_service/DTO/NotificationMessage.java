@@ -1,7 +1,6 @@
-package com.example.vendor_service.DTO;
+package com.example.order_service.DTO;
 
 import java.util.List;
-import java.util.UUID;
 
 public class NotificationMessage {
     private String eventType;

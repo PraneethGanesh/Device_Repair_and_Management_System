@@ -31,16 +31,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
-rabbitmq:
-  exchange:
-    name: email-exchange
-  routing:
-    key:
-      admin: admin-key
-  admin:
-    queue:
-      name: admin-notification-queue
-
 
 server:
   port: 8083

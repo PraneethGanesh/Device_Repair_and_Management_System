@@ -29,7 +29,7 @@ public class CompanyService {
         this.orderClient = orderClientBuilder.baseUrl("http://order-service").build();
     }
 
-    public CompanyResponse registerCompany(String userId, CompanyRequest request) {
+    public CompanyResponse registerCompany(String userId,String username, CompanyRequest request) {
         if (companyRepository.existsByGstNumber(request.getGstNumber())) {
             throw new DuplicateResourceException("Company with GST number already exists: " + request.getGstNumber());
         }
@@ -37,6 +37,7 @@ public class CompanyService {
         Company company = new Company(
                 userId,
                 request.getCompanyName(),
+                username,
                 request.getGstNumber(),
                 request.getAddress()
         );
