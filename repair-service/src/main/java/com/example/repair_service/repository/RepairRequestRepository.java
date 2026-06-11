@@ -13,19 +13,22 @@ import java.util.UUID;
 @Repository
 public interface RepairRequestRepository extends JpaRepository<RepairRequest, Long> {
 
-    // All requests raised by a specific employee/admin
-    List<RepairRequest> findByRaisedBy(long raisedBy);
+//    // All requests raised by a specific employee/admin
+//    List<RepairRequest> findByRaisedBy(long raisedBy);
+//
+//    // All requests assigned to a specific vendor
+//    List<RepairRequest> findByVendorId(long vendorId);
+//
+//    // All requests by status
+//    List<RepairRequest> findByStatus(RepairStatus status);
 
-    // All requests assigned to a specific vendor
-    List<RepairRequest> findByVendorId(long vendorId);
-
-    // All requests by status
-    List<RepairRequest> findByStatus(RepairStatus status);
-
-    // Vendor sees: ACKNOWLEDGED requests OR (PENDING + urgent)
-    @Query("SELECT r FROM RepairRequest r WHERE r.status = com.example.repair_service.enums.RepairStatus.ACKNOWLEDGED " +
-           "OR (r.status = com.example.repair_service.enums.RepairStatus.PENDING AND r.urgent = true)")
-    List<RepairRequest> findAvailableForVendor();
+//    // Vendor sees: ACKNOWLEDGED requests OR (PENDING)
+//    @Query("SELECT r FROM RepairRequest r WHERE r.status = :acknowledged " +
+//            "OR (r.status = :pending)")
+//    List<RepairRequest> findAvailableForVendor(
+//            @Param("acknowledged") RepairStatus acknowledged,
+//            @Param("pending") RepairStatus pending
+//    );
 
     @Query("""
        SELECT r

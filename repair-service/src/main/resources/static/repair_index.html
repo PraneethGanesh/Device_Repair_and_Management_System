@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DRMS Console</title>
+  <link rel="stylesheet" href="repair_styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">D</span>
+        <div>
+          <strong>DRMS Console</strong>
+          <small>Gateway connected</small>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Main">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="auth">Access</button>
+        <button class="nav-item" data-view="devices">Devices</button>
+        <button class="nav-item" data-view="repairs">Repairs</button>
+        <button class="nav-item" data-view="people">People</button>
+        <button class="nav-item" data-view="vendor">Vendor</button>
+        <button class="nav-item" data-view="gateway">Gateway</button>
+      </nav>
+
+      <section class="session-panel">
+        <small>Signed in as</small>
+        <strong id="sessionName">Guest</strong>
+        <span id="sessionRole">No active token</span>
+        <button id="logoutBtn" class="ghost-btn" type="button">Sign out</button>
+      </section>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Device Repair and Management System</p>
+          <h1 id="viewTitle">Dashboard</h1>
+        </div>
+        <div class="gateway-control">
+          <label for="baseUrl">API Gateway</label>
+          <input id="baseUrl" type="url" value="http://localhost:8085">
+          <button id="saveGatewayBtn" class="icon-btn" type="button" title="Save gateway URL">Save</button>
+        </div>
+      </header>
+
+      <section id="alert" class="alert hidden" role="status"></section>
+
+      <section class="view active" id="dashboard">
+        <div class="metrics-grid">
+          <article class="metric">
+            <span>Repairs</span>
+            <strong id="metricRepairs">-</strong>
+          </article>
+          <article class="metric">
+            <span>Devices</span>
+            <strong id="metricDevices">-</strong>
+          </article>
+          <article class="metric">
+            <span>Employees</span>
+            <strong id="metricUsers">-</strong>
+          </article>
+          <article class="metric">
+            <span>Session</span>
+            <strong id="metricSession">Guest</strong>
+          </article>
+        </div>
+
+        <div class="workspace-grid">
+          <section class="panel wide">
+            <div class="panel-head">
+              <h2>Recent Repairs</h2>
+              <button class="ghost-btn" data-action="load-repairs" type="button">Refresh</button>
+            </div>
+            <div id="recentRepairs" class="table-wrap"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Quick Actions</h2>
+            </div>
+            <div class="quick-actions">
+              <button data-jump="repairs" type="button">Raise repair</button>
+              <button data-jump="devices" type="button">Add device</button>
+              <button data-jump="people" type="button">View employees</button>
+              <button data-jump="vendor" type="button">Vendor queue</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="auth">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>User Login</h2>
+            <form id="userLoginForm" class="form-grid">
+              <label>Email<input name="email" type="email" required></label>
+              <label>Password<input name="password" type="password" required></label>
+              <button type="submit">Login user</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Vendor Login</h2>
+            <form id="vendorLoginForm" class="form-grid">
+              <label>Username<input name="username" required></label>
+              <label>Password<input name="password" type="password" required></label>
+              <button type="submit">Login vendor</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Register User</h2>
+            <form id="userRegisterForm" class="form-grid">
+              <label>Name<input name="name" required></label>
+              <label>Email<input name="email" type="email" required></label>
+              <label>Password<input name="password" type="password" required></label>
+              <label>Department<input name="department"></label>
+              <label>Role
+                <select name="role">
+                  <option>EMPLOYEE</option>
+                  <option>ADMIN</option>
+                </select>
+              </label>
+              <button type="submit">Create user</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Register Vendor</h2>
+            <form id="vendorRegisterForm" class="form-grid">
+              <label>Vendor name<input name="vendorName" required></label>
+              <label>Email<input name="email" type="email" required></label>
+              <label>Password<input name="password" type="password" required></label>
+              <label>Phone<input name="phoneNumber"></label>
+              <button type="submit">Create vendor</button>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="devices">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>Add Device</h2>
+            <form id="addDeviceForm" class="form-grid">
+              <label>Vendor ID<input name="vendorId" type="number" min="1" required></label>
+              <label>Device name<input name="deviceName" required></label>
+              <label>Type
+                <select name="deviceType">
+                  <option>LAPTOP</option>
+                  <option>DESKTOP</option>
+                  <option>TABLET</option>
+                  <option>ROUTER</option>
+                  <option>SENSOR</option>
+                  <option>HEADPHONE</option>
+                </select>
+              </label>
+              <label>Warranty expiry<input name="warrantyExpiry" type="date" required></label>
+              <button type="submit">Add device</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Assign Device</h2>
+            <form id="assignDeviceForm" class="form-grid">
+              <label>Device ID<input name="deviceId" type="number" min="1" required></label>
+              <label>User ID<input name="userId" type="number" min="1" required></label>
+              <button type="submit">Assign</button>
+            </form>
+          </section>
+
+          <section class="panel wide">
+            <div class="panel-head">
+              <h2>Device Inventory</h2>
+              <button class="ghost-btn" data-action="load-devices" type="button">Refresh</button>
+            </div>
+            <div id="devicesTable" class="table-wrap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="repairs">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>Raise Repair</h2>
+            <form id="raiseRepairForm" class="form-grid">
+              <label>User ID<input name="userId" type="number" min="1" required></label>
+              <label>Vendor ID<input name="vendorId" type="number" min="1" required></label>
+              <label>Device ID<input name="deviceId" type="number" min="1" required></label>
+              <label>Issue<textarea name="issueDescription" rows="4" required></textarea></label>
+              <label class="check-row"><input name="urgent" type="checkbox"> Urgent</label>
+              <button type="submit">Raise request</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Admin Actions</h2>
+            <form id="ackRepairForm" class="form-grid">
+              <label>Repair ID<input name="repairId" type="number" min="1" required></label>
+              <label>Admin ID<input name="adminId" type="number" min="1" required></label>
+              <button type="submit">Acknowledge</button>
+            </form>
+            <hr>
+            <form id="closeRepairForm" class="form-grid">
+              <label>Repair ID<input name="repairId" type="number" min="1" required></label>
+              <label>Admin ID<input name="adminId" type="number" min="1" required></label>
+              <label>Assign to employee ID<input name="assignToEmployeeId" type="number" min="1" required></label>
+              <button type="submit">Close repair</button>
+            </form>
+          </section>
+
+          <section class="panel wide">
+            <div class="panel-head">
+              <h2>Repair Requests</h2>
+              <button class="ghost-btn" data-action="load-repairs" type="button">Refresh</button>
+            </div>
+            <div id="repairsTable" class="table-wrap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="people">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>Update Role</h2>
+            <form id="roleForm" class="form-grid">
+              <label>User ID<input name="id" type="number" min="1" required></label>
+              <label>Role
+                <select name="role">
+                  <option>EMPLOYEE</option>
+                  <option>ADMIN</option>
+                </select>
+              </label>
+              <button type="submit">Update role</button>
+            </form>
+          </section>
+
+          <section class="panel wide">
+            <div class="panel-head">
+              <h2>Employees</h2>
+              <button class="ghost-btn" data-action="load-users" type="button">Refresh</button>
+            </div>
+            <div id="usersTable" class="table-wrap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="vendor">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>Repair Status</h2>
+            <form id="vendorProgressForm" class="form-grid">
+              <label>Repair ID<input name="repairId" type="number" min="1" required></label>
+              <button type="submit">Mark in progress</button>
+            </form>
+            <hr>
+            <form id="vendorCompleteForm" class="form-grid">
+              <label>Repair ID<input name="repairId" type="number" min="1" required></label>
+              <button type="submit">Mark completed</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Vendor Repairs</h2>
+            <form id="vendorRepairsForm" class="form-grid">
+              <label>Vendor ID<input name="vendorId" type="number" min="1" required></label>
+              <button type="submit">Load vendor repairs</button>
+            </form>
+          </section>
+
+          <section class="panel wide">
+            <div class="panel-head">
+              <h2>Vendor Queue</h2>
+              <button class="ghost-btn" data-action="load-available" type="button">Available</button>
+            </div>
+            <div id="vendorTable" class="table-wrap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="gateway">
+        <div class="workspace-grid">
+          <section class="panel">
+            <h2>Health Check</h2>
+            <button id="healthBtn" type="button">Check gateway health</button>
+          </section>
+          <section class="panel wide">
+            <h2>API Response</h2>
+            <pre id="responseBox" class="response-box">{}</pre>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="repair_app.js"></script>
+</body>
+</html>

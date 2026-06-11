@@ -158,17 +158,21 @@ async function populateDeviceDropdown() {
 }
 
 async function submitRaiseRequest() {
-  const deviceId        = document.getElementById('raise-device').value;
-  const vendorId        = document.getElementById('raise-vendor').value;
+  const deviceInstanceId = document.getElementById('raise-device').value;  // rename variable
+  const vendorId         = document.getElementById('raise-vendor').value;
   const issueDescription = document.getElementById('raise-issue').value.trim();
-  const urgent          = document.getElementById('raise-urgent').checked;
 
-  if (!deviceId)          return toast('Please select a device.', 'error');
-  if (!vendorId)          return toast('Please enter a vendor ID.', 'error');
-  if (!issueDescription)  return toast('Please describe the issue.', 'error');
+  if (!deviceInstanceId) return toast('Please select a device.', 'error');
+  if (!vendorId)         return toast('Please enter a vendor ID.', 'error');
+  if (!issueDescription) return toast('Please describe the issue.', 'error');
 
   try {
-    await apiPost(`/api/repairs/${empUser.id}/${vendorId}`, { deviceId, raisedBy: empUser.id, issueDescription, urgent });
+    await apiPost(`/api/repairs`, {
+      deviceInstanceId: Number(deviceInstanceId),
+      issueDescription
+      // userId comes from X-Auth-Id header automatically via gateway
+      // vendorId is not part of this DTO
+    });
     closeModal('raise-modal');
     toast('Request submitted!', 'success');
     loadEmpOverview();

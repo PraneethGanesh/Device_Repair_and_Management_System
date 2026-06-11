@@ -72,6 +72,11 @@ public class VendorController {
         return vendorService.getOrders(userId);
     }
 
+    @GetMapping("/approvals")
+    public ResponseEntity<?> getApprovalAccount(@RequestHeader("X-Auth-Role") String Role){
+        return vendorService.getApprovalAccount(Role);
+    }
+
 //    @GetMapping("/profile")
 //    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
 //        return vendorService.getMyprofile(username);
