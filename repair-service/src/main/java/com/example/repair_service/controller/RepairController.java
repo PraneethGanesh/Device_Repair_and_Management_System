@@ -1,8 +1,6 @@
 package com.example.repair_service.controller;
 
-import com.example.repair_service.dto.CloseRepairDTO;
 import com.example.repair_service.dto.RepairRequestDTO;
-import com.example.repair_service.dto.UpdateRepairStatusRequest;
 import com.example.repair_service.entity.RepairRequest;
 import com.example.repair_service.service.RepairService;
 import jakarta.validation.Valid;
@@ -31,6 +29,56 @@ public class RepairController {
         return ResponseEntity.status(HttpStatus.CREATED).body(repairService.raiseRequest(dto,userId));
     }
 
+    // acknowledge repair request by the company admin
+    @PutMapping("/{id}/acknowledge")
+    public ResponseEntity<RepairRequest> acknowledge(
+            @PathVariable long id,
+            @RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(repairService.acknowledgeRequest(id,userId));
+    }
+
+    @GetMapping("/open")
+    public List<RepairRequest> getOpenRequestsByCompany(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getOpenRequestsByCompany(userId);
+    }
+
+     // Vendor marks repair as IN_PROGRESS
+    @PutMapping("{id}/progress")
+    public ResponseEntity<RepairRequest> markInProgress(@PathVariable long id,
+                                                        @RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(repairService.markInProgress(id, userId));
+    }
+
+    @GetMapping("/vendor")
+    public List<RepairRequest> getRequestsAssignedToVendor(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getRequestsAssignedToVendor(userId);
+    }
+
+    // Vendor marks repair as repair_done
+    @PutMapping("{id}/complete")
+    public ResponseEntity<RepairRequest> markCompleted(@PathVariable long id,
+                                                       @RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(repairService.markCompleted(id,userId));
+    }
+    @GetMapping("/vendor/inProgress")
+    public List<RepairRequest> getRequestsInProgress(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getRequestsInProgress(userId);
+    }
+
+    // company admin closes repair
+    @PutMapping("/{repairId}/close")
+    public ResponseEntity<RepairRequest> close(
+            @PathVariable long repairId, @RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(repairService.closeRequest(repairId,userId));
+    }
+
+     @GetMapping("/repaired")
+    public List<RepairRequest> getRequestsRepaired(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getRequestsRepaired(userId);
+    }
+
+
+
 
 
 //    // Get repair request by ID
@@ -54,19 +102,10 @@ public class RepairController {
 //    }
 //
 //    // Admin acknowledges and forwards to vendor pool
-//    @PutMapping("/{id}/acknowledge")
-//    public ResponseEntity<RepairRequest> acknowledge(
-//            @PathVariable long id,
-//            @RequestParam long adminId) {
-//        return ResponseEntity.ok(repairService.acknowledgeRequest(id, adminId));
-//    }
+//
 //
 //    // Admin closes ticket and reassigns device
-//    @PutMapping("/{repairId}/close")
-//    public ResponseEntity<RepairRequest> close(
-//            @PathVariable long repairId) {
-//        return ResponseEntity.ok(repairService.closeRequest(repairId));
-//    }
+//
 //
 //    // ─── VENDOR ───────────────────────────────────────────────────────────────
 //
@@ -90,19 +129,10 @@ public class RepairController {
 //        return ResponseEntity.ok(repairService.assignVendor(id, vendorId));
 //    }
 //
-//    // Vendor marks IN_PROGRESS
-//    @PutMapping("/progress")
-//    public ResponseEntity<RepairRequest> markInProgress(
-//            @RequestBody UpdateRepairStatusRequest updateRepairStatusRequest) {
-//        return ResponseEntity.ok(repairService.markInProgress(updateRepairStatusRequest));
-//    }
+//
 //
 //    // Vendor marks COMPLETED
-//    @PutMapping("/complete")
-//    public ResponseEntity<RepairRequest> markCompleted(
-//            @RequestBody UpdateRepairStatusRequest updateRepairStatusRequest) {
-//        return ResponseEntity.ok(repairService.markCompleted(updateRepairStatusRequest));
-//    }
+//
 //
 //
 //    @GetMapping("/acknowledge/{vendorId}")

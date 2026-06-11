@@ -6,6 +6,7 @@ import com.example.repair_service.enums.RecipientRole;
 import com.example.repair_service.enums.RepairStatus;
 import com.example.repair_service.feign.CustomerServiceClient;
 import com.example.repair_service.feign.DeviceServiceClient;
+import com.example.repair_service.feign.VendorServiceClient;
 import com.example.repair_service.kafka.RepairEventProducer;
 import com.example.repair_service.publisher.NotificationPublisher;
 import com.example.repair_service.repository.RepairRequestRepository;
@@ -26,19 +27,22 @@ public class RepairService {
     private final NotificationPublisher notificationPublisher;
     private final RepairEventProducer repairEventProducer;
     private final CustomerServiceClient customerServiceClient;
+    private final VendorServiceClient vendorServiceClient;
+
 
     public RepairService(RepairRequestRepository repairRepository,
                          DeviceServiceClient deviceServiceClient,
                          NotificationPublisher notificationPublisher,
-                         RepairEventProducer repairEventProducer, CustomerServiceClient customerServiceClient) {
+                         RepairEventProducer repairEventProducer, CustomerServiceClient customerServiceClient, VendorServiceClient vendorServiceClient) {
         this.repairRepository = repairRepository;
         this.deviceServiceClient = deviceServiceClient;
         this.notificationPublisher = notificationPublisher;
         this.repairEventProducer = repairEventProducer;
         this.customerServiceClient = customerServiceClient;
+        this.vendorServiceClient = vendorServiceClient;
     }
 
-//    // ─── 1. Employee/Admin raises a repair request ────────────────────────────
+//    // ─── 1. Employee raises a repair request ────────────────────────────
     public RepairRequest raiseRequest(RepairRequestDTO dto,String userId) {
         EmployeeDTO response=customerServiceClient.getEmployeeByUserId(userId).getBody();
         UUID employeeId=deviceServiceClient.getDeviceAssignment(dto.getDeviceInstanceId()).getBody();
@@ -68,11 +72,16 @@ public class RepairService {
     }
 
 
-//
-//    // ─── 2. Admin acknowledges and forwards to vendor pool ────────────────────
-    public RepairRequest acknowledgeRequest(long requestId, long adminId) {
-        RepairRequest request = getById(requestId);
 
+//    // ─── 2. Admin acknowledges and forwards to vendor pool ────────────────────
+    public RepairRequest acknowledgeRequest(long requestId, String userId) {
+        RepairRequest request = getById(requestId);
+        CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
+        if(response.getId()!=request.getCompanyId()){
+            throw new RuntimeException(
+                    "Only the company employee belongs to can acknowledge the repair request"
+            );
+        }
         if (request.getStatus() != RepairStatus.RAISED) {
             throw new IllegalStateException(
                     "Only PENDING requests can be acknowledged. Current status: " + request.getStatus());
@@ -90,15 +99,6 @@ public class RepairService {
 //                RepairStatus.ASSIGNED_TO_VENDOR,
 //                true
 //        );
-        // Notify vendors — new repair request available (broadcast to VENDOR role)
-//        notificationPublisher.publishRepairAcknowledged(new NotificationDTO(
-//                adminId,
-//                RecipientRole.ADMIN,
-//                RecipientRole.VENDOR,
-//                "New repair request #" + requestId +
-//                        " is available for pickup. Device ID: " + request.getDeviceId() +
-//                        " | Issue: " + request.getIssueDescription()
-//        ));
 
         return saved;
     }
@@ -107,46 +107,22 @@ public class RepairService {
         return repairRepository.findById(requestId)
                 .orElseThrow(() -> new NoSuchElementException("Repair request not found: " + requestId));
     }
-//
-//    // ─── 3. Vendor self-assigns a request ─────────────────────────────────────
-//    public RepairRequest assignVendor(long requestId, long vendorId) {
-//        RepairRequest request = getById(requestId);
-//
-//        // Vendor can pick ACKNOWLEDGED or URGENT PENDING
-//        boolean canAssign = request.getStatus() == RepairStatus.ACKNOWLEDGED ||
-//                (request.getStatus() == RepairStatus.PENDING && request.isUrgent());
-//
-//        if (!canAssign) {
-//            throw new IllegalStateException(
-//                    "Request is not available for vendor assignment. Status: " + request.getStatus());
-//        }
-//
-//        if (request.getVendorId() != null) {
-//            throw new IllegalStateException(
-//                    "Request already assigned to vendor ID: " + request.getVendorId());
-//        }
-//
-//        request.setVendorId(vendorId);
-//        request.setStatus(RepairStatus.ASSIGNED_TO_VENDOR);
-//        return repairRepository.save(request);
-//    }
-//
-//    // ─── 4. Vendor starts work ────────────────────────────────────────────────
-//    public RepairRequest markInProgress(UpdateRepairStatusRequest updateRepairStatusRequest) {
-//        RepairRequest request = getById(updateRepairStatusRequest.getRepairId());
-//        validateVendorOwnership(request, updateRepairStatusRequest.getVendorId());
-//
-//        if (request.getStatus() != RepairStatus.ASSIGNED_TO_VENDOR) {
-//            throw new IllegalStateException(
-//                    "Request must be ASSIGNED_TO_VENDOR before marking IN_PROGRESS.");
-//        }
-//
-//        DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
-//        deviceStatusDTO.setStatus("UNDER_REPAIR");
-//        deviceStatusDTO.setDeviceId(request.getDeviceId());
-//        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
-//        request.setStatus(RepairStatus.IN_PROGRESS);
-//        RepairStatus previousStatus = request.getStatus();
+
+
+    // ─── 3. Vendor starts work ────────────────────────────────────────────────
+    public RepairRequest markInProgress(long requestId,String userId) {
+        RepairRequest request = getById(requestId);
+        VendorDTO vendorDTO=vendorServiceClient.getVendor(userId).getBody();
+        validateVendorOwnership(request, vendorDTO.getId());
+
+        if (request.getStatus() != RepairStatus.ASSIGNED_TO_VENDOR) {
+            throw new IllegalStateException(
+                    "Request must be ASSIGNED_TO_VENDOR before marking IN_PROGRESS.");
+        }
+
+        deviceServiceClient.updateDeviceStatus("UNDER_REPAIR", request.getDeviceInstanceId());
+        request.setStatus(RepairStatus.IN_PROGRESS);
+        RepairStatus previousStatus = request.getStatus();
 //        publishRepairEvent(
 //                "REPAIR_IN_PROGRESS",
 //                request,
@@ -154,38 +130,32 @@ public class RepairService {
 //                RepairStatus.IN_PROGRESS,
 //                false
 //        );
-//        return repairRepository.save(request);
-//    }
-//
-//    // ─── 5. Vendor marks repair complete ─────────────────────────────────────
-//    public RepairRequest markCompleted(UpdateRepairStatusRequest updateRepairStatusRequest) {
-//        RepairRequest request = getById(updateRepairStatusRequest.getRepairId());
-//        validateVendorOwnership(request, updateRepairStatusRequest.getVendorId());
-//
-//        if (request.getStatus() != RepairStatus.IN_PROGRESS) {
-//            throw new IllegalStateException(
-//                    "Request must be IN_PROGRESS before marking COMPLETED.");
-//        }
-//
-//        request.setStatus(RepairStatus.COMPLETED);
-//        RepairRequest saved = repairRepository.save(request);
-//
-//        DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
-//        deviceStatusDTO.setStatus("REPAIR_DONE");
-//        deviceStatusDTO.setDeviceId(request.getDeviceId());
-//        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
-//
-//        // Notify ADMIN — vendor completed, admin needs to close and reassign device
-//        notificationPublisher.publishRepairCompleted(new NotificationDTO(
-//                updateRepairStatusRequest.getVendorId(),
-//                RecipientRole.VENDOR,
-//                RecipientRole.ADMIN,
-//                "Repair request #" + updateRepairStatusRequest.getRepairId() +
-//                        " has been COMPLETED by vendor ID: " + updateRepairStatusRequest.getVendorId() +
-//                        ". Please close the ticket and reassign the device."
-//        ));
-//
-//        RepairStatus previousStatus = request.getStatus();
+        return repairRepository.save(request);
+    }
+    private void validateVendorOwnership(RepairRequest request, long vendorId) {
+        if (request.getVendorId() != vendorId) {
+            throw new IllegalStateException(
+                    "Vendor ID: " + vendorId + " is not assigned to this request.");
+        }
+    }
+
+    // ─── 4. Vendor marks repair complete ─────────────────────────────────────
+    public RepairRequest markCompleted(long requestId,String userId) {
+        RepairRequest request = getById(requestId);
+        VendorDTO vendorDTO=vendorServiceClient.getVendor(userId).getBody();
+        validateVendorOwnership(request, vendorDTO.getId());
+
+        if (request.getStatus() != RepairStatus.IN_PROGRESS) {
+            throw new IllegalStateException(
+                    "Request must be IN_PROGRESS before marking COMPLETED.");
+        }
+
+        request.setStatus(RepairStatus.REPAIR_DONE);
+        RepairRequest saved = repairRepository.save(request);
+
+        deviceServiceClient.updateDeviceStatus("REPAIRED",request.getDeviceInstanceId());
+
+        RepairStatus previousStatus = request.getStatus();
 //        publishRepairEvent(
 //                "REPAIR_COMPLETED",
 //                saved,
@@ -193,37 +163,27 @@ public class RepairService {
 //                RepairStatus.COMPLETED,
 //                false
 //        );
-//
-//        return saved;
-//    }
-//
-//    // ─── 6. Admin closes ticket and reassigns device ──────────────────────────
-//    public RepairRequest closeRequest(long repairId) {
-//        RepairRequest request = getById(repairId);
-//
-//        if (request.getStatus() != RepairStatus.COMPLETED) {
-//            throw new IllegalStateException(
-//                    "Only COMPLETED requests can be closed. Current status: " + request.getStatus());
-//        }
-//
-//        DeviceStatusDTO deviceStatusDTO=new DeviceStatusDTO();
-//        deviceStatusDTO.setStatus("ASSIGNED");
-//        deviceStatusDTO.setDeviceId(request.getDeviceId());
-//        deviceServiceClient.updateDeviceStatus(deviceStatusDTO);
-//
-//        request.setStatus(RepairStatus.CLOSED);
-//        RepairRequest saved = repairRepository.save(request);
-//
-//        notificationPublisher.publishRepairClosed(new NotificationDTO(
-//                request.getAdminId(),
-//                RecipientRole.ADMIN,
-//                RecipientRole.EMPLOYEE,
-//                request.getRaisedBy(),
-//                "Your device (ID: " + request.getDeviceId()
-//                        + ") has been repaired and assigned back to you. Repair request #"
-//                        + request.getRequestId() + " is now CLOSED."
-//        ));
-//
+
+        return saved;
+    }
+
+//    // ─── 5. Admin closes ticket and reassigns device ──────────────────────────
+    public RepairRequest closeRequest(long repairId,String userId) {
+        RepairRequest request = getById(repairId);
+        CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
+        if(response.getId()!=request.getCompanyId()){
+            throw new RuntimeException(
+                    "Only the company employee belongs to can acknowledge the repair request"
+            );
+        }
+        if (request.getStatus() != RepairStatus.REPAIR_DONE) {
+            throw new IllegalStateException(
+                    "Only REPAIRED requests can be closed. Current status: " + request.getStatus());
+        }
+
+        request.setStatus(RepairStatus.CLOSED);
+        RepairRequest saved = repairRepository.save(request);
+        deviceServiceClient.updateDeviceStatus("ASSIGNED",request.getDeviceInstanceId());
 //        RepairStatus previousStatus = request.getStatus();
 //        publishRepairEvent(
 //                "DEVICE_RETURNED",
@@ -232,9 +192,35 @@ public class RepairService {
 //                RepairStatus.CLOSED,
 //                false
 //        );
-//
-//        return saved;
-//    }
+
+        return saved;
+    }
+
+    public List<RepairRequest> getOpenRequestsByCompany(String userId) {
+        CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
+        UUID companyId=response.getId();
+        List<RepairRequest> repairRequests=repairRepository.findByCompanyIdAndStatus(companyId,RepairStatus.RAISED);
+        return repairRequests;
+    }
+
+    public List<RepairRequest> getRequestsAssignedToVendor(String userId) {
+        VendorDTO vendorDTO=vendorServiceClient.getVendor(userId).getBody();
+        List<RepairRequest> repairRequests=repairRepository.findByStatusAndVendorId(RepairStatus.ASSIGNED_TO_VENDOR,vendorDTO.getId());
+        return repairRequests;
+    }
+
+    public List<RepairRequest> getRequestsInProgress(String userId) {
+        VendorDTO vendorDTO=vendorServiceClient.getVendor(userId).getBody();
+        List<RepairRequest> repairRequests=repairRepository.findByStatusAndVendorId(RepairStatus.IN_PROGRESS,vendorDTO.getId());
+        return repairRequests;
+    }
+
+    public List<RepairRequest> getRequestsRepaired(String userId) {
+        CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
+        UUID companyId=response.getId();
+        List<RepairRequest> repairRequests=repairRepository.findByCompanyIdAndStatus(companyId,RepairStatus.REPAIR_DONE);
+        return  repairRequests;
+    }
 //
 //    // ─── Queries ──────────────────────────────────────────────────────────────
 //
@@ -265,12 +251,7 @@ public class RepairService {
 //
 //    // ─── Helper ───────────────────────────────────────────────────────────────
 //
-//    private void validateVendorOwnership(RepairRequest request, long vendorId) {
-//        if (request.getVendorId() == null || request.getVendorId() != vendorId) {
-//            throw new IllegalStateException(
-//                    "Vendor ID: " + vendorId + " is not assigned to this request.");
-//        }
-//    }
+//
 //
 //    public List<ResponseDTO> getAcknowledgedRepairRequestByVendor(long vendorId) {
 //        List<RepairRequest> repairRequests= repairRepository.findByStatusAndVendorId(RepairStatus.ACKNOWLEDGED,vendorId);

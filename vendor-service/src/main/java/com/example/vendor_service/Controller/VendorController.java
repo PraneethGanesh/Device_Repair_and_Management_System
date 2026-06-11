@@ -1,9 +1,6 @@
 package com.example.vendor_service.Controller;
 
-import com.example.vendor_service.DTO.ActionDTO;
-import com.example.vendor_service.DTO.DeviceDTO;
-import com.example.vendor_service.DTO.OrderDTO;
-import com.example.vendor_service.DTO.RegisterDTO;
+import com.example.vendor_service.DTO.*;
 import com.example.vendor_service.Entity.Vendor;
 import com.example.vendor_service.Service.VendorService;
 import org.springframework.cloud.client.loadbalancer.Response;
@@ -38,6 +35,11 @@ public class VendorController {
     @GetMapping("/me")
     public ResponseEntity<?> myAccount(@RequestHeader("X-Auth-Id") String userId){
         return vendorService.myAccount(userId);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<VendorDTO> getVendor(String userId){
+        return  vendorService.getVendor(userId);
     }
 
     @GetMapping("/pending")

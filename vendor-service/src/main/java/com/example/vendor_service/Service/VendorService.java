@@ -156,6 +156,22 @@
             return orderDTOS;
         }
 
+        public ResponseEntity<VendorDTO> getVendor(String userId) {
+            Vendor vendor=vendorRepository.findByUserId(userId).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id:"+userId+" is not found")
+            );
+            VendorDTO vendorDTO=toVendorDTO(vendor);
+            return ResponseEntity.ok(vendorDTO);
+        }
+        private VendorDTO toVendorDTO(Vendor vendor) {
+            VendorDTO dto = new VendorDTO();
+            dto.setId(vendor.getId());
+            dto.setUserId(vendor.getUserId());
+            dto.setCompanyName(vendor.getCompanyName());
+            dto.setEmail(vendor.getEmail());
+            return dto;
+        }
+
 
 //        private final VendorRepository vendorRepository;
 //        private final RestClient deviceClient;
