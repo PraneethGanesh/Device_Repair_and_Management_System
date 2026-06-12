@@ -193,6 +193,16 @@
             return ResponseEntity.ok(result);
         }
 
+        public boolean isApproved(String userId) {
+            Vendor vendor=vendorRepository.findByUserId(userId).orElseThrow(
+                    ()->new VendorNotFoundException("vendor with id:"+userId+" is not found")
+            );
+            if(vendor.getApprovalStatus().equals(ApprovalStatus.APPROVED)){
+                return true;
+            }
+            return false;
+        }
+
 //        private final VendorRepository vendorRepository;
 //        private final RestClient deviceClient;
 //        private final RestClient notificationClient;

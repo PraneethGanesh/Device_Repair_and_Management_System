@@ -494,6 +494,16 @@
       <div class="nav-icon">🛒</div>
       <span class="nav-label">Orders</span>
     </div>
+
+    <div class="nav-section-label">Repairs</div>
+    <div class="nav-item" onclick="showPage('repairs-assigned', this)">
+      <div class="nav-icon">🔧</div>
+      <span class="nav-label">Assigned to Me</span>
+    </div>
+    <div class="nav-item" onclick="showPage('repairs-inprogress', this)">
+      <div class="nav-icon">⚙️</div>
+      <span class="nav-label">In Progress</span>
+    </div>
   </nav>
 
   <div class="sidebar-footer">
@@ -672,6 +682,70 @@
       </div>
     </div>
 
+    <!-- ── Repairs Assigned page ── -->
+    <div id="page-repairs-assigned" class="page">
+      <div class="page-header">
+        <div class="page-title">Assigned Repairs</div>
+        <div class="page-sub">Repair requests assigned to your vendor account</div>
+      </div>
+      <div class="alert" id="al-repairs-assigned"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Awaiting Your Action</div>
+          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadRepairsAssigned()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Device Instance</th>
+              <th>Issue</th>
+              <th>Requested By</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="repairs-assigned-body">
+            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Repairs In Progress page ── -->
+    <div id="page-repairs-inprogress" class="page">
+      <div class="page-header">
+        <div class="page-title">In Progress</div>
+        <div class="page-sub">Repairs currently underway — mark them complete when done</div>
+      </div>
+      <div class="alert" id="al-repairs-inprogress"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Active Repairs</div>
+          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadRepairsInProgress()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Device Instance</th>
+              <th>Issue</th>
+              <th>Requested By</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="repairs-inprogress-body">
+            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -697,6 +771,8 @@
     'devices':    'My Devices',
     'add-device': 'Add Device',
     'orders':     'Orders',
+    'repairs-assigned':    'Assigned Repairs',     // ADD
+  'repairs-inprogress':  'Repairs In Progress'
   };
 
   // ── Navigation ───────────────────────────────────────────
@@ -710,6 +786,8 @@
     if (name === 'account')    loadAccount();
     if (name === 'devices')    loadDevices();
     if (name === 'orders')     loadOrders();
+    if (name === 'repairs-assigned')   loadRepairsAssigned();
+    if (name === 'repairs-inprogress') loadRepairsInProgress();
   }
 
   // ── Helpers ──────────────────────────────────────────────
@@ -898,7 +976,7 @@
           <td><span class="badge ${statusCls}">${o.status || 'PENDING'}</span></td>
           <td>
             ${(!o.status || o.status === 'PENDING')
-              ? `<button class="btn-accept" onclick="acceptOrder(${o.orderId || o.id})">Accept</button>`
+              ? `<button class="btn-accept" onclick="acceptOrder(${o.order_id || o.id})">Accept</button>`
               : '—'}
           </td>
         </tr>`;
@@ -910,20 +988,119 @@
 
   // ── Accept Order ─────────────────────────────────────────
   async function acceptOrder(orderId) {
-    try {
-      const res = await fetch(`${GATEWAY}/api/vendors/orders/${orderId}/accept`, {
-        method: 'PUT',
-        headers: authHeaders()
-      });
+  try {
+    const res = await fetch(`${GATEWAY}/api/vendors/review/${orderId}`, {
+      method: 'PUT',
+      headers: authHeaders()
+    });
 
-      if (!res.ok) { showAlert('al-orders', '✗ ' + await bodyText(res), 'error'); return; }
+    const message = await res.text();
 
-      showAlert('al-orders', `✓ Order #${orderId} accepted.`, 'success');
-      loadOrders();
-    } catch (e) {
-      showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
+    if (!res.ok) {
+      showAlert('al-orders', `✗ ${message}`, 'error');
+      return;
     }
+
+    showAlert('al-orders', `✓ ${message}`, 'success');
+    loadOrders();
+
+  } catch (e) {
+    showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
   }
+}
+
+  // ── Repair row builder ───────────────────────────────────
+function buildRepairRow(r, actionHtml) {
+  return `
+    <tr>
+      <td style="color:var(--text2);font-size:11px;">#${r.id || r.requestId || '—'}</td>
+      <td style="font-weight:500;">${r.deviceInstanceId || '—'}</td>
+      <td>${r.issueDescription || r.issue || '—'}</td>
+      <td>${r.requestedBy || r.userId || '—'}</td>
+      <td><span class="badge badge-pending">${r.status || '—'}</span></td>
+      <td>${actionHtml}</td>
+    </tr>`;
+}
+
+// ── Load Assigned Repairs ────────────────────────────────
+async function loadRepairsAssigned() {
+  document.getElementById('al-repairs-assigned').classList.remove('show');
+  document.getElementById('repairs-assigned-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+  try {
+    const res = await fetch(GATEWAY + '/api/repairs/vendor', { headers: authHeaders() });
+    if (!res.ok) {
+      showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'Failed to load repair requests.');
+      return;
+    }
+    const repairs = await res.json();
+    if (!repairs.length) {
+      document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'No repair requests assigned to you yet.');
+      return;
+    }
+    document.getElementById('repairs-assigned-body').innerHTML = repairs.map(r =>
+      buildRepairRow(r, `<button class="btn-accept" onclick="markInProgress(${r.id || r.requestId})">Start Work</button>`)
+    ).join('');
+  } catch (e) {
+    showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+// ── Load In-Progress Repairs ─────────────────────────────
+async function loadRepairsInProgress() {
+  document.getElementById('al-repairs-inprogress').classList.remove('show');
+  document.getElementById('repairs-inprogress-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+  try {
+    const res = await fetch(GATEWAY + '/api/repairs/vendor/inProgress', { headers: authHeaders() });
+    if (!res.ok) {
+      showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'Failed to load in-progress repairs.');
+      return;
+    }
+    const repairs = await res.json();
+    if (!repairs.length) {
+      document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'No repairs currently in progress.');
+      return;
+    }
+    document.getElementById('repairs-inprogress-body').innerHTML = repairs.map(r =>
+      buildRepairRow(r, `<button class="btn-accept" style="color:var(--accent2);border-color:rgba(74,143,255,0.3);background:rgba(74,143,255,0.08);" onclick="markComplete(${r.id || r.requestId})">Mark Complete</button>`)
+    ).join('');
+  } catch (e) {
+    showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+// ── Mark In Progress ─────────────────────────────────────
+async function markInProgress(repairId) {
+  try {
+    const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/progress`, {
+      method: 'PUT',
+      headers: authHeaders()
+    });
+    if (!res.ok) { showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error'); return; }
+    showAlert('al-repairs-assigned', '✓ Repair marked as In Progress.', 'success');
+    loadRepairsAssigned();
+  } catch (e) {
+    showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+// ── Mark Complete ────────────────────────────────────────
+async function markComplete(repairId) {
+  try {
+    const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/complete`, {
+      method: 'PUT',
+      headers: authHeaders()
+    });
+    if (!res.ok) { showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error'); return; }
+    showAlert('al-repairs-inprogress', '✓ Repair marked as Complete.', 'success');
+    loadRepairsInProgress();
+  } catch (e) {
+    showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
+  }
+}
 
   // ── Init ─────────────────────────────────────────────────
   loadAccount();
