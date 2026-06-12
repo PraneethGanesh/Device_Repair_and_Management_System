@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Employee Portal — DRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #10141c;
+    --surface2: #161b26;
+    --surface3: #1c2333;
+    --border: #1e2535;
+    --border2: #252f42;
+    --accent: #4af0a4;
+    --accent-dim: rgba(74,240,164,0.1);
+    --accent2: #4a8fff;
+    --accent2-dim: rgba(74,143,255,0.1);
+    --amber: #f0a44a;
+    --amber-dim: rgba(240,164,74,0.1);
+    --red: #ff5c6a;
+    --red-dim: rgba(255,92,106,0.1);
+    --text: #e8edf5;
+    --muted: #5a6478;
+    --muted2: #8090a8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; display: flex; }
+
+  .sidebar { width: 220px; min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+  .brand { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .brand-icon { width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: var(--text); letter-spacing: -0.3px; }
+  .brand-company { font-size: 10px; color: var(--muted); padding-left: 2px; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+  .nav-label { font-size: 9px; font-weight: 600; letter-spacing: 1.2px; color: var(--muted); text-transform: uppercase; padding: 0 8px; margin: 12px 0 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; color: var(--muted2); font-size: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 1px; text-decoration: none; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+  .nav-item .icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--red); font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; color: #fff; }
+
+  .sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
+  .user-pill { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 8px; cursor: pointer; }
+  .user-pill:hover { background: var(--surface2); }
+  .u-avatar { width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(135deg, var(--accent2), #2255cc); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .u-name { font-size: 11px; font-weight: 600; color: var(--text); }
+  .u-role { font-size: 9px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .sign-out { margin-top: 6px; width: 100%; padding: 7px; background: transparent; border: 1px solid var(--border); border-radius: 7px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .sign-out:hover { border-color: var(--red); color: var(--red); }
+
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+  .topbar-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; flex: 1; }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--muted2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s; position: relative; }
+  .icon-btn:hover { background: var(--surface2); color: var(--text); }
+  .notif-dot { position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface); }
+  .status-chip { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid; letter-spacing: 0.5px; }
+  .chip-green { background: var(--accent-dim); color: var(--accent); border-color: rgba(74,240,164,0.2); }
+
+  .content { padding: 22px 24px; flex: 1; }
+
+  .welcome { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 18px; margin-bottom: 20px; position: relative; overflow: hidden; }
+  .welcome::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 180px; background: linear-gradient(90deg, transparent, rgba(74,143,255,0.04)); }
+  .welcome-avatar { width: 48px; height: 48px; border-radius: 11px; background: linear-gradient(135deg, var(--accent2), #2255cc); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .welcome h2 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .welcome p { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .welcome-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #3ad994; }
+  .btn-outline { background: transparent; color: var(--muted2); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--surface2); color: var(--text); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 11px 11px 0 0; }
+  .stat-card.c-green::after { background: var(--accent); }
+  .stat-card.c-blue::after { background: var(--accent2); }
+  .stat-card.c-amber::after { background: var(--amber); }
+  .stat-card.c-red::after { background: var(--red); }
+  .stat-label { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+  .c-green .stat-value { color: var(--accent); }
+  .c-blue .stat-value { color: var(--accent2); }
+  .c-amber .stat-value { color: var(--amber); }
+  .c-red .stat-value { color: var(--red); }
+  .stat-sub { font-size: 10px; color: var(--muted); margin-top: 5px; }
+  .stat-icon { position: absolute; top: 14px; right: 14px; font-size: 20px; opacity: 0.1; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  .card-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .card-action { font-size: 11px; color: var(--accent); cursor: pointer; }
+  .card-action:hover { text-decoration: underline; }
+
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pill::before { content: '●'; font-size: 6px; }
+  .pill.green { background: var(--accent-dim); color: var(--accent); }
+  .pill.blue { background: var(--accent2-dim); color: var(--accent2); }
+  .pill.amber { background: var(--amber-dim); color: var(--amber); }
+  .pill.red { background: var(--red-dim); color: var(--red); }
+  .pill.gray { background: rgba(90,100,120,0.15); color: var(--muted2); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 18px; background: var(--surface2); }
+  td { padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 11px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .profile-body { padding: 18px; }
+  .profile-avatar-row { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .profile-avatar { width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, var(--accent2), #2255cc); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; }
+  .profile-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .profile-designation { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .profile-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .profile-row:last-child { border-bottom: none; }
+  .profile-key { color: var(--muted); }
+  .profile-val { color: var(--text); font-weight: 500; }
+
+  .form-body { padding: 18px; }
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; display: block; }
+  .form-input, .form-select, .form-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; outline: none; transition: border 0.15s; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select option { background: var(--surface2); }
+
+  .notif-item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: rgba(255,255,255,0.015); }
+  .notif-icon { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .notif-text p { font-size: 12px; color: var(--text); }
+  .notif-text span { font-size: 10px; color: var(--muted); display: block; margin-top: 2px; }
+  .notif-unread { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+  .device-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  .device-row:last-child { border-bottom: none; }
+  .device-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .device-name { font-size: 12px; font-weight: 600; }
+  .device-serial { font-size: 10px; color: var(--muted); }
+  .device-action { margin-left: auto; }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+
+  .loading { padding: 30px; text-align: center; color: var(--muted); font-size: 11px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 999; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 24px; width: 440px; max-width: 95vw; }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 18px; font-size: 12px; z-index: 9999; display: none; align-items: center; gap: 10px; }
+  .toast.show { display: flex; }
+  .toast.success { border-left: 3px solid var(--accent); }
+  .toast.error { border-left: 3px solid var(--red); }
+
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-row">
+      <div class="brand-icon">🔧</div>
+      <span class="brand-name" id="company-brand">Portal</span>
+    </div>
+    <div class="brand-company" id="company-name-sub">Loading...</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-label">Workspace</div>
+    <a class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">⚡</span> Dashboard
+    </a>
+    <a class="nav-item" onclick="showPage('profile')">
+      <span class="icon">👤</span> My Profile
+    </a>
+
+    <div class="nav-label">Repairs</div>
+    <a class="nav-item" onclick="showPage('new-request')">
+      <span class="icon">➕</span> New Request
+    </a>
+    <a class="nav-item" onclick="showPage('my-requests')">
+      <span class="icon">📋</span> My Requests
+      <span class="nav-badge" id="open-badge" style="display:none">0</span>
+    </a>
+
+    <div class="nav-label">Devices</div>
+    <a class="nav-item" onclick="showPage('my-devices')">
+      <span class="icon">💻</span> My Devices
+    </a>
+
+    <div class="nav-label">Account</div>
+    <a class="nav-item" onclick="showPage('notifications')">
+      <span class="icon">🔔</span> Notifications
+      <span class="nav-badge" id="notif-badge" style="display:none">0</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="u-avatar" id="sidebar-avatar">—</div>
+      <div>
+        <div class="u-name" id="sidebar-name">Loading...</div>
+        <div class="u-role">Employee</div>
+      </div>
+    </div>
+    <button class="sign-out" onclick="signOut()">Sign out →</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <span class="status-chip chip-green">🟢 Active</span>
+      <button class="icon-btn" onclick="showPage('notifications')">
+        🔔
+        <span class="notif-dot" id="notif-indicator" style="display:none"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="welcome">
+        <div class="welcome-avatar" id="welcome-avatar">—</div>
+        <div>
+          <h2 id="welcome-name">Welcome back</h2>
+          <p id="welcome-sub">Loading your workspace...</p>
+        </div>
+        <div class="welcome-actions">
+          <button class="btn btn-primary" onclick="showPage('new-request')">+ New Repair Request</button>
+          <button class="btn btn-outline" onclick="showPage('my-devices')">My Devices</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card c-blue">
+          <div class="stat-label">Open Requests</div>
+          <div class="stat-value" id="stat-open">—</div>
+          <div class="stat-sub">Awaiting action</div>
+          <div class="stat-icon">📋</div>
+        </div>
+        <div class="stat-card c-amber">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="stat-progress">—</div>
+          <div class="stat-sub">Being repaired by vendor</div>
+          <div class="stat-icon">🔧</div>
+        </div>
+        <div class="stat-card c-green">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="stat-done">—</div>
+          <div class="stat-sub">Repair done</div>
+          <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-card c-red">
+          <div class="stat-label">Assigned Devices</div>
+          <div class="stat-value" id="stat-devices">—</div>
+          <div class="stat-sub">In your possession</div>
+          <div class="stat-icon">💻</div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Repair Requests</span>
+            <span class="card-action" onclick="showPage('my-requests')">View all →</span>
+          </div>
+          <div id="dash-requests-wrap">
+            <div class="loading"><span class="spinner"></span>Loading...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">My Profile</span>
+            <span class="card-action" onclick="showPage('profile')">Edit →</span>
+          </div>
+          <div class="profile-body" id="dash-profile-snap">
+            <div class="loading"><span class="spinner"></span>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Notifications</span>
+          <span class="card-action" onclick="showPage('notifications')">All →</span>
+        </div>
+        <div id="dash-notifs-wrap">
+          <div class="loading"><span class="spinner"></span>Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY REQUESTS -->
+    <div class="page-section" id="page-my-requests">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">My Repair Requests</span>
+          <button class="btn btn-primary" onclick="showPage('new-request')" style="padding:6px 12px;font-size:10px;">+ New</button>
+        </div>
+        <div id="requests-table-wrap">
+          <div class="loading"><span class="spinner"></span>Loading your requests...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW REQUEST -->
+    <div class="page-section" id="page-new-request">
+      <div class="card" style="max-width:560px;">
+        <div class="card-header">
+          <span class="card-title">Submit a Repair Request</span>
+        </div>
+        <div class="form-body">
+          <div style="background:var(--accent2-dim);border:1px solid rgba(74,143,255,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--muted2);">
+            ℹ️ Your company admin will review and forward your request to the assigned vendor. You will be notified at each step.
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select Device</label>
+            <select class="form-select" id="req-device">
+              <option value="">Loading your devices...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Issue Description</label>
+            <textarea class="form-textarea" id="req-issue" placeholder="Describe the problem — when it started, error messages, what you've tried..."></textarea>
+          </div>
+          <div id="req-error" style="color:var(--red);font-size:11px;margin-bottom:10px;display:none;"></div>
+          <div id="req-success" style="color:var(--accent);font-size:11px;margin-bottom:10px;display:none;"></div>
+          <button class="btn btn-primary" id="req-submit-btn" onclick="submitRepairRequest()" style="width:100%;padding:11px;">Submit Request</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY DEVICES -->
+    <div class="page-section" id="page-my-devices">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">My Assigned Devices</span>
+        </div>
+        <div id="devices-wrap">
+          <div class="loading"><span class="spinner"></span>Loading your devices...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page-section" id="page-profile">
+      <div class="card" style="max-width:520px;">
+        <div class="card-header">
+          <span class="card-title">My Profile</span>
+        </div>
+        <div id="profile-wrap">
+          <div class="loading"><span class="spinner"></span>Loading your profile...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page-section" id="page-notifications">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Notifications</span>
+          <span class="card-action" onclick="markAllRead()">Mark all read</span>
+        </div>
+        <div id="notifs-wrap">
+          <div class="loading"><span class="spinner"></span>Loading notifications...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script>
+// ── AUTH GUARD ─────────────────────────────────────────────────────────────
+const token = localStorage.getItem('token');
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+const role = (userInfo.role || localStorage.getItem('role') || '').toLowerCase();
+
+if (!token || !['employee', 'company_employee'].includes(role)) {
+  window.location.href = 'auth.html';
+}
+
+const AUTH = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+// ── SESSION DATA ───────────────────────────────────────────────────────────
+let employeeProfile   = null;
+let myAssignments     = [];
+let myRequests        = [];
+let myNotifications   = [];
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  'dashboard':    'Dashboard',
+  'my-requests':  'My Repair Requests',
+  'new-request':  'New Repair Request',
+  'my-devices':   'My Devices',
+  'profile':      'My Profile',
+  'notifications':'Notifications'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
+  document.querySelector(`.nav-item[onclick="showPage('${id}')"]`)?.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
+
+  if (id === 'my-requests')   renderRequestsTable(myRequests);
+  if (id === 'my-devices')    renderDevicesPage(myAssignments);
+  if (id === 'profile')       renderProfilePage(employeeProfile);
+  if (id === 'notifications') renderNotificationsPage(myNotifications);
+  if (id === 'new-request')   populateDeviceSelect(myAssignments);
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── SIGN OUT ───────────────────────────────────────────────────────────────
+function signOut() {
+  localStorage.clear();
+  window.location.href = 'auth.html';
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function statusPill(status) {
+  const map = {
+    RAISED:             ['blue',  'Raised'],
+    ASSIGNED_TO_VENDOR: ['amber', 'Assigned to Vendor'],
+    IN_PROGRESS:        ['amber', 'In Progress'],
+    REPAIR_DONE:        ['green', 'Repair Done'],
+    CLOSED:             ['gray',  'Closed'],
+  };
+  const [cls, label] = map[status] || ['gray', status || '—'];
+  return `<span class="pill ${cls}">${label}</span>`;
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '—';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// ── LOAD: EMPLOYEE PROFILE ─────────────────────────────────────────────────
+// Employee is identified by the userId injected from JWT by the gateway (X-User-Id).
+// The gateway sets X-User-Id; we read userInfo.id set at login.
+async function loadProfile() {
+  try {
+    const userId = userInfo.id || '';
+    const res = await fetch(`/api/employees/user/${userId}`, { headers: AUTH });
+    if (!res.ok) throw new Error('Profile not available');
+    employeeProfile = await res.json();
+
+    const name  = employeeProfile.fullName || userInfo.name || 'Employee';
+    const dept  = employeeProfile.department || '';
+    const desig = employeeProfile.designation || '';
+
+    document.getElementById('welcome-name').textContent = `Welcome, ${name.split(' ')[0]} 👋`;
+    document.getElementById('welcome-sub').textContent =
+      `${desig}${dept ? ' · ' + dept : ''} — Submit a repair request for any device assigned to you`;
+    document.getElementById('welcome-avatar').textContent = initials(name);
+    document.getElementById('sidebar-avatar').textContent = initials(name);
+    document.getElementById('sidebar-name').textContent = name.split(' ')[0];
+
+    // Load company name
+    const compId = employeeProfile.companyId || '';
+    if (compId) {
+      try {
+        const cRes = await fetch(`/api/companies/${compId}`, { headers: AUTH });
+        if (cRes.ok) {
+          const company = await cRes.json();
+          const cName = company.name || company.companyName || '';
+          document.getElementById('company-brand').textContent = cName || 'Portal';
+          document.getElementById('company-name-sub').textContent = cName ? `${cName} · Employee` : 'Employee Portal';
+        }
+      } catch {}
+    }
+
+    renderProfileSnap(employeeProfile);
+  } catch {
+    const name = userInfo.name || 'Employee';
+    document.getElementById('welcome-name').textContent = `Welcome, ${name.split(' ')[0]} 👋`;
+    document.getElementById('welcome-sub').textContent = 'Submit repair requests for your assigned devices';
+    document.getElementById('welcome-avatar').textContent = initials(name);
+    document.getElementById('sidebar-avatar').textContent = initials(name);
+    document.getElementById('sidebar-name').textContent = name.split(' ')[0];
+    document.getElementById('dash-profile-snap').innerHTML =
+      `<div style="padding:16px;font-size:11px;color:var(--muted)">Profile details unavailable. Is customer-service running?</div>`;
+  }
+}
+
+// ── LOAD: DEVICE ASSIGNMENTS ───────────────────────────────────────────────
+// The employee's assigned devices come from device-service.
+// We use the employee profile id (UUID) to query assignments.
+async function loadAssignments() {
+  try {
+    const empId = employeeProfile?.id || userInfo.id || '';
+    const res = await fetch(`/api/assignments/employee/${empId}`, { headers: AUTH });
+    if (!res.ok) throw new Error();
+    myAssignments = await res.json();
+    document.getElementById('stat-devices').textContent = myAssignments.length;
+  } catch {
+    document.getElementById('stat-devices').textContent = '0';
+    myAssignments = [];
+  }
+}
+
+// ── LOAD: REPAIR REQUESTS ──────────────────────────────────────────────────
+// The repair endpoint uses X-Auth-Id header to scope results to this employee.
+// We pass the userId so repair-service can filter by raisedBy.
+async function loadRequests() {
+  try {
+    const res = await fetch('/api/repairs/open', {
+      headers: { ...AUTH, 'X-Auth-Id': userInfo.id || '' }
+    });
+    if (!res.ok) throw new Error();
+    myRequests = await res.json();
+
+    // Count by status
+    const open     = myRequests.filter(r => r.status === 'RAISED').length;
+    const progress = myRequests.filter(r => r.status === 'IN_PROGRESS' || r.status === 'ASSIGNED_TO_VENDOR').length;
+    const done     = myRequests.filter(r => r.status === 'REPAIR_DONE' || r.status === 'CLOSED').length;
+
+    document.getElementById('stat-open').textContent     = open;
+    document.getElementById('stat-progress').textContent = progress;
+    document.getElementById('stat-done').textContent     = done;
+
+    if (open > 0) {
+      document.getElementById('open-badge').textContent = open;
+      document.getElementById('open-badge').style.display = 'inline';
+    }
+
+    renderDashRequests(myRequests.slice(0, 5));
+  } catch {
+    document.getElementById('stat-open').textContent     = '0';
+    document.getElementById('stat-progress').textContent = '0';
+    document.getElementById('stat-done').textContent     = '0';
+    document.getElementById('dash-requests-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">📋</div>No repair requests yet<br><span style="font-size:10px;margin-top:4px;display:block">Use the "New Request" button to raise one</span></div>`;
+  }
+}
+
+// ── LOAD: NOTIFICATIONS ────────────────────────────────────────────────────
+async function loadNotifications() {
+  try {
+    const res = await fetch('/api/notifications', { headers: AUTH });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    myNotifications = Array.isArray(data) ? data : (data.content || data.notifications || []);
+
+    const unread = myNotifications.filter(n => n.status === 'UNREAD' || !n.read).length;
+    if (unread > 0) {
+      document.getElementById('notif-badge').textContent = unread;
+      document.getElementById('notif-badge').style.display = 'inline';
+      document.getElementById('notif-indicator').style.display = 'block';
+    }
+    renderDashNotifs(myNotifications.slice(0, 3));
+  } catch {
+    myNotifications = [];
+    document.getElementById('dash-notifs-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">🔔</div>No notifications</div>`;
+  }
+}
+
+// ── RENDER: DASHBOARD REQUESTS ─────────────────────────────────────────────
+function renderDashRequests(requests) {
+  if (!requests.length) {
+    document.getElementById('dash-requests-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">✅</div>No open requests</div>`;
+    return;
+  }
+  const rows = requests.map(r => `
+    <tr>
+      <td style="color:var(--accent2);font-weight:600">#${r.id}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.issueDescription?.substring(0, 35) || '—'}${(r.issueDescription?.length > 35) ? '…' : ''}</td>
+      <td>${statusPill(r.status)}</td>
+      <td style="color:var(--muted);font-size:10px">${timeAgo(r.createdAt)}</td>
+    </tr>`).join('');
+  document.getElementById('dash-requests-wrap').innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Issue</th><th>Status</th><th>Raised</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+// ── RENDER: PROFILE SNAPSHOT ───────────────────────────────────────────────
+function renderProfileSnap(p) {
+  if (!p) { document.getElementById('dash-profile-snap').innerHTML = `<div style="padding:14px;font-size:11px;color:var(--muted)">Not available</div>`; return; }
+  document.getElementById('dash-profile-snap').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px;">
+      <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--accent2),#2255cc);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">${initials(p.fullName)}</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700">${p.fullName || '—'}</div>
+        <div style="font-size:10px;color:var(--muted)">${p.designation || ''}</div>
+      </div>
+    </div>
+    ${[
+      ['Department', p.department],
+      ['Email', p.email],
+      ['Status', p.inviteStatus === 'ACCEPTED' ? '<span class="pill green">Active</span>' : `<span class="pill amber">${p.inviteStatus || 'Pending'}</span>`],
+      ['Joined', p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—']
+    ].map(([k, v]) => `<div class="profile-row"><span class="profile-key">${k}</span><span class="profile-val">${v || '—'}</span></div>`).join('')}`;
+}
+
+// ── RENDER: FULL REQUESTS TABLE ────────────────────────────────────────────
+function renderRequestsTable(requests) {
+  if (!requests.length) {
+    document.getElementById('requests-table-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">📋</div>No repair requests yet<br><span style="font-size:10px">Submit one using the "+ New" button above</span></div>`;
+    return;
+  }
+  const rows = requests.map(r => `
+    <tr>
+      <td style="color:var(--accent2);font-weight:600">#${r.id}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.issueDescription?.substring(0, 50) || '—'}${(r.issueDescription?.length > 50) ? '…' : ''}</td>
+      <td>${statusPill(r.status)}</td>
+      <td style="color:var(--muted);font-size:10px">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
+      <td style="color:var(--muted);font-size:10px">${r.status === 'CLOSED' && r.resolvedAt ? new Date(r.resolvedAt).toLocaleDateString() : '—'}</td>
+    </tr>`).join('');
+  document.getElementById('requests-table-wrap').innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Ticket</th><th>Issue</th><th>Status</th><th>Raised On</th><th>Resolved On</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+// ── RENDER: DEVICES PAGE ───────────────────────────────────────────────────
+function renderDevicesPage(assignments) {
+  if (!assignments.length) {
+    document.getElementById('devices-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">💻</div>No devices assigned to you yet<br><span style="font-size:10px;margin-top:4px;display:block">Contact your company admin to assign a device</span></div>`;
+    return;
+  }
+  const rows = assignments.map(a => `
+    <div class="device-row">
+      <div class="device-icon">💻</div>
+      <div>
+        <div class="device-name">${a.deviceInstance?.device?.name || a.deviceInstanceId || 'Device'}</div>
+        <div class="device-serial">Instance #${a.deviceInstanceId || a.id} · Assigned ${timeAgo(a.assignedAt || a.createdAt)}</div>
+      </div>
+      <div class="device-action">
+        <span class="pill ${a.status === 'ACTIVE' || a.status === 'ASSIGNED' ? 'green' : 'amber'}">${a.status || 'ACTIVE'}</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('devices-wrap').innerHTML = rows;
+}
+
+// ── RENDER: PROFILE PAGE ───────────────────────────────────────────────────
+function renderProfilePage(p) {
+  if (!p) {
+    document.getElementById('profile-wrap').innerHTML =
+      `<div class="empty-state">Profile not available — is customer-service running?</div>`;
+    return;
+  }
+  document.getElementById('profile-wrap').innerHTML = `
+    <div class="profile-body">
+      <div class="profile-avatar-row">
+        <div class="profile-avatar">${initials(p.fullName)}</div>
+        <div>
+          <div class="profile-name">${p.fullName || '—'}</div>
+          <div class="profile-designation">${p.designation || ''}${p.department ? ' · ' + p.department : ''}</div>
+        </div>
+      </div>
+      ${[
+        ['Full Name',    p.fullName],
+        ['Email',        p.email],
+        ['Department',   p.department],
+        ['Designation',  p.designation],
+        ['Employee ID',  p.id],
+        ['Invite Status',p.inviteStatus === 'ACCEPTED' ? '<span class="pill green">Active</span>' : `<span class="pill amber">${p.inviteStatus || 'Pending'}</span>`],
+        ['Member Since', p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN', {year:'numeric',month:'long',day:'numeric'}) : '—']
+      ].map(([k, v]) => `<div class="profile-row"><span class="profile-key">${k}</span><span class="profile-val">${v || '—'}</span></div>`).join('')}
+    </div>`;
+}
+
+// ── RENDER: NOTIFICATIONS ──────────────────────────────────────────────────
+function renderDashNotifs(notifs) {
+  if (!notifs.length) {
+    document.getElementById('dash-notifs-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">🔔</div>No notifications</div>`;
+    return;
+  }
+  document.getElementById('dash-notifs-wrap').innerHTML = notifs.map(n => notifItem(n)).join('');
+}
+
+function renderNotificationsPage(notifs) {
+  if (!notifs.length) {
+    document.getElementById('notifs-wrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">🔔</div>No notifications yet</div>`;
+    return;
+  }
+  document.getElementById('notifs-wrap').innerHTML = notifs.map(n => notifItem(n)).join('');
+}
+
+function notifItem(n) {
+  const unread = n.status === 'UNREAD' || !n.read;
+  const iconMap = { repair: '🔧', assignment: '💻', system: '⚙️', invite: '📩' };
+  const bg = unread ? 'var(--accent2-dim)' : 'var(--surface2)';
+  const icon = iconMap[(n.type || '').toLowerCase()] || '📢';
+  return `<div class="notif-item">
+    <div class="notif-icon" style="background:${bg}">${icon}</div>
+    <div class="notif-text">
+      <p>${n.message || n.content || '—'}</p>
+      <span>${timeAgo(n.createdAt || n.timestamp)}</span>
+    </div>
+    ${unread ? '<div class="notif-unread"></div>' : ''}
+  </div>`;
+}
+
+function markAllRead() {
+  myNotifications = myNotifications.map(n => ({...n, read: true, status: 'READ'}));
+  renderNotificationsPage(myNotifications);
+  document.getElementById('notif-badge').style.display = 'none';
+  document.getElementById('notif-indicator').style.display = 'none';
+  showToast('All notifications marked as read');
+}
+
+// ── POPULATE DEVICE SELECT ─────────────────────────────────────────────────
+function populateDeviceSelect(assignments) {
+  const sel = document.getElementById('req-device');
+  if (!assignments.length) {
+    sel.innerHTML = '<option value="">No devices assigned to you — contact your admin</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Select a device...</option>' +
+    assignments.map(a => {
+      const name = a.deviceInstance?.device?.name || `Device Instance #${a.deviceInstanceId || a.id}`;
+      return `<option value="${a.deviceInstanceId || a.id}">${name}</option>`;
+    }).join('');
+}
+
+// ── SUBMIT REPAIR REQUEST ──────────────────────────────────────────────────
+// The employee selects one of their assigned devices and describes the issue.
+// The repair-service will verify the device is actually assigned to them,
+// look up the vendor from device-service, and raise the request.
+// Status starts as RAISED → company admin must acknowledge → vendor picks it up.
+async function submitRepairRequest() {
+  const deviceInstanceId = document.getElementById('req-device').value;
+  const issueDescription = document.getElementById('req-issue').value.trim();
+  const errEl = document.getElementById('req-error');
+  const sucEl = document.getElementById('req-success');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!deviceInstanceId) { errEl.textContent = 'Please select a device.'; errEl.style.display = 'block'; return; }
+  if (!issueDescription)  { errEl.textContent = 'Please describe the issue.'; errEl.style.display = 'block'; return; }
+  if (issueDescription.length < 10) { errEl.textContent = 'Please provide more detail (at least 10 characters).'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('req-submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  try {
+    const res = await fetch('/api/repairs', {
+      method: 'POST',
+      headers: { ...AUTH, 'X-Auth-Id': userInfo.id || '' },
+      body: JSON.stringify({ deviceInstanceId: Number(deviceInstanceId), issueDescription })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || err.error || `Server returned ${res.status}`);
+    }
+
+    const created = await res.json();
+    sucEl.textContent = `✓ Request #${created.id} submitted. Status: RAISED — your company admin will review it next.`;
+    sucEl.style.display = 'block';
+    document.getElementById('req-issue').value = '';
+    document.getElementById('req-device').value = '';
+    showToast(`Request #${created.id} submitted!`);
+
+    // Refresh request data so stats update
+    await loadRequests();
+  } catch (e) {
+    errEl.textContent = e.message || 'Something went wrong. Is repair-service running?';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit Request';
+  }
+}
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+async function boot() {
+  await loadProfile();
+  await Promise.all([loadAssignments(), loadRequests(), loadNotifications()]);
+}
+
+boot();
+</script>
+</body>
+</html>
