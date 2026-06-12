@@ -1,4 +1,4 @@
-package com.example.user_service.Config;
+package com.example.user_service.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
