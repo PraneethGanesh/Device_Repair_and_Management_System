@@ -6,6 +6,7 @@ import com.example.customer_service.dto.CompanyResponse;
 import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
+import com.example.customer_service.exception.CompanyNotFoundException;
 import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
@@ -114,7 +115,7 @@ public class CompanyService {
 
     public CompanyResponse getMyAccount(String userId) {
         Company company=companyRepository.findByUserId(userId).orElseThrow(
-                ()->new RuntimeException("Company Not found")
+                ()->new CompanyNotFoundException("Company Not found")
         );
         return CompanyResponse.from(company);
     }
