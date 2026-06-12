@@ -586,11 +586,11 @@
   function redirectByRole(role) {
     const routes = {
       VENDOR: '/vendor_dashboard.html',
-      COMPANY_ADMIN: '/admin.html',
-      COMPANY_EMPLOYEE: '/employee.html',
-      ADMIN: '/admin.html'
+      COMPANY_ADMIN: '',
+      COMPANY_EMPLOYEE: '',
+      ADMIN: ''
     };
-    const path = routes[role?.toUpperCase()] || '/dashboard.html';
+    const path = routes[role?.toUpperCase()] || '';
     window.location.href = path;
   }
 

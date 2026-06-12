@@ -1,11 +1,11 @@
 // ── API Base ───────────────────────────────────────────────────────────────
 const API = '';  // Same host as the API gateway static app.
 const ROLE_ROUTES = {
-  admin: 'admin.html',
-  vendor: 'vendor.html',
-  company_admin: 'admin.html',
-  company_employee: 'employee.html',
-  employee: 'employee.html'
+  admin: '',
+  vendor: '/vendor_dashboard',
+  company_admin: '',
+  company_employee: '',
+  employee: ''
 };
 
 // ── Tab switching ──────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ function routeByRole(token) {
   const claims = decodeJwt(token);
   const stored = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const role = normalizeRole(stored.role || claims?.role || localStorage.getItem('role'));
-  window.location.href = ROLE_ROUTES[role] || 'employee.html';
+  window.location.href = ROLE_ROUTES[role] || '';
 }
 
 // ── Login ──────────────────────────────────────────────────────────────────
