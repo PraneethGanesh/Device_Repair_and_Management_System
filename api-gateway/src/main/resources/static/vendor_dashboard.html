@@ -891,10 +891,10 @@
                         : 'badge-pending';
         return `
         <tr>
-          <td style="color:var(--text2);font-size:11px;">#${o.orderId || o.id || '—'}</td>
-          <td style="font-weight:500;">${o.deviceName || '—'}</td>
+          <td style="color:var(--text2);font-size:11px;">#${o.orderId || o.order_id || '—'}</td>
+          <td style="font-weight:500;">${o.device_id || '—'}</td>
           <td>${o.quantity || '—'}</td>
-          <td>${o.companyName || '—'}</td>
+          <td>${o.company_id || '—'}</td>
           <td><span class="badge ${statusCls}">${o.status || 'PENDING'}</span></td>
           <td>
             ${(!o.status || o.status === 'PENDING')
