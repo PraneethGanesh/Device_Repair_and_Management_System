@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DeviceSupply — Company Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+          --bg: #04060d;
+          --surface: #080c14;
+          --surface2: #0d1220;
+          --border: #141e30;
+          --border2: #1c2a40;
+          --accent: #00f5c8;
+          --accent2: #3d8bff;
+          --text: #c8d8f0;
+          --text2: #5a7090;
+          --error: #ff4d6a;
+          --company: #a78bfa;
+          --company-dim: rgba(167,139,250,0.09);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: 'DM Mono', monospace;
+          min-height: 100vh;
+          display: flex;
+          font-size: 13px;
+          background-image:
+            linear-gradient(rgba(167,139,250,0.012) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(167,139,250,0.012) 1px, transparent 1px);
+          background-size: 40px 40px;
+        }
+
+        body::before {
+          content: '';
+          position: fixed; inset: 0;
+          background: repeating-linear-gradient(
+            0deg, transparent, transparent 2px,
+            rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+          );
+          pointer-events: none; z-index: 9999;
+        }
+
+        /* ─── Sidebar ─────────────────────────────────── */
+        .sidebar {
+          width: 240px; min-height: 100vh;
+          background: var(--surface);
+          border-right: 1px solid var(--border);
+          display: flex; flex-direction: column;
+          position: fixed; top: 0; left: 0; bottom: 0;
+          overflow-y: auto;
+        }
+
+        .sidebar-brand {
+          display: flex; align-items: center; gap: 11px;
+          padding: 22px 18px;
+          border-bottom: 1px solid var(--border);
+          position: relative;
+        }
+        .sidebar-brand::after {
+          content: ''; position: absolute;
+          bottom: 0; left: 18px; right: 18px; height: 1px;
+          background: linear-gradient(90deg, var(--company), transparent);
+          opacity: 0.35;
+        }
+        .brand-icon {
+          width: 34px; height: 34px;
+          border: 1px solid rgba(167,139,250,0.35);
+          border-radius: 6px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 0 14px rgba(167,139,250,0.2), inset 0 0 10px rgba(167,139,250,0.05);
+        }
+        .brand-icon svg { width: 16px; height: 16px; stroke: var(--company); fill: none; stroke-width: 1.5; }
+        .brand-name {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 13px;
+          letter-spacing: 0.01em; text-transform: uppercase; white-space: nowrap;
+        }
+        .brand-name span { color: var(--company); }
+        .brand-sub { font-size: 8px; color: var(--text2); letter-spacing: 0.22em; text-transform: uppercase; margin-top: 3px; }
+
+        .sidebar-user {
+          padding: 14px 18px; border-bottom: 1px solid var(--border);
+          display: flex; align-items: center; gap: 10px;
+        }
+        .user-avatar {
+          width: 32px; height: 32px;
+          background: var(--company-dim);
+          border: 1px solid rgba(167,139,250,0.2);
+          border-radius: 6px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; flex-shrink: 0;
+        }
+        .user-name { font-size: 11px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--company); margin-top: 2px; }
+
+        .sidebar-approval {
+          margin: 10px 18px 0;
+          padding: 8px 12px; border-radius: 6px;
+          font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .sidebar-approval.pending  { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.2); color: var(--company); }
+        .sidebar-approval.approved { background: rgba(0,245,200,0.06); border: 1px solid rgba(0,245,200,0.2); color: var(--accent); }
+        .sidebar-approval.rejected { background: rgba(255,77,106,0.07); border: 1px solid rgba(255,77,106,0.2); color: var(--error); }
+        .sidebar-approval.unregistered { background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.15); color: var(--text2); }
+        .approval-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .pending .approval-dot    { background: var(--company); box-shadow: 0 0 5px var(--company); animation: blink 1.4s ease-in-out infinite; }
+        .approved .approval-dot   { background: var(--accent); box-shadow: 0 0 5px var(--accent); }
+        .rejected .approval-dot   { background: var(--error); }
+        .unregistered .approval-dot { background: var(--text2); }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .nav { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 1px; margin-top: 8px; }
+
+        .nav-section-label {
+          font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+          color: var(--text2); padding: 12px 10px 5px;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .nav-section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border2), transparent); }
+
+        .nav-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 9px 10px; font-size: 11px; letter-spacing: 0.04em;
+          color: var(--text2); cursor: pointer; border-radius: 6px;
+          transition: all 0.15s; position: relative;
+        }
+        .nav-item:hover { color: var(--text); background: var(--surface2); }
+        .nav-item.active { color: var(--company); background: var(--company-dim); border: 1px solid rgba(167,139,250,0.1); }
+        .nav-item.active::before {
+          content: ''; position: absolute;
+          left: 0; top: 25%; bottom: 25%; width: 2px;
+          background: var(--company); border-radius: 0 2px 2px 0;
+          box-shadow: 0 0 6px var(--company);
+        }
+        .nav-item.locked { opacity: 0.4; cursor: not-allowed; }
+        .nav-item.locked:hover { color: var(--text2); background: transparent; }
+        .nav-icon {
+          width: 26px; height: 26px;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--surface2); border: 1px solid var(--border);
+          border-radius: 5px; font-size: 12px; flex-shrink: 0;
+        }
+        .nav-item.active .nav-icon { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2); }
+        .nav-label { flex: 1; }
+        .nav-lock { font-size: 10px; opacity: 0.5; display: none; }
+        .nav-item.locked .nav-lock { display: inline; }
+
+        .sidebar-footer { padding: 10px; border-top: 1px solid var(--border); }
+        .logout-btn {
+          width: 100%; padding: 9px 12px;
+          border: 1px solid var(--border2); border-radius: 6px;
+          background: transparent; color: var(--text2);
+          font-family: 'DM Mono', monospace;
+          font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+          cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+        }
+        .logout-btn:hover { border-color: var(--error); color: var(--error); background: rgba(255,77,106,0.04); }
+
+        /* ─── Main ────────────────────────────────────── */
+        .main { margin-left: 240px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .topbar {
+          height: 52px; border-bottom: 1px solid var(--border);
+          display: flex; align-items: center;
+          padding: 0 28px; gap: 12px;
+          background: rgba(8,12,20,0.95);
+          backdrop-filter: blur(8px);
+          position: sticky; top: 0; z-index: 10;
+        }
+        .topbar::after {
+          content: ''; position: absolute;
+          bottom: 0; left: 240px; width: 120px; height: 1px;
+          background: linear-gradient(90deg, var(--company), transparent);
+          opacity: 0.35;
+        }
+        .topbar-title {
+          font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+          letter-spacing: 0.05em; text-transform: uppercase; flex: 1;
+        }
+        .topbar-role {
+          padding: 3px 12px; border-radius: 3px;
+          font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+          background: var(--company-dim); color: var(--company);
+          border: 1px solid rgba(167,139,250,0.15);
+        }
+        .topbar-clock { font-size: 10px; color: var(--text2); letter-spacing: 0.08em; }
+
+        .content { padding: 24px 28px; flex: 1; }
+        .page { display: none; padding-top: 4px; }
+        .page.active { display: block; animation: fadeUp 0.2s ease; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ─── Stat grid ───────────────────────────────── */
+        .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card {
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: 8px; padding: 16px 18px; position: relative; overflow: hidden;
+        }
+        .stat-card::before { content:''; position:absolute; top:0;left:0;right:0;height:1px; background:linear-gradient(90deg,transparent,var(--border2),transparent); }
+        .stat-card::after  { content:''; position:absolute; top:0;right:0; width:20px;height:20px; border-top:1px solid var(--border2); border-right:1px solid var(--border2); }
+        .stat-icon { width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:12px;border:1px solid transparent; }
+        .stat-icon.purple { background:rgba(167,139,250,0.07); border-color:rgba(167,139,250,0.15); }
+        .stat-icon.green  { background:rgba(0,245,200,0.07);   border-color:rgba(0,245,200,0.15); }
+        .stat-icon.blue   { background:rgba(61,139,255,0.07);  border-color:rgba(61,139,255,0.15); }
+        .stat-label { font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);margin-bottom:5px; }
+        .stat-value { font-family:'Syne',sans-serif;font-size:20px;font-weight:700; }
+
+        /* ─── Card ────────────────────────────────────── */
+        .card {
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: 8px; padding: 20px; position: relative;
+        }
+        .card::before { content:'';position:absolute;top:-1px;left:-1px;width:12px;height:12px;border-top:2px solid var(--company);border-left:2px solid var(--company);border-radius:8px 0 0 0;opacity:0.3; }
+        .card::after  { content:'';position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-bottom:2px solid var(--company);border-right:2px solid var(--company);border-radius:0 0 8px 0;opacity:0.3; }
+        .card-header  { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border); }
+        .card-title   { font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text); }
+
+        /* ─── Table ───────────────────────────────────── */
+        .table-wrap { overflow-x: auto; }
+        table { width:100%;border-collapse:collapse; }
+        th { text-align:left;padding:9px 12px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:500; }
+        td { padding:12px;border-bottom:1px solid var(--border);color:var(--text);font-size:11px;transition:background 0.12s; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:var(--surface2); }
+
+        /* ─── Badges ──────────────────────────────────── */
+        .badge { display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:3px;font-size:9px;letter-spacing:0.1em;font-weight:500;text-transform:uppercase; }
+        .badge::before { content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0; }
+        .badge-approved { background:rgba(0,245,200,0.07);color:var(--accent);border:1px solid rgba(0,245,200,0.2); }
+        .badge-approved::before { background:var(--accent);box-shadow:0 0 4px var(--accent); }
+        .badge-pending  { background:rgba(167,139,250,0.07);color:var(--company);border:1px solid rgba(167,139,250,0.2); }
+        .badge-pending::before  { background:var(--company); }
+        .badge-rejected { background:rgba(255,77,106,0.07);color:var(--error);border:1px solid rgba(255,77,106,0.2); }
+        .badge-rejected::before { background:var(--error); }
+        .badge-blue { background:rgba(61,139,255,0.07);color:var(--accent2);border:1px solid rgba(61,139,255,0.2); }
+        .badge-blue::before { background:var(--accent2); }
+
+        /* ─── Form ────────────────────────────────────── */
+        .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+        .field { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+        .field label { font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);font-weight:500; }
+        .field input, .field textarea, .field select {
+          width:100%;padding:10px 12px;
+          background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+          color:var(--text);font-family:'DM Mono',monospace;font-size:11px;
+          outline:none;transition:border-color 0.18s,box-shadow 0.18s;
+          appearance:none;-webkit-appearance:none;
+        }
+        .field input::placeholder, .field textarea::placeholder { color:var(--text2);opacity:0.4; }
+        .field input:focus, .field textarea:focus, .field select:focus {
+          border-color:var(--company);
+          box-shadow:0 0 0 2px rgba(167,139,250,0.08),0 0 12px rgba(167,139,250,0.05);
+        }
+        .field textarea { resize:vertical;min-height:80px;line-height:1.6; }
+        .select-wrap { position:relative; }
+        .select-wrap::after { content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:10px;pointer-events:none; }
+        .select-wrap select { padding-right:32px;cursor:pointer; }
+        .select-wrap select option { background:var(--surface2);color:var(--text); }
+
+        /* ─── Buttons ─────────────────────────────────── */
+        .btn { display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:6px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;white-space:nowrap; }
+        .btn-primary { background:transparent;color:var(--company);border:1px solid var(--company);box-shadow:0 0 12px rgba(167,139,250,0.1),inset 0 0 12px rgba(167,139,250,0.03); }
+        .btn-primary:hover { background:rgba(167,139,250,0.07);box-shadow:0 0 20px rgba(167,139,250,0.2); }
+        .btn-primary:disabled { opacity:0.3;cursor:not-allowed; }
+        .btn-ghost { background:transparent;color:var(--text2);border:1px solid var(--border2); }
+        .btn-ghost:hover { color:var(--text);border-color:var(--text2); }
+        .btn-action { background:rgba(167,139,250,0.07);color:var(--company);border:1px solid rgba(167,139,250,0.2);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;padding:4px 12px;border-radius:4px;cursor:pointer;transition:all 0.15s; }
+        .btn-action:hover { background:rgba(167,139,250,0.14);box-shadow:0 0 8px rgba(167,139,250,0.15); }
+
+        /* ─── Alert ───────────────────────────────────── */
+        .alert { padding:10px 14px;border-radius:6px;font-size:11px;margin-bottom:16px;display:none;animation:fadeUp 0.18s ease;letter-spacing:0.02em; }
+        .alert.show { display:flex;align-items:center;gap:8px; }
+        .alert.error   { background:rgba(255,77,106,0.06);border:1px solid rgba(255,77,106,0.2);color:var(--error); }
+        .alert.success { background:rgba(0,245,200,0.05);border:1px solid rgba(0,245,200,0.18);color:var(--accent); }
+
+        /* ─── Account rows ────────────────────────────── */
+        .acct-row { display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:11px; }
+        .acct-row:last-child { border-bottom:none; }
+        .acct-key { color:var(--text2);letter-spacing:0.06em; }
+        .acct-val { color:var(--text);text-align:right;max-width:260px;word-break:break-word; }
+
+        /* ─── Empty / Spinner ─────────────────────────── */
+        .empty { text-align:center;padding:44px 20px;color:var(--text2); }
+        .empty-icon { font-size:28px;margin-bottom:10px;opacity:0.3; }
+        .empty-text { font-size:11px;letter-spacing:0.04em; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .spinner { display:inline-block;width:11px;height:11px;border:1.5px solid var(--border2);border-top-color:var(--company);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;flex-shrink:0; }
+        .loading-row td { text-align:center;padding:36px;color:var(--text2); }
+
+        .form-divider { height:1px;background:linear-gradient(90deg,rgba(167,139,250,0.15),transparent);margin:2px 0 18px; }
+
+        /* ─── Registration card ───────────────────────── */
+        .reg-card {
+          max-width:560px;background:var(--surface);
+          border:1px solid rgba(167,139,250,0.18);border-radius:10px;
+          padding:32px 36px;position:relative;
+        }
+        .reg-card::before { content:'';position:absolute;top:-1px;left:-1px;width:20px;height:20px;border-top:2px solid var(--company);border-left:2px solid var(--company);border-radius:10px 0 0 0; }
+        .reg-card::after  { content:'';position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:2px solid var(--company);border-right:2px solid var(--company);border-radius:0 0 10px 0; }
+        .reg-eyebrow { font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--company);margin-bottom:6px;display:flex;align-items:center;gap:8px; }
+        .reg-eyebrow::before { content:'';display:inline-block;width:18px;height:1px;background:var(--company);opacity:0.5; }
+        .reg-title { font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px; }
+        .reg-subtitle { font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:28px;letter-spacing:0.03em; }
+        .reg-divider { height:1px;background:linear-gradient(90deg,rgba(167,139,250,0.15),transparent);margin:6px 0 22px; }
+
+        /* ─── Gate overlay ────────────────────────────── */
+        .gate-wrap { position:relative; }
+        .gate-blur { filter:blur(5px);pointer-events:none;user-select:none;opacity:0.35; }
+        .gate-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5; }
+        .gate-box {
+          background:var(--surface);border:1px solid rgba(167,139,250,0.3);border-radius:10px;
+          padding:32px 40px;text-align:center;max-width:380px;
+          box-shadow:0 0 40px rgba(167,139,250,0.08),0 0 80px rgba(0,0,0,0.5);position:relative;
+        }
+        .gate-box::before { content:'';position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid var(--company);border-left:2px solid var(--company);border-radius:10px 0 0 0; }
+        .gate-box::after  { content:'';position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-bottom:2px solid var(--company);border-right:2px solid var(--company);border-radius:0 0 10px 0; }
+        .gate-icon  { font-size:30px;margin-bottom:14px;display:block; }
+        .gate-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--company);margin-bottom:8px; }
+        .gate-msg   { font-size:11px;color:var(--text2);line-height:1.7;letter-spacing:0.03em; }
+        .gate-status { margin-top:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:3px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:var(--company); }
+        .gate-status-dot { width:5px;height:5px;border-radius:50%;background:var(--company);animation:blink 1.4s ease-in-out infinite; }
+
+        ::-webkit-scrollbar { width:4px;height:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:2px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--text2); }
+    </style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────── -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+            <div class="brand-name">ASSET<span>MD</span></div>
+            <div class="brand-sub">Company Portal</div>
+        </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="user-avatar">🏢</div>
+        <div>
+            <div class="user-name" id="sidebar-company-name">Loading…</div>
+            <div class="user-role" id="sidebar-role-label">Company</div>
+        </div>
+    </div>
+
+    <div id="sidebar-approval-chip" class="sidebar-approval unregistered">
+        <span class="approval-dot"></span>
+        <span id="sidebar-approval-text">Checking…</span>
+    </div>
+
+    <nav class="nav">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item active" onclick="showPage('account',this)">
+            <div class="nav-icon">🏢</div>
+            <span class="nav-label">My Company</span>
+        </div>
+
+        <div class="nav-section-label">Procurement</div>
+        <div class="nav-item" id="nav-place-order" onclick="navGuarded('place-order',this)">
+            <div class="nav-icon">🛒</div>
+            <span class="nav-label">Place Order</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-item" id="nav-my-orders" onclick="navGuarded('my-orders',this)">
+            <div class="nav-icon">📋</div>
+            <span class="nav-label">My Orders</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+            <span style="color:var(--error);">◈</span> Sign out
+        </button>
+    </div>
+</div>
+
+<!-- ── Main ─────────────────────────────────── -->
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-title" id="topbar-title">My Company</div>
+        <div class="topbar-clock" id="topbar-clock">--:--:--</div>
+        <span class="topbar-role" id="topbar-role-badge">Company</span>
+    </div>
+
+    <div class="content">
+
+        <!-- ── Account page ── -->
+        <div id="page-account" class="page active">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">🏢</div>
+                    <div class="stat-label">Approval Status</div>
+                    <div class="stat-value" id="stat-status" style="font-size:14px;margin-top:4px;">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">👤</div>
+                    <div class="stat-label">Your Role</div>
+                    <div class="stat-value" id="stat-role" style="color:var(--company);font-size:14px;margin-top:4px;">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">🔒</div>
+                    <div class="stat-label">Access Level</div>
+                    <div class="stat-value" style="color:var(--accent2);font-size:14px;margin-top:4px;">B2B</div>
+                </div>
+            </div>
+            <div class="alert" id="al-account"></div>
+            <div id="account-body">
+                <div class="card">
+                    <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
+                        <span class="spinner"></span> Loading company profile…
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Place Order page ── -->
+        <div id="page-place-order" class="page">
+            <div class="alert" id="al-place-order"></div>
+            <div class="gate-wrap" id="gate-place-order">
+                <div class="card" style="max-width:560px;">
+                    <div class="card-header">
+                        <div class="card-title">New Order</div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Vendor ID</label>
+                            <input type="number" id="o-vendor" placeholder="Enter vendor ID"/>
+                        </div>
+                        <div class="field">
+                            <label>Device ID</label>
+                            <input type="number" id="o-device" placeholder="Enter device ID"/>
+                        </div>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Quantity</label>
+                            <input type="number" id="o-qty" placeholder="e.g. 5" min="1"/>
+                        </div>
+                    </div>
+
+                    <div class="form-divider"></div>
+
+                    <button class="btn btn-primary" id="place-order-btn" onclick="handlePlaceOrder()">
+                        ◈ Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── My Orders page ── -->
+        <div id="page-my-orders" class="page">
+            <div class="alert" id="al-my-orders"></div>
+            <div class="gate-wrap" id="gate-my-orders">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Order History</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadMyOrders()">↻ Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Order ID</th><th>Device</th><th>Vendor</th><th>Qty</th><th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id="my-orders-body">
+                            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+    const GATEWAY   = 'http://localhost:8085';
+    const TOKEN_KEY = 'devicesupply_token';
+    const GATED_PAGES = ['place-order', 'my-orders'];
+
+    let isCompanyApproved = false;
+    let companyId = null;   // UUID — needed for update
+    let userRole  = null;   // COMPANY_ADMIN or EMPLOYEE
+
+    // ── Auth ─────────────────────────────────────────────────
+    function authHeaders() {
+      const t = localStorage.getItem(TOKEN_KEY);
+      return t ? { 'Authorization': 'Bearer ' + t } : {};
+    }
+    (function guard() {
+      if (!localStorage.getItem(TOKEN_KEY)) window.location.href = '/auth.html';
+    })();
+
+    // ── Clock ────────────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('topbar-clock').textContent =
+        new Date().toLocaleTimeString('en-GB', { hour12: false });
+    }, 1000);
+    document.getElementById('topbar-clock').textContent =
+      new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+    // ── Page titles ──────────────────────────────────────────
+    const PAGE_TITLES = {
+      'account':     'My Company',
+      'place-order': 'Place Order',
+      'my-orders':   'My Orders',
+    };
+
+    // ── Helpers ──────────────────────────────────────────────
+    function showAlert(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = `alert ${type} show`;
+    }
+    async function bodyText(res) {
+      try { const d = await res.json(); return d.message || d.error || res.statusText; }
+      catch { return res.statusText; }
+    }
+    function emptyRow(colspan, msg) {
+      return `<tr><td colspan="${colspan}"><div class="empty"><div class="empty-icon">◈</div><div class="empty-text">${msg}</div></div></td></tr>`;
+    }
+    function logout() { localStorage.removeItem(TOKEN_KEY); window.location.href = '/auth.html'; }
+
+    // ── Approval gate ─────────────────────────────────────────
+    function applyApprovalGates() {
+      const gatedNavIds = ['nav-place-order', 'nav-my-orders'];
+
+      if (isCompanyApproved) {
+        gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
+        document.querySelectorAll('.gate-overlay').forEach(el => el.remove());
+        document.querySelectorAll('.gate-blur').forEach(el => el.classList.remove('gate-blur'));
+        const chip = document.getElementById('sidebar-approval-chip');
+        chip.className = 'sidebar-approval approved';
+        document.getElementById('sidebar-approval-text').textContent = 'Account Approved';
+      } else {
+        gatedNavIds.forEach(id => document.getElementById(id)?.classList.add('locked'));
+        GATED_PAGES.forEach(pageName => {
+          const wrap = document.getElementById('gate-' + pageName);
+          if (!wrap) return;
+          const inner = wrap.firstElementChild;
+          if (inner && !inner.classList.contains('gate-blur')) inner.classList.add('gate-blur');
+          if (!wrap.querySelector('.gate-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'gate-overlay';
+            overlay.innerHTML = `
+              <div class="gate-box">
+                <span class="gate-icon">🔐</span>
+                <div class="gate-title">Access Restricted</div>
+                <div class="gate-msg">
+                  Your company account hasn't been approved yet.<br>
+                  All features unlock once an admin approves your account.
+                </div>
+                <div class="gate-status">
+                  <span class="gate-status-dot"></span>
+                  Pending Admin Approval
+                </div>
+              </div>`;
+            wrap.appendChild(overlay);
+          }
+        });
+        const chip = document.getElementById('sidebar-approval-chip');
+        chip.className = 'sidebar-approval pending';
+        document.getElementById('sidebar-approval-text').textContent = 'Pending Approval';
+      }
+    }
+
+    // ── Navigation ────────────────────────────────────────────
+    function navGuarded(name, el) { showPage(name, el); }
+
+    function showPage(name, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      if (el) el.classList.add('active');
+      document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
+      if (!isCompanyApproved && GATED_PAGES.includes(name)) return;
+      if (name === 'account')     loadAccount();
+      if (name === 'my-orders')   loadMyOrders();
+    }
+
+    // ── Load Account ─────────────────────────────────────────
+    async function loadAccount() {
+      document.getElementById('al-account').classList.remove('show');
+      document.getElementById('account-body').innerHTML = `
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
+            <span class="spinner"></span> Loading company profile…
+          </div>
+        </div>`;
+
+      // ── Decode role from JWT ──────────────────────────────
+      try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userRole = payload.role || payload.roles || null;
+          if (Array.isArray(userRole)) userRole = userRole[0];
+          renderRoleUI(userRole);
+        }
+      } catch {}
+
+      try {
+        // Use userId from JWT to get company (gateway forwards X-Auth-Id)
+        const res = await fetch(GATEWAY + '/api/companies/me', { headers: authHeaders() });
+
+        // ── First-time: no profile yet ────────────────────
+        if (res.status === 404) {
+          // Only COMPANY_ADMIN can register
+          if (userRole && userRole.includes('EMPLOYEE')) {
+            document.getElementById('account-body').innerHTML = `
+              <div class="card">
+                <div style="padding:24px;text-align:center;color:var(--text2);">
+                  <div style="font-size:28px;margin-bottom:12px;opacity:0.4;">🏢</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text);margin-bottom:8px;">No Company Found</div>
+                  <div style="font-size:11px;line-height:1.7;">Your account isn't linked to a company yet.<br>Ask your Company Admin to register the company.</div>
+                </div>
+              </div>`;
+            return;
+          }
+
+          // COMPANY_ADMIN → show registration form
+          document.getElementById('sidebar-company-name').textContent = 'New Company';
+          document.getElementById('stat-status').innerHTML = `<span class="badge badge-pending">Unregistered</span>`;
+          const chip = document.getElementById('sidebar-approval-chip');
+          chip.className = 'sidebar-approval unregistered';
+          document.getElementById('sidebar-approval-text').textContent = 'Not Registered';
+
+          document.getElementById('account-body').innerHTML = `
+            <div class="reg-card">
+              <div class="reg-eyebrow">First time setup</div>
+              <div class="reg-title">Register Your Company</div>
+              <div class="reg-subtitle">
+                Set up your company profile to get started.<br>
+                An admin will review and approve your account before features unlock.
+              </div>
+              <div class="reg-divider"></div>
+
+              <div class="alert" id="al-register"></div>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label>Company Name</label>
+                  <input type="text" id="reg-name" placeholder="e.g. Infosys Technologies Ltd"/>
+                </div>
+                <div class="field">
+                  <label>Industry</label>
+                  <input type="text" id="reg-industry" placeholder="e.g. Information Technology"/>
+                </div>
+                <div class="field">
+                  <label>Phone</label>
+                  <input type="tel" id="reg-phone" placeholder="e.g. 9876543210"/>
+                </div>
+                <div class="field">
+                  <label>GST Number</label>
+                  <input type="text" id="reg-gst" placeholder="e.g. 29ABCDE1234F1Z5"/>
+                </div>
+                <div class="field" style="grid-column:1/-1;">
+                  <label>Address</label>
+                  <textarea id="reg-address" placeholder="Registered business address…" style="min-height:64px;"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                <button class="btn btn-primary" id="reg-btn" onclick="handleRegister()">
+                  ◈ Submit Registration
+                </button>
+                <span style="font-size:10px;color:var(--text2);letter-spacing:0.04em;">
+                  Pending until admin approval
+                </span>
+              </div>
+            </div>`;
+          return;
+        }
+
+        if (!res.ok) {
+          showAlert('al-account', '✗ ' + await bodyText(res), 'error');
+          document.getElementById('account-body').innerHTML = '';
+          return;
+        }
+
+        // ── Profile exists ────────────────────────────────
+        const c = await res.json();
+        companyId = c.id;
+
+        const isApproved = c.approvalStatus === 'APPROVED';
+        const isRejected = c.approvalStatus === 'REJECTED';
+        const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
+        const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
+
+        isCompanyApproved = isApproved;
+
+        document.getElementById('sidebar-company-name').textContent = c.companyName || 'Company';
+        document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
+
+        document.getElementById('account-body').innerHTML = `
+          <div class="card">
+            <div class="card-header">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:6px;background:var(--company-dim);
+                  border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;
+                  justify-content:center;font-size:16px;">🏢</div>
+                <div>
+                  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">${c.companyName || '—'}</div>
+                  <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">${c.email || c.contactEmail || ''}</div>
+                </div>
+              </div>
+              <span class="badge ${badgeCls}">${badgeTxt}</span>
+            </div>
+            <div class="acct-row"><span class="acct-key">Industry</span><span class="acct-val">${c.industry || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Phone</span><span class="acct-val">${c.phone || c.contactPhone || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${c.gstNumber || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Address</span><span class="acct-val">${c.address || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Registered</span><span class="acct-val">${c.createdAt || c.registeredAt || '—'}</span></div>
+          </div>`;
+
+        applyApprovalGates();
+
+      } catch (e) {
+        showAlert('al-account', '✗ Network error: ' + e.message, 'error');
+        document.getElementById('account-body').innerHTML = '';
+      }
+    }
+
+    // ── Render role-specific UI ───────────────────────────────
+    function renderRoleUI(role) {
+      const isAdmin = role && (role.includes('COMPANY_ADMIN') || role.includes('ADMIN'));
+      const label = isAdmin ? 'Company Admin' : 'Employee';
+      document.getElementById('sidebar-role-label').textContent = label;
+      document.getElementById('topbar-role-badge').textContent  = label;
+      document.getElementById('stat-role').textContent = label.toUpperCase();
+
+      // hide place-order nav for employees
+      if (!isAdmin) {
+        const navOrder = document.getElementById('nav-place-order');
+        if (navOrder) navOrder.style.display = 'none';
+      }
+    }
+
+    // ── Handle Registration ───────────────────────────────────
+    async function handleRegister() {
+      document.getElementById('al-register').classList.remove('show');
+
+      const companyName = document.getElementById('reg-name').value.trim();
+      const industry    = document.getElementById('reg-industry').value.trim();
+      const phone       = document.getElementById('reg-phone').value.trim();
+      const gstNumber   = document.getElementById('reg-gst').value.trim();
+      const address     = document.getElementById('reg-address').value.trim();
+
+      if (!companyName) { showAlert('al-register', '⚠ Company name is required.', 'error'); return; }
+      if (!phone)       { showAlert('al-register', '⚠ Phone is required.', 'error'); return; }
+
+      const btn = document.getElementById('reg-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+      try {
+        const res = await fetch(GATEWAY + '/api/companies', {
+          method: 'POST',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName, industry, phone, gstNumber, address }),
+        });
+
+        if (!res.ok) {
+          showAlert('al-register', '✗ ' + await bodyText(res), 'error');
+          btn.disabled = false;
+          btn.innerHTML = '◈ Submit Registration';
+          return;
+        }
+
+        // Profile created — reload to show pending state
+        loadAccount();
+
+      } catch (e) {
+        showAlert('al-register', '✗ Network error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◈ Submit Registration';
+      }
+    }
+
+    // ── Place Order ───────────────────────────────────────────
+    async function handlePlaceOrder() {
+      document.getElementById('al-place-order').classList.remove('show');
+
+      const vendorId = parseInt(document.getElementById('o-vendor').value);
+      const deviceId = parseInt(document.getElementById('o-device').value);
+      const quantity = parseInt(document.getElementById('o-qty').value);
+
+      if (!vendorId) { showAlert('al-place-order', '⚠ Vendor ID is required.', 'error'); return; }
+      if (!deviceId) { showAlert('al-place-order', '⚠ Device ID is required.', 'error'); return; }
+      if (!quantity || quantity < 1) { showAlert('al-place-order', '⚠ Quantity must be at least 1.', 'error'); return; }
+
+      const btn = document.getElementById('place-order-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Placing…';
+
+      try {
+        const res = await fetch(GATEWAY + '/api/companies/order', {
+          method: 'POST',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vendorId, deviceId, quantity }),
+        });
+
+        if (!res.ok) {
+          showAlert('al-place-order', '✗ ' + await bodyText(res), 'error');
+          return;
+        }
+
+        showAlert('al-place-order', '✓ Order placed successfully!', 'success');
+        ['o-vendor','o-device','o-qty'].forEach(id => document.getElementById(id).value = '');
+
+      } catch (e) {
+        showAlert('al-place-order', '✗ Network error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '◈ Place Order';
+      }
+    }
+
+    // ── Load My Orders ────────────────────────────────────────
+    async function loadMyOrders() {
+      document.getElementById('al-my-orders').classList.remove('show');
+      document.getElementById('my-orders-body').innerHTML =
+        '<tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading orders…</td></tr>';
+      try {
+        const res = await fetch(GATEWAY + '/api/companies/orders/my', { headers: authHeaders() });
+        if (!res.ok) {
+          showAlert('al-my-orders', '✗ ' + await bodyText(res), 'error');
+          document.getElementById('my-orders-body').innerHTML = emptyRow(5, 'Failed to load orders.');
+          return;
+        }
+        const orders = await res.json();
+        if (!orders.length) {
+          document.getElementById('my-orders-body').innerHTML = emptyRow(5, 'No orders placed yet.');
+          return;
+        }
+        document.getElementById('my-orders-body').innerHTML = orders.map(o => {
+          const s = o.status || 'PENDING';
+          const cls = s === 'ACCEPTED' ? 'badge-approved' : s === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
+          return `<tr>
+            <td style="color:var(--text2);font-size:10px;">#${o.orderId || o.id || '—'}</td>
+            <td style="font-weight:500;">${o.deviceId || o.device_id || '—'}</td>
+            <td>${o.vendorId || o.vendor_id || '—'}</td>
+            <td>${o.quantity || '—'}</td>
+            <td><span class="badge ${cls}">${s}</span></td>
+          </tr>`;
+        }).join('');
+      } catch (e) {
+        showAlert('al-my-orders', '✗ Network error: ' + e.message, 'error');
+      }
+    }
+
+    // ── Init ─────────────────────────────────────────────────
+    loadAccount();
+</script>
+</body>
+</html>
