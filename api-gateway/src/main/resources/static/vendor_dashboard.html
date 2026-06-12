@@ -7,20 +7,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #070910;
-      --surface: #0d1017;
-      --surface2: #131820;
-      --surface3: #181f2a;
-      --border: #1c2333;
-      --border2: #242d3d;
-      --accent: #4af0a4;
-      --accent-dim: rgba(74,240,164,0.12);
-      --accent2: #4a8fff;
-      --text: #dde4f0;
-      --text2: #8896aa;
-      --error: #ff5c6a;
-      --vendor: #f0a44a;
-      --vendor-dim: rgba(240,164,74,0.1);
+      --bg: #04060d;
+      --surface: #080c14;
+      --surface2: #0d1220;
+      --surface3: #111828;
+      --border: #141e30;
+      --border2: #1c2a40;
+      --accent: #00f5c8;
+      --accent-dim: rgba(0,245,200,0.10);
+      --accent2: #3d8bff;
+      --accent2-dim: rgba(61,139,255,0.10);
+      --text: #c8d8f0;
+      --text2: #5a7090;
+      --error: #ff4d6a;
+      --vendor: #ffb347;
+      --vendor-dim: rgba(255,179,71,0.09);
+      --glow: 0 0 30px rgba(0,245,200,0.08);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,11 +34,32 @@
       min-height: 100vh;
       display: flex;
       font-size: 13px;
+      /* subtle grid overlay */
+      background-image:
+        linear-gradient(rgba(0,245,200,0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,200,0.012) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── scanline overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
     }
 
     /* ─── Sidebar ─────────────────────────────────── */
     .sidebar {
-      width: 236px;
+      width: 240px;
       min-height: 100vh;
       background: var(--surface);
       border-right: 1px solid var(--border);
@@ -44,38 +67,54 @@
       flex-direction: column;
       position: fixed;
       top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
     }
 
     .sidebar-brand {
       display: flex;
       align-items: center;
       gap: 11px;
-      padding: 24px 20px;
+      padding: 22px 18px;
       border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .sidebar-brand::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 18px; right: 18px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0.4;
     }
 
     .brand-icon {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--accent) 0%, #2dd48a 100%);
-      border-radius: 8px;
+      width: 34px; height: 34px;
+      background: transparent;
+      border: 1px solid rgba(0,245,200,0.35);
+      border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 0 16px rgba(74,240,164,0.25);
+      box-shadow: 0 0 14px rgba(0,245,200,0.2), inset 0 0 10px rgba(0,245,200,0.05);
+      position: relative;
     }
-    .brand-icon svg { width: 16px; height: 16px; fill: #070910; }
+    .brand-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
 
     .brand-text { line-height: 1.2; }
     .brand-name {
       font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 15px;
-      letter-spacing: -0.3px;
+      font-weight: 800; font-size: 13px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
     .brand-name span { color: var(--accent); }
-    .brand-sub { font-size: 9px; color: var(--text2); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; }
+    .brand-sub {
+      font-size: 8px; color: var(--text2);
+      letter-spacing: 0.22em; text-transform: uppercase; margin-top: 3px;
+    }
 
-    /* vendor chip in sidebar */
     .sidebar-user {
-      padding: 16px 20px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -84,185 +123,279 @@
     .user-avatar {
       width: 32px; height: 32px;
       background: var(--vendor-dim);
-      border: 1px solid rgba(240,164,74,0.25);
-      border-radius: 8px;
+      border: 1px solid rgba(255,179,71,0.2);
+      border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
+      font-size: 13px;
       flex-shrink: 0;
     }
     .user-info { overflow: hidden; }
     .user-name { font-size: 11px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .user-role {
-      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--vendor); margin-top: 2px;
     }
 
-    .nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    /* approval status pill in sidebar */
+    .sidebar-approval {
+      margin: 0 18px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 10px;
+    }
+    .sidebar-approval.pending {
+      background: rgba(255,179,71,0.07);
+      border: 1px solid rgba(255,179,71,0.2);
+      color: var(--vendor);
+    }
+    .sidebar-approval.approved {
+      background: rgba(0,245,200,0.06);
+      border: 1px solid rgba(0,245,200,0.2);
+      color: var(--accent);
+    }
+    .sidebar-approval.rejected {
+      background: rgba(255,77,106,0.07);
+      border: 1px solid rgba(255,77,106,0.2);
+      color: var(--error);
+    }
+    .approval-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .pending .approval-dot { background: var(--vendor); box-shadow: 0 0 5px var(--vendor); animation: blink 1.4s ease-in-out infinite; }
+    .approved .approval-dot { background: var(--accent); box-shadow: 0 0 5px var(--accent); }
+    .rejected .approval-dot { background: var(--error); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .nav { flex: 1; padding: 10px 10px; display: flex; flex-direction: column; gap: 1px; margin-top: 8px; }
 
     .nav-section-label {
-      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--text2); padding: 12px 10px 6px;
+      font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text2); padding: 12px 10px 5px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border2), transparent);
     }
 
     .nav-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      font-size: 12px; letter-spacing: 0.02em;
+      padding: 9px 10px;
+      font-size: 11px; letter-spacing: 0.04em;
       color: var(--text2);
       cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.18s;
-      border-left: none;
+      border-radius: 6px;
+      transition: all 0.15s;
       position: relative;
     }
     .nav-item:hover { color: var(--text); background: var(--surface2); }
     .nav-item.active {
       color: var(--vendor);
       background: var(--vendor-dim);
+      border: 1px solid rgba(255,179,71,0.1);
     }
     .nav-item.active::before {
       content: '';
       position: absolute;
-      left: 0; top: 20%; bottom: 20%;
+      left: 0; top: 25%; bottom: 25%;
       width: 2px;
       background: var(--vendor);
       border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 6px var(--vendor);
     }
+    /* locked nav items */
+    .nav-item.locked { opacity: 0.4; cursor: not-allowed; }
+    .nav-item.locked:hover { color: var(--text2); background: transparent; }
+
     .nav-icon {
-      width: 28px; height: 28px;
+      width: 26px; height: 26px;
       display: flex; align-items: center; justify-content: center;
       background: var(--surface2);
-      border-radius: 6px;
-      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 12px;
       flex-shrink: 0;
-      transition: background 0.18s;
     }
-    .nav-item.active .nav-icon { background: rgba(240,164,74,0.15); }
+    .nav-item.active .nav-icon {
+      background: rgba(255,179,71,0.1);
+      border-color: rgba(255,179,71,0.2);
+    }
     .nav-label { flex: 1; }
+    .nav-lock { font-size: 10px; opacity: 0.5; display: none; }
+    .nav-item.locked .nav-lock { display: inline; }
 
-    .sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
+    .sidebar-footer { padding: 10px; border-top: 1px solid var(--border); }
 
     .logout-btn {
-      width: 100%; padding: 10px 12px;
+      width: 100%; padding: 9px 12px;
       border: 1px solid var(--border2);
-      border-radius: 8px;
+      border-radius: 6px;
       background: transparent;
       color: var(--text2);
       font-family: 'DM Mono', monospace;
-      font-size: 11px; letter-spacing: 0.04em;
+      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: all 0.15s;
       display: flex; align-items: center; gap: 8px;
     }
-    .logout-btn:hover { border-color: var(--error); color: var(--error); background: rgba(255,92,106,0.05); }
+    .logout-btn:hover { border-color: var(--error); color: var(--error); background: rgba(255,77,106,0.04); }
 
     /* ─── Main area ───────────────────────────────── */
-    .main { margin-left: 236px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+    .main { margin-left: 240px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* topbar */
     .topbar {
-      height: 56px;
+      height: 52px;
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center;
-      padding: 0 32px;
+      padding: 0 28px;
       gap: 12px;
-      background: var(--surface);
+      background: rgba(8,12,20,0.95);
+      backdrop-filter: blur(8px);
       position: sticky; top: 0; z-index: 10;
+    }
+    /* corner accent */
+    .topbar::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 240px; width: 120px; height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0.35;
     }
     .topbar-title {
       font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 15px;
-      letter-spacing: -0.3px;
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 0.05em; text-transform: uppercase;
       flex: 1;
     }
     .topbar-badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 12px;
+      border-radius: 3px;
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
       background: var(--vendor-dim);
       color: var(--vendor);
-      border: 1px solid rgba(240,164,74,0.2);
+      border: 1px solid rgba(255,179,71,0.15);
     }
 
-    .content { padding: 28px 32px; flex: 1; }
+    /* system time display */
+    .topbar-clock {
+      font-size: 10px; color: var(--text2); letter-spacing: 0.08em;
+      font-family: 'DM Mono', monospace;
+    }
 
-    /* ─── Pages ───────────────────────────────────── */
-    .page { display: none; }
-    .page.active { display: block; animation: fadeUp 0.25s ease; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .content { padding: 24px 28px; flex: 1; }
+    .page { display: none; padding-top: 4px; }
+    .page.active { display: block; animation: fadeUp 0.2s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-    .page-header { margin-bottom: 24px; }
-    .page-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
-    .page-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+    .page-header { margin-bottom: 22px; display: flex; align-items: flex-start; justify-content: space-between; }
+    .page-header-left {}
+    .page-title {
+      font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .page-sub { font-size: 10px; color: var(--text2); margin-top: 4px; letter-spacing: 0.04em; }
 
     /* ─── Stat cards ──────────────────────────────── */
-    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
 
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
+      border-radius: 8px;
+      padding: 16px 18px;
       position: relative;
       overflow: hidden;
     }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    }
+    /* corner tick */
     .stat-card::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border2), transparent);
+      top: 0; right: 0;
+      width: 20px; height: 20px;
+      border-top: 1px solid var(--border2);
+      border-right: 1px solid var(--border2);
     }
     .stat-icon {
-      width: 34px; height: 34px;
-      border-radius: 8px;
+      width: 30px; height: 30px;
+      border-radius: 5px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      margin-bottom: 14px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      border: 1px solid transparent;
     }
-    .stat-icon.green { background: rgba(74,240,164,0.1); }
-    .stat-icon.orange { background: rgba(240,164,74,0.1); }
-    .stat-icon.blue { background: rgba(74,143,255,0.1); }
-    .stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); margin-bottom: 6px; }
-    .stat-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+    .stat-icon.green { background: rgba(0,245,200,0.07); border-color: rgba(0,245,200,0.15); }
+    .stat-icon.orange { background: rgba(255,179,71,0.07); border-color: rgba(255,179,71,0.15); }
+    .stat-icon.blue { background: rgba(61,139,255,0.07); border-color: rgba(61,139,255,0.15); }
+    .stat-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text2); margin-bottom: 5px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
 
     /* ─── Cards ───────────────────────────────────── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px;
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+    }
+    /* corner brackets */
+    .card::before, .card::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+    }
+    .card::before {
+      top: -1px; left: -1px;
+      border-top: 2px solid var(--accent);
+      border-left: 2px solid var(--accent);
+      border-radius: 8px 0 0 0;
+      opacity: 0.3;
+    }
+    .card::after {
+      bottom: -1px; right: -1px;
+      border-bottom: 2px solid var(--accent);
+      border-right: 2px solid var(--accent);
+      border-radius: 0 0 8px 0;
+      opacity: 0.3;
     }
 
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
-      padding-bottom: 14px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
-    .card-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+    .card-title {
+      font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text);
+    }
 
     /* ─── Table ───────────────────────────────────── */
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
-    thead { position: sticky; top: 0; }
     th {
       text-align: left;
-      padding: 10px 14px;
-      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 9px 12px;
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--text2);
       border-bottom: 1px solid var(--border);
       background: var(--surface2);
       font-weight: 500;
     }
-    th:first-child { border-radius: 6px 0 0 0; }
-    th:last-child  { border-radius: 0 6px 0 0; }
     td {
-      padding: 13px 14px;
+      padding: 12px 12px;
       border-bottom: 1px solid var(--border);
       color: var(--text);
-      font-size: 12px;
-      transition: background 0.15s;
+      font-size: 11px;
+      transition: background 0.12s;
     }
     tr:last-child td { border-bottom: none; }
     tbody tr:hover td { background: var(--surface2); }
@@ -270,183 +403,252 @@
     /* ─── Badges ──────────────────────────────────── */
     .badge {
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 10px; letter-spacing: 0.06em; font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 3px;
+      font-size: 9px; letter-spacing: 0.1em; font-weight: 500;
       text-transform: uppercase;
     }
-    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .badge-approved { background: rgba(74,240,164,0.08); color: var(--accent); border: 1px solid rgba(74,240,164,0.2); }
-    .badge-approved::before { background: var(--accent); }
-    .badge-pending  { background: rgba(240,164,74,0.08); color: var(--vendor); border: 1px solid rgba(240,164,74,0.2); }
+    .badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+    .badge-approved { background: rgba(0,245,200,0.07); color: var(--accent); border: 1px solid rgba(0,245,200,0.2); }
+    .badge-approved::before { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
+    .badge-pending  { background: rgba(255,179,71,0.07); color: var(--vendor); border: 1px solid rgba(255,179,71,0.2); }
     .badge-pending::before  { background: var(--vendor); }
-    .badge-rejected { background: rgba(255,92,106,0.08); color: var(--error);  border: 1px solid rgba(255,92,106,0.2); }
+    .badge-rejected { background: rgba(255,77,106,0.07); color: var(--error); border: 1px solid rgba(255,77,106,0.2); }
     .badge-rejected::before { background: var(--error); }
+    .badge-blue { background: rgba(61,139,255,0.07); color: var(--accent2); border: 1px solid rgba(61,139,255,0.2); }
+    .badge-blue::before { background: var(--accent2); }
 
     /* ─── Form ────────────────────────────────────── */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-    .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
-
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
     .field label {
-      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--text2); font-weight: 500;
     }
-
     .field input,
     .field textarea,
     .field select {
       width: 100%;
-      padding: 11px 14px;
+      padding: 10px 12px;
       background: var(--surface2);
       border: 1px solid var(--border2);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
+      font-size: 11px;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      appearance: none; -webkit-appearance: none;
     }
-
     .field input::placeholder,
-    .field textarea::placeholder { color: var(--text2); opacity: 0.5; }
-
+    .field textarea::placeholder { color: var(--text2); opacity: 0.4; }
     .field input:focus,
     .field textarea:focus,
     .field select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(74,240,164,0.08);
+      box-shadow: 0 0 0 2px rgba(0,245,200,0.07), 0 0 12px rgba(0,245,200,0.05);
     }
+    .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 
-    .field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
-
-    /* custom select wrapper */
     .select-wrap { position: relative; }
     .select-wrap::after {
-      content: '';
+      content: '▾';
       position: absolute;
-      right: 14px; top: 50%; transform: translateY(-50%);
-      width: 0; height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      border-top: 5px solid var(--text2);
+      right: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text2); font-size: 10px;
       pointer-events: none;
-      transition: border-top-color 0.2s;
     }
-    .select-wrap:focus-within::after { border-top-color: var(--accent); }
-    .select-wrap select { padding-right: 36px; cursor: pointer; }
+    .select-wrap select { padding-right: 32px; cursor: pointer; }
     .select-wrap select option { background: var(--surface2); color: var(--text); }
 
-    /* date input calendar icon tint */
     .field input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(0.6);
+      filter: invert(0.4) sepia(1) hue-rotate(120deg);
       cursor: pointer;
     }
 
     /* ─── Buttons ─────────────────────────────────── */
     .btn {
       display: inline-flex; align-items: center; gap: 7px;
-      padding: 11px 22px;
-      border-radius: 8px; border: none;
+      padding: 10px 20px;
+      border-radius: 6px; border: none;
       font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 12px; letter-spacing: 0.02em;
-      cursor: pointer; transition: all 0.2s;
+      font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.18s;
       white-space: nowrap;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent) 0%, #2dd48a 100%);
-      color: #070910;
-      box-shadow: 0 2px 12px rgba(74,240,164,0.2);
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 12px rgba(0,245,200,0.1), inset 0 0 12px rgba(0,245,200,0.03);
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,240,164,0.3); }
-    .btn-primary:active { transform: translateY(0); }
-    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-primary:hover {
+      background: rgba(0,245,200,0.07);
+      box-shadow: 0 0 20px rgba(0,245,200,0.2);
+    }
+    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .btn-ghost {
-      background: var(--surface2);
+      background: transparent;
       color: var(--text2);
       border: 1px solid var(--border2);
     }
     .btn-ghost:hover { color: var(--text); border-color: var(--text2); }
 
     .btn-accept {
-      background: rgba(74,240,164,0.08);
+      background: rgba(0,245,200,0.06);
       color: var(--accent);
-      border: 1px solid rgba(74,240,164,0.2);
+      border: 1px solid rgba(0,245,200,0.2);
       font-family: 'DM Mono', monospace;
-      font-size: 11px; letter-spacing: 0.04em;
-      padding: 5px 14px;
-      border-radius: 6px; cursor: pointer;
-      transition: all 0.18s;
+      font-size: 10px; letter-spacing: 0.06em;
+      padding: 4px 12px;
+      border-radius: 4px; cursor: pointer;
+      transition: all 0.15s;
     }
-    .btn-accept:hover { background: rgba(74,240,164,0.16); }
+    .btn-accept:hover { background: rgba(0,245,200,0.12); box-shadow: 0 0 8px rgba(0,245,200,0.15); }
 
     /* ─── Alerts ──────────────────────────────────── */
     .alert {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-bottom: 18px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin-bottom: 16px;
       display: none;
-      animation: fadeUp 0.2s ease;
+      animation: fadeUp 0.18s ease;
+      letter-spacing: 0.02em;
     }
     .alert.show { display: flex; align-items: center; gap: 8px; }
-    .alert.error   { background: rgba(255,92,106,0.08); border: 1px solid rgba(255,92,106,0.2); color: var(--error); }
-    .alert.success { background: rgba(74,240,164,0.06); border: 1px solid rgba(74,240,164,0.2); color: var(--accent); }
+    .alert.error   { background: rgba(255,77,106,0.06); border: 1px solid rgba(255,77,106,0.2); color: var(--error); }
+    .alert.success { background: rgba(0,245,200,0.05); border: 1px solid rgba(0,245,200,0.18); color: var(--accent); }
 
     /* ─── Account layout ──────────────────────────── */
-    .acct-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
-
     .acct-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0;
+      padding: 11px 0;
       border-bottom: 1px solid var(--border);
-      font-size: 12px;
+      font-size: 11px;
     }
     .acct-row:last-child { border-bottom: none; }
-    .acct-key { color: var(--text2); }
-    .acct-val { color: var(--text); text-align: right; max-width: 200px; word-break: break-word; }
+    .acct-key { color: var(--text2); letter-spacing: 0.06em; }
+    .acct-val { color: var(--text); text-align: right; max-width: 220px; word-break: break-word; }
 
     /* ─── Empty states ────────────────────────────── */
     .empty {
       text-align: center;
-      padding: 48px 20px;
+      padding: 44px 20px;
       color: var(--text2);
     }
-    .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
-    .empty-text { font-size: 12px; }
+    .empty-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.3; }
+    .empty-text { font-size: 11px; letter-spacing: 0.04em; }
 
     /* ─── Spinner ─────────────────────────────────── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
       display: inline-block;
-      width: 12px; height: 12px;
-      border: 2px solid var(--border2);
+      width: 11px; height: 11px;
+      border: 1.5px solid var(--border2);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 0.65s linear infinite;
+      animation: spin 0.6s linear infinite;
       vertical-align: middle;
       flex-shrink: 0;
     }
     .loading-row td {
       text-align: center;
-      padding: 40px;
+      padding: 36px;
       color: var(--text2);
     }
 
     /* ─── Divider ─────────────────────────────────── */
     .form-divider {
       height: 1px;
-      background: var(--border);
-      margin: 4px 0 20px;
+      background: linear-gradient(90deg, var(--border2), transparent);
+      margin: 2px 0 18px;
+    }
+
+    /* ─── APPROVAL GATE OVERLAY ───────────────────── */
+    .gate-wrap {
+      position: relative;
+    }
+    .gate-blur {
+      filter: blur(5px);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.35;
+    }
+    .gate-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .gate-box {
+      background: var(--surface);
+      border: 1px solid rgba(255,179,71,0.3);
+      border-radius: 10px;
+      padding: 32px 40px;
+      text-align: center;
+      max-width: 380px;
+      box-shadow: 0 0 40px rgba(255,179,71,0.08), 0 0 80px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    /* corner brackets on gate box */
+    .gate-box::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px;
+      width: 16px; height: 16px;
+      border-top: 2px solid var(--vendor);
+      border-left: 2px solid var(--vendor);
+      border-radius: 10px 0 0 0;
+    }
+    .gate-box::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; right: -1px;
+      width: 16px; height: 16px;
+      border-bottom: 2px solid var(--vendor);
+      border-right: 2px solid var(--vendor);
+      border-radius: 0 0 10px 0;
+    }
+    .gate-icon {
+      font-size: 30px;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .gate-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--vendor);
+      margin-bottom: 8px;
+    }
+    .gate-msg {
+      font-size: 11px; color: var(--text2);
+      line-height: 1.7; letter-spacing: 0.03em;
+    }
+    .gate-status {
+      margin-top: 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px;
+      border-radius: 3px;
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      background: rgba(255,179,71,0.08);
+      border: 1px solid rgba(255,179,71,0.2);
+      color: var(--vendor);
+    }
+    .gate-status-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--vendor);
+      animation: blink 1.4s ease-in-out infinite;
     }
 
     /* ─── Scrollbar ───────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
   </style>
 </head>
@@ -460,16 +662,21 @@
     </div>
     <div class="brand-text">
       <div class="brand-name">Device<span>Supply</span></div>
-      <div class="brand-sub">Vendor Portal</div>
+      <div class="brand-sub">Vendor Terminal</div>
     </div>
   </div>
 
   <div class="sidebar-user">
     <div class="user-avatar">🏭</div>
     <div class="user-info">
-      <div class="user-name" id="sidebar-vendor-name">Vendor</div>
+      <div class="user-name" id="sidebar-vendor-name">Loading…</div>
       <div class="user-role">Vendor Account</div>
     </div>
+  </div>
+
+  <div id="sidebar-approval-chip" class="sidebar-approval pending">
+    <span class="approval-dot"></span>
+    <span id="sidebar-approval-text">Checking status…</span>
   </div>
 
   <nav class="nav">
@@ -480,35 +687,40 @@
     </div>
 
     <div class="nav-section-label">Catalogue</div>
-    <div class="nav-item" onclick="showPage('devices', this)">
+    <div class="nav-item" id="nav-devices" onclick="navGuarded('devices', this)">
       <div class="nav-icon">📦</div>
       <span class="nav-label">My Devices</span>
+      <span class="nav-lock" id="lock-devices">🔒</span>
     </div>
-    <div class="nav-item" onclick="showPage('add-device', this)">
+    <div class="nav-item" id="nav-add-device" onclick="navGuarded('add-device', this)">
       <div class="nav-icon">➕</div>
       <span class="nav-label">Add Device</span>
+      <span class="nav-lock" id="lock-add-device">🔒</span>
     </div>
 
     <div class="nav-section-label">Business</div>
-    <div class="nav-item" onclick="showPage('orders', this)">
+    <div class="nav-item" id="nav-orders" onclick="navGuarded('orders', this)">
       <div class="nav-icon">🛒</div>
       <span class="nav-label">Orders</span>
+      <span class="nav-lock" id="lock-orders">🔒</span>
     </div>
 
     <div class="nav-section-label">Repairs</div>
-    <div class="nav-item" onclick="showPage('repairs-assigned', this)">
+    <div class="nav-item" id="nav-repairs-assigned" onclick="navGuarded('repairs-assigned', this)">
       <div class="nav-icon">🔧</div>
       <span class="nav-label">Assigned to Me</span>
+      <span class="nav-lock" id="lock-repairs-assigned">🔒</span>
     </div>
-    <div class="nav-item" onclick="showPage('repairs-inprogress', this)">
+    <div class="nav-item" id="nav-repairs-inprogress" onclick="navGuarded('repairs-inprogress', this)">
       <div class="nav-icon">⚙️</div>
       <span class="nav-label">In Progress</span>
+      <span class="nav-lock" id="lock-repairs-inprogress">🔒</span>
     </div>
   </nav>
 
   <div class="sidebar-footer">
     <button class="logout-btn" onclick="logout()">
-      <span>⬡</span> Sign out
+      <span style="color:var(--error);">◈</span> Sign out
     </button>
   </div>
 </div>
@@ -516,9 +728,9 @@
 <!-- ── Main ─────────────────────────────────── -->
 <div class="main">
 
-  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">My Account</div>
+    <div class="topbar-clock" id="topbar-clock">--:--:--</div>
     <span class="topbar-badge">Vendor</span>
   </div>
 
@@ -526,33 +738,28 @@
 
     <!-- ── Account page ── -->
     <div id="page-account" class="page active">
-      <div class="page-header">
-        <div class="page-title">My Account</div>
-        <div class="page-sub">Vendor profile and approval status</div>
-      </div>
-
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-icon orange">🏭</div>
           <div class="stat-label">Approval Status</div>
-          <div class="stat-value" id="stat-status" style="font-size:16px;margin-top:4px;">—</div>
+          <div class="stat-value" id="stat-status" style="font-size:14px;margin-top:4px;">—</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon green">📦</div>
           <div class="stat-label">Role</div>
-          <div class="stat-value" style="color:var(--vendor);font-size:16px;margin-top:4px;">VENDOR</div>
+          <div class="stat-value" style="color:var(--vendor);font-size:14px;margin-top:4px;">VENDOR</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon blue">🔒</div>
           <div class="stat-label">Access Level</div>
-          <div class="stat-value" style="color:var(--accent2);font-size:16px;margin-top:4px;">B2B</div>
+          <div class="stat-value" style="color:var(--accent2);font-size:14px;margin-top:4px;">B2B</div>
         </div>
       </div>
 
       <div class="alert" id="al-account"></div>
       <div id="account-body">
         <div class="card">
-          <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:12px;padding:20px;">
+          <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
             <span class="spinner"></span> Loading account…
           </div>
         </div>
@@ -561,187 +768,155 @@
 
     <!-- ── Devices page ── -->
     <div id="page-devices" class="page">
-      <div class="page-header">
-        <div class="page-title">My Devices</div>
-        <div class="page-sub">All devices listed under your vendor account</div>
-      </div>
       <div class="alert" id="al-devices"></div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Device Catalogue</div>
-          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadDevices()">↻ Refresh</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-            <tr>
-              <th>Device Name</th>
-              <th>Type</th>
-              <th>Warranty Expiry</th>
-              <th>Stock</th>
-              <th>Status</th>
-            </tr>
-            </thead>
-            <tbody id="devices-body">
-            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading devices…</td></tr>
-            </tbody>
-          </table>
+      <div class="gate-wrap" id="gate-devices">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Device Catalogue</div>
+            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadDevices()">↻ Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr>
+                <th>Device Name</th><th>Type</th><th>Warranty Expiry</th><th>Stock</th><th>Status</th>
+              </tr>
+              </thead>
+              <tbody id="devices-body">
+              <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading devices…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ── Add Device page ── -->
     <div id="page-add-device" class="page">
-      <div class="page-header">
-        <div class="page-title">Add Device</div>
-        <div class="page-sub">List a new device in your catalogue</div>
-      </div>
       <div class="alert" id="al-add"></div>
 
-      <div class="card" style="max-width:560px;">
-        <div class="card-header">
-          <div class="card-title">Device Details</div>
-        </div>
-
-        <div class="form-grid">
-          <div class="field">
-            <label>Device Name</label>
-            <input type="text" id="d-name" placeholder="e.g. ThinkPad X1 Carbon"/>
+      <div class="gate-wrap" id="gate-add-device">
+        <div class="card" style="max-width:560px;">
+          <div class="card-header">
+            <div class="card-title">Device Details</div>
           </div>
 
-          <div class="field">
-            <label>Device Type</label>
-            <div class="select-wrap">
-              <select id="d-type">
-                <option value="" disabled selected>Select type…</option>
-                <option value="LAPTOP">Laptop</option>
-                <option value="DESKTOP">Desktop</option>
-                <option value="MONITOR">Monitor</option>
-                <option value="PRINTER">Printer</option>
-                <option value="TABLET">Tablet</option>
-                <option value="PHONE">Phone</option>
-                <option value="NETWORKING">Networking</option>
-                <option value="OTHER">Other</option>
-              </select>
+          <div class="form-grid">
+            <div class="field">
+              <label>Device Name</label>
+              <input type="text" id="d-name" placeholder="e.g. ThinkPad X1 Carbon"/>
+            </div>
+            <div class="field">
+              <label>Device Type</label>
+              <div class="select-wrap">
+                <select id="d-type">
+                  <option value="" disabled selected>Select type…</option>
+                  <option value="LAPTOP">Laptop</option>
+                  <option value="DESKTOP">Desktop</option>
+                  <option value="MONITOR">Monitor</option>
+                  <option value="PRINTER">Printer</option>
+                  <option value="TABLET">Tablet</option>
+                  <option value="PHONE">Phone</option>
+                  <option value="NETWORKING">Networking</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Stock Quantity</label>
+              <input type="number" id="d-stock" placeholder="0" min="0"/>
+            </div>
+            <div class="field">
+              <label>Warranty Expiry</label>
+              <input type="date" id="d-warranty"/>
             </div>
           </div>
 
-          <div class="field">
-            <label>Stock Quantity</label>
-            <input type="number" id="d-stock" placeholder="0" min="0"/>
-          </div>
+          <div class="form-divider"></div>
 
           <div class="field">
-            <label>Warranty Expiry</label>
-            <input type="date" id="d-warranty"/>
+            <label>Description <span style="color:var(--text2);font-size:8px;letter-spacing:0;">(optional)</span></label>
+            <textarea id="d-desc" placeholder="Model specs, included accessories, etc."></textarea>
           </div>
+
+          <button class="btn btn-primary" id="add-device-btn" onclick="handleAddDevice()">
+            ◈ Add to Catalogue
+          </button>
         </div>
-
-        <div class="form-divider"></div>
-
-        <div class="field">
-          <label>Description <span style="color:var(--text2);font-size:9px;letter-spacing:0;">(optional)</span></label>
-          <textarea id="d-desc" placeholder="Brief description — model specs, included accessories, etc."></textarea>
-        </div>
-
-        <button class="btn btn-primary" id="add-device-btn" onclick="handleAddDevice()">
-          Add to Catalogue
-        </button>
       </div>
     </div>
 
     <!-- ── Orders page ── -->
     <div id="page-orders" class="page">
-      <div class="page-header">
-        <div class="page-title">Orders</div>
-        <div class="page-sub">Incoming orders from company admins</div>
-      </div>
       <div class="alert" id="al-orders"></div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Order Queue</div>
-          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadOrders()">↻ Refresh</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Device</th>
-              <th>Qty</th>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-            </thead>
-            <tbody id="orders-body">
-            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading orders…</td></tr>
-            </tbody>
-          </table>
+      <div class="gate-wrap" id="gate-orders">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Order Queue</div>
+            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadOrders()">↻ Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr>
+                <th>Order ID</th><th>Device</th><th>Qty</th><th>Company</th><th>Status</th><th>Action</th>
+              </tr>
+              </thead>
+              <tbody id="orders-body">
+              <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading orders…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ── Repairs Assigned page ── -->
     <div id="page-repairs-assigned" class="page">
-      <div class="page-header">
-        <div class="page-title">Assigned Repairs</div>
-        <div class="page-sub">Repair requests assigned to your vendor account</div>
-      </div>
       <div class="alert" id="al-repairs-assigned"></div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Awaiting Your Action</div>
-          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadRepairsAssigned()">↻ Refresh</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Device Instance</th>
-              <th>Issue</th>
-              <th>Requested By</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-            </thead>
-            <tbody id="repairs-assigned-body">
-            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
-            </tbody>
-          </table>
+      <div class="gate-wrap" id="gate-repairs-assigned">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Awaiting Your Action</div>
+            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadRepairsAssigned()">↻ Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr>
+                <th>Request ID</th><th>Device Instance</th><th>Issue</th><th>Requested By</th><th>Status</th><th>Action</th>
+              </tr>
+              </thead>
+              <tbody id="repairs-assigned-body">
+              <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ── Repairs In Progress page ── -->
     <div id="page-repairs-inprogress" class="page">
-      <div class="page-header">
-        <div class="page-title">In Progress</div>
-        <div class="page-sub">Repairs currently underway — mark them complete when done</div>
-      </div>
       <div class="alert" id="al-repairs-inprogress"></div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Active Repairs</div>
-          <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="loadRepairsInProgress()">↻ Refresh</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Device Instance</th>
-              <th>Issue</th>
-              <th>Requested By</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-            </thead>
-            <tbody id="repairs-inprogress-body">
-            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
-            </tbody>
-          </table>
+      <div class="gate-wrap" id="gate-repairs-inprogress">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Active Repairs</div>
+            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadRepairsInProgress()">↻ Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr>
+                <th>Request ID</th><th>Device Instance</th><th>Issue</th><th>Requested By</th><th>Status</th><th>Action</th>
+              </tr>
+              </thead>
+              <tbody id="repairs-inprogress-body">
+              <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -754,6 +929,12 @@
   const GATEWAY   = 'http://localhost:8085';
   const TOKEN_KEY = 'devicesupply_token';
 
+  // which pages require approval
+  const GATED_PAGES = ['devices', 'add-device', 'orders', 'repairs-assigned', 'repairs-inprogress'];
+
+  // global approval state
+  let isVendorApproved = false;
+
   // ── Auth helper ──────────────────────────────────────────
   function authHeaders() {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -765,17 +946,113 @@
     if (!localStorage.getItem(TOKEN_KEY)) window.location.href = '/auth.html';
   })();
 
-  // ── Page titles map ──────────────────────────────────────
+  // ── Clock ────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('topbar-clock').textContent =
+      now.toLocaleTimeString('en-GB', { hour12: false });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Page titles ──────────────────────────────────────────
   const PAGE_TITLES = {
-    'account':    'My Account',
-    'devices':    'My Devices',
-    'add-device': 'Add Device',
-    'orders':     'Orders',
-    'repairs-assigned':    'Assigned Repairs',     // ADD
-  'repairs-inprogress':  'Repairs In Progress'
+    'account':             'My Account',
+    'devices':             'My Devices',
+    'add-device':          'Add Device',
+    'orders':              'Orders',
+    'repairs-assigned':    'Assigned Repairs',
+    'repairs-inprogress':  'In Progress',
   };
 
+  // ── Apply approval gates to UI ───────────────────────────
+  function applyApprovalGates() {
+    const gatedNavIds = ['nav-devices','nav-add-device','nav-orders','nav-repairs-assigned','nav-repairs-inprogress'];
+
+    if (isVendorApproved) {
+      // unlock nav items (CSS hides locks automatically)
+      gatedNavIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('locked');
+      });
+      // remove any existing gate overlays
+      document.querySelectorAll('.gate-overlay').forEach(el => el.remove());
+      document.querySelectorAll('.gate-blur').forEach(el => el.classList.remove('gate-blur'));
+
+      // update sidebar chip
+      const chip = document.getElementById('sidebar-approval-chip');
+      chip.className = 'sidebar-approval approved';
+      document.getElementById('sidebar-approval-text').textContent = 'Account Approved';
+    } else {
+      // lock nav items (CSS shows locks automatically)
+      gatedNavIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('locked');
+      });
+      // apply blur + overlay to each gated page's gate-wrap
+      GATED_PAGES.forEach(pageName => {
+        const wrap = document.getElementById('gate-' + pageName);
+        if (!wrap) return;
+
+        const inner = wrap.firstElementChild;
+        if (inner && !inner.classList.contains('gate-blur')) {
+          inner.classList.add('gate-blur');
+        }
+
+        if (!wrap.querySelector('.gate-overlay')) {
+          const overlay = document.createElement('div');
+          overlay.className = 'gate-overlay';
+          overlay.innerHTML = `
+            <div class="gate-box">
+              <span class="gate-icon">🔐</span>
+              <div class="gate-title">Access Restricted</div>
+              <div class="gate-msg">
+                Your vendor account hasn't been approved yet.<br>
+                All features will unlock once an admin approves your account.
+              </div>
+              <div class="gate-status">
+                <span class="gate-status-dot"></span>
+                Pending Admin Approval
+              </div>
+            </div>`;
+          wrap.appendChild(overlay);
+        }
+      });
+
+      // update sidebar chip
+      const chip = document.getElementById('sidebar-approval-chip');
+      chip.className = 'sidebar-approval pending';
+      document.getElementById('sidebar-approval-text').textContent = 'Pending Approval';
+    }
+  }
+
+  // ── Check approval status ────────────────────────────────
+  async function checkApproval() {
+    try {
+      const res = await fetch(GATEWAY + '/api/vendors/approved', { headers: authHeaders() });
+      if (res.ok) {
+        isVendorApproved = await res.json(); // boolean
+      } else {
+        isVendorApproved = false;
+      }
+    } catch {
+      isVendorApproved = false;
+    }
+    applyApprovalGates();
+  }
+
   // ── Navigation ───────────────────────────────────────────
+  // For gated pages: block navigation and show toast if not approved
+  function navGuarded(name, el) {
+    if (GATED_PAGES.includes(name) && !isVendorApproved) {
+      // still navigate to the page (they'll see the gate overlay)
+      // but give a small hint
+      showPage(name, el);
+      return;
+    }
+    showPage(name, el);
+  }
+
   function showPage(name, el) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -783,11 +1060,13 @@
     if (el) el.classList.add('active');
     document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
 
-    if (name === 'account')    loadAccount();
-    if (name === 'devices')    loadDevices();
-    if (name === 'orders')     loadOrders();
-    if (name === 'repairs-assigned')   loadRepairsAssigned();
-    if (name === 'repairs-inprogress') loadRepairsInProgress();
+    if (!isVendorApproved && GATED_PAGES.includes(name)) return; // don't fetch data behind gate
+
+    if (name === 'account')             loadAccount();
+    if (name === 'devices')             loadDevices();
+    if (name === 'orders')              loadOrders();
+    if (name === 'repairs-assigned')    loadRepairsAssigned();
+    if (name === 'repairs-inprogress')  loadRepairsInProgress();
   }
 
   // ── Helpers ──────────────────────────────────────────────
@@ -804,7 +1083,7 @@
 
   function emptyRow(colspan, msg) {
     return `<tr><td colspan="${colspan}">
-      <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">${msg}</div></div>
+      <div class="empty"><div class="empty-icon">◈</div><div class="empty-text">${msg}</div></div>
     </td></tr>`;
   }
 
@@ -819,7 +1098,7 @@
     document.getElementById('al-account').classList.remove('show');
     document.getElementById('account-body').innerHTML = `
       <div class="card">
-        <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:12px;padding:20px;">
+        <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
           <span class="spinner"></span> Loading account…
         </div>
       </div>`;
@@ -841,21 +1120,19 @@
       const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
       const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
 
-      // update sidebar name
       if (v.companyName) document.getElementById('sidebar-vendor-name').textContent = v.companyName;
-
       document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
 
       document.getElementById('account-body').innerHTML = `
         <div class="card">
           <div class="card-header">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:10px;background:var(--vendor-dim);
-                border:1px solid rgba(240,164,74,0.2);display:flex;align-items:center;
-                justify-content:center;font-size:18px;">🏭</div>
+              <div style="width:38px;height:38px;border-radius:6px;background:var(--vendor-dim);
+                border:1px solid rgba(255,179,71,0.2);display:flex;align-items:center;
+                justify-content:center;font-size:16px;">🏭</div>
               <div>
-                <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">${v.companyName || '—'}</div>
-                <div style="font-size:10px;color:var(--text2);margin-top:2px;">${v.email || ''}</div>
+                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">${v.companyName || '—'}</div>
+                <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">${v.email || ''}</div>
               </div>
             </div>
             <span class="badge ${badgeCls}">${badgeTxt}</span>
@@ -878,23 +1155,20 @@
       '<tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading devices…</td></tr>';
     try {
       const res = await fetch(GATEWAY + '/api/vendors/devices', { headers: authHeaders() });
-
       if (!res.ok) {
         showAlert('al-devices', '✗ ' + await bodyText(res), 'error');
         document.getElementById('devices-body').innerHTML = emptyRow(5, 'Failed to load devices.');
         return;
       }
-
       const devices = await res.json();
       if (!devices.length) {
         document.getElementById('devices-body').innerHTML = emptyRow(5, 'No devices listed yet. Add your first device.');
         return;
       }
-      console.log(devices)
       document.getElementById('devices-body').innerHTML = devices.map(d => `
         <tr>
           <td style="font-weight:500;">${d.deviceName || d.DeviceName || '—'}</td>
-          <td><span class="badge badge-approved" style="font-size:9px;">${d.deviceType || '—'}</span></td>
+          <td><span class="badge badge-blue" style="font-size:9px;">${d.deviceType || '—'}</span></td>
           <td style="color:var(--text2);">${d.warrantyExpiry || '—'}</td>
           <td>${d.stockQuantity ?? '—'}</td>
           <td><span class="badge badge-approved">Active</span></td>
@@ -907,39 +1181,34 @@
   // ── Add Device ───────────────────────────────────────────
   async function handleAddDevice() {
     document.getElementById('al-add').classList.remove('show');
-
     const payload = {
-      deviceName:    document.getElementById('d-name').value.trim(),
-      deviceType:    document.getElementById('d-type').value,
-      stockQuantity: parseInt(document.getElementById('d-stock').value) || 0,
+      deviceName:     document.getElementById('d-name').value.trim(),
+      deviceType:     document.getElementById('d-type').value,
+      stockQuantity:  parseInt(document.getElementById('d-stock').value) || 0,
       warrantyExpiry: document.getElementById('d-warranty').value || null,
-      description:   document.getElementById('d-desc').value.trim(),
+      description:    document.getElementById('d-desc').value.trim(),
     };
-
     if (!payload.deviceName) { showAlert('al-add', '⚠ Device name is required.', 'error'); return; }
     if (!payload.deviceType) { showAlert('al-add', '⚠ Please select a device type.', 'error'); return; }
 
     const btn = document.getElementById('add-device-btn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Adding…';
-
     try {
       const res = await fetch(GATEWAY + '/api/vendors/devices', {
         method: 'POST',
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) { showAlert('al-add', '✗ ' + await bodyText(res), 'error'); return; }
-
       showAlert('al-add', '✓ Device added successfully!', 'success');
-      ['d-name', 'd-stock', 'd-warranty', 'd-desc'].forEach(id => document.getElementById(id).value = '');
+      ['d-name','d-stock','d-warranty','d-desc'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('d-type').value = '';
     } catch (e) {
       showAlert('al-add', '✗ Network error: ' + e.message, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'Add to Catalogue';
+      btn.innerHTML = '◈ Add to Catalogue';
     }
   }
 
@@ -950,35 +1219,29 @@
       '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading orders…</td></tr>';
     try {
       const res = await fetch(GATEWAY + '/api/vendors/orders', { headers: authHeaders() });
-
       if (!res.ok) {
         showAlert('al-orders', '✗ ' + await bodyText(res), 'error');
         document.getElementById('orders-body').innerHTML = emptyRow(6, 'Failed to load orders.');
         return;
       }
-
       const orders = await res.json();
       if (!orders.length) {
-        document.getElementById('orders-body').innerHTML = emptyRow(6, 'No orders yet. They will appear here when companies place orders.');
+        document.getElementById('orders-body').innerHTML = emptyRow(6, 'No orders yet.');
         return;
       }
-
       document.getElementById('orders-body').innerHTML = orders.map(o => {
         const statusCls = o.status === 'ACCEPTED' ? 'badge-approved'
-                        : o.status === 'REJECTED' ? 'badge-rejected'
-                        : 'badge-pending';
+                        : o.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
         return `
         <tr>
-          <td style="color:var(--text2);font-size:11px;">#${o.orderId || o.order_id || '—'}</td>
+          <td style="color:var(--text2);font-size:10px;">#${o.orderId || o.order_id || '—'}</td>
           <td style="font-weight:500;">${o.device_id || '—'}</td>
           <td>${o.quantity || '—'}</td>
           <td>${o.company_id || '—'}</td>
           <td><span class="badge ${statusCls}">${o.status || 'PENDING'}</span></td>
-          <td>
-            ${(!o.status || o.status === 'PENDING')
-              ? `<button class="btn-accept" onclick="acceptOrder(${o.order_id || o.id})">Accept</button>`
-              : '—'}
-          </td>
+          <td>${(!o.status || o.status === 'PENDING')
+            ? `<button class="btn-accept" onclick="acceptOrder(${o.order_id || o.id})">Accept</button>`
+            : '—'}</td>
         </tr>`;
       }).join('');
     } catch (e) {
@@ -988,121 +1251,112 @@
 
   // ── Accept Order ─────────────────────────────────────────
   async function acceptOrder(orderId) {
-  try {
-    const res = await fetch(`${GATEWAY}/api/vendors/review/${orderId}`, {
-      method: 'PUT',
-      headers: authHeaders()
-    });
-
-    const message = await res.text();
-
-    if (!res.ok) {
-      showAlert('al-orders', `✗ ${message}`, 'error');
-      return;
+    try {
+      const res = await fetch(`${GATEWAY}/api/vendors/review/${orderId}`, {
+        method: 'PUT', headers: authHeaders()
+      });
+      const message = await res.text();
+      if (!res.ok) { showAlert('al-orders', `✗ ${message}`, 'error'); return; }
+      showAlert('al-orders', `✓ ${message}`, 'success');
+      loadOrders();
+    } catch (e) {
+      showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
     }
-
-    showAlert('al-orders', `✓ ${message}`, 'success');
-    loadOrders();
-
-  } catch (e) {
-    showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
   }
-}
 
   // ── Repair row builder ───────────────────────────────────
-function buildRepairRow(r, actionHtml) {
-  return `
-    <tr>
-      <td style="color:var(--text2);font-size:11px;">#${r.id || r.requestId || '—'}</td>
-      <td style="font-weight:500;">${r.deviceInstanceId || '—'}</td>
-      <td>${r.issueDescription || r.issue || '—'}</td>
-      <td>${r.requestedBy || r.userId || '—'}</td>
-      <td><span class="badge badge-pending">${r.status || '—'}</span></td>
-      <td>${actionHtml}</td>
-    </tr>`;
-}
-
-// ── Load Assigned Repairs ────────────────────────────────
-async function loadRepairsAssigned() {
-  document.getElementById('al-repairs-assigned').classList.remove('show');
-  document.getElementById('repairs-assigned-body').innerHTML =
-    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
-  try {
-    const res = await fetch(GATEWAY + '/api/repairs/vendor', { headers: authHeaders() });
-    if (!res.ok) {
-      showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error');
-      document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'Failed to load repair requests.');
-      return;
-    }
-    const repairs = await res.json();
-    if (!repairs.length) {
-      document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'No repair requests assigned to you yet.');
-      return;
-    }
-    document.getElementById('repairs-assigned-body').innerHTML = repairs.map(r =>
-      buildRepairRow(r, `<button class="btn-accept" onclick="markInProgress(${r.id || r.requestId})">Start Work</button>`)
-    ).join('');
-  } catch (e) {
-    showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
+  function buildRepairRow(r, actionHtml) {
+    return `
+      <tr>
+        <td style="color:var(--text2);font-size:10px;">#${r.id || r.requestId || '—'}</td>
+        <td style="font-weight:500;">${r.deviceInstanceId || '—'}</td>
+        <td>${r.issueDescription || r.issue || '—'}</td>
+        <td>${r.requestedBy || r.userId || '—'}</td>
+        <td><span class="badge badge-pending">${r.status || '—'}</span></td>
+        <td>${actionHtml}</td>
+      </tr>`;
   }
-}
 
-// ── Load In-Progress Repairs ─────────────────────────────
-async function loadRepairsInProgress() {
-  document.getElementById('al-repairs-inprogress').classList.remove('show');
-  document.getElementById('repairs-inprogress-body').innerHTML =
-    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
-  try {
-    const res = await fetch(GATEWAY + '/api/repairs/vendor/inProgress', { headers: authHeaders() });
-    if (!res.ok) {
-      showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error');
-      document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'Failed to load in-progress repairs.');
-      return;
+  // ── Load Assigned Repairs ────────────────────────────────
+  async function loadRepairsAssigned() {
+    document.getElementById('al-repairs-assigned').classList.remove('show');
+    document.getElementById('repairs-assigned-body').innerHTML =
+      '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+    try {
+      const res = await fetch(GATEWAY + '/api/repairs/vendor', { headers: authHeaders() });
+      if (!res.ok) {
+        showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error');
+        document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'Failed to load repair requests.');
+        return;
+      }
+      const repairs = await res.json();
+      if (!repairs.length) {
+        document.getElementById('repairs-assigned-body').innerHTML = emptyRow(6, 'No repair requests assigned to you yet.');
+        return;
+      }
+      document.getElementById('repairs-assigned-body').innerHTML = repairs.map(r =>
+        buildRepairRow(r, `<button class="btn-accept" onclick="markInProgress(${r.id || r.requestId})">Start Work</button>`)
+      ).join('');
+    } catch (e) {
+      showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
     }
-    const repairs = await res.json();
-    if (!repairs.length) {
-      document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'No repairs currently in progress.');
-      return;
+  }
+
+  // ── Load In-Progress Repairs ─────────────────────────────
+  async function loadRepairsInProgress() {
+    document.getElementById('al-repairs-inprogress').classList.remove('show');
+    document.getElementById('repairs-inprogress-body').innerHTML =
+      '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+    try {
+      const res = await fetch(GATEWAY + '/api/repairs/vendor/inProgress', { headers: authHeaders() });
+      if (!res.ok) {
+        showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error');
+        document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'Failed to load in-progress repairs.');
+        return;
+      }
+      const repairs = await res.json();
+      if (!repairs.length) {
+        document.getElementById('repairs-inprogress-body').innerHTML = emptyRow(6, 'No repairs currently in progress.');
+        return;
+      }
+      document.getElementById('repairs-inprogress-body').innerHTML = repairs.map(r =>
+        buildRepairRow(r, `<button class="btn-accept" style="color:var(--accent2);border-color:rgba(61,139,255,0.3);background:rgba(61,139,255,0.07);" onclick="markComplete(${r.id || r.requestId})">Mark Complete</button>`)
+      ).join('');
+    } catch (e) {
+      showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
     }
-    document.getElementById('repairs-inprogress-body').innerHTML = repairs.map(r =>
-      buildRepairRow(r, `<button class="btn-accept" style="color:var(--accent2);border-color:rgba(74,143,255,0.3);background:rgba(74,143,255,0.08);" onclick="markComplete(${r.id || r.requestId})">Mark Complete</button>`)
-    ).join('');
-  } catch (e) {
-    showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
   }
-}
 
-// ── Mark In Progress ─────────────────────────────────────
-async function markInProgress(repairId) {
-  try {
-    const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/progress`, {
-      method: 'PUT',
-      headers: authHeaders()
-    });
-    if (!res.ok) { showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error'); return; }
-    showAlert('al-repairs-assigned', '✓ Repair marked as In Progress.', 'success');
-    loadRepairsAssigned();
-  } catch (e) {
-    showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
+  // ── Mark In Progress ─────────────────────────────────────
+  async function markInProgress(repairId) {
+    try {
+      const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/progress`, {
+        method: 'PUT', headers: authHeaders()
+      });
+      if (!res.ok) { showAlert('al-repairs-assigned', '✗ ' + await bodyText(res), 'error'); return; }
+      showAlert('al-repairs-assigned', '✓ Repair marked as In Progress.', 'success');
+      loadRepairsAssigned();
+    } catch (e) {
+      showAlert('al-repairs-assigned', '✗ Network error: ' + e.message, 'error');
+    }
   }
-}
 
-// ── Mark Complete ────────────────────────────────────────
-async function markComplete(repairId) {
-  try {
-    const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/complete`, {
-      method: 'PUT',
-      headers: authHeaders()
-    });
-    if (!res.ok) { showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error'); return; }
-    showAlert('al-repairs-inprogress', '✓ Repair marked as Complete.', 'success');
-    loadRepairsInProgress();
-  } catch (e) {
-    showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
+  // ── Mark Complete ────────────────────────────────────────
+  async function markComplete(repairId) {
+    try {
+      const res = await fetch(`${GATEWAY}/api/repairs/${repairId}/complete`, {
+        method: 'PUT', headers: authHeaders()
+      });
+      if (!res.ok) { showAlert('al-repairs-inprogress', '✗ ' + await bodyText(res), 'error'); return; }
+      showAlert('al-repairs-inprogress', '✓ Repair marked as Complete.', 'success');
+      loadRepairsInProgress();
+    } catch (e) {
+      showAlert('al-repairs-inprogress', '✗ Network error: ' + e.message, 'error');
+    }
   }
-}
 
   // ── Init ─────────────────────────────────────────────────
+  checkApproval();   // sets isVendorApproved then calls applyApprovalGates()
   loadAccount();
 </script>
 </body>

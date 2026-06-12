@@ -78,7 +78,8 @@ public class VendorController {
     }
 
     @GetMapping("/approved")
-    public boolean isApproved(@RequestHeader("X-Auth-Id") String userId){
+    public boolean isApproved(@RequestHeader("X-User-Id") String userId){
+        System.out.println(userId);
         return vendorService.isApproved(userId);
     }
 
