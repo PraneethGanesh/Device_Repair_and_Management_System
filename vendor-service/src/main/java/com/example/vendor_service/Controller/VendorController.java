@@ -77,6 +77,12 @@ public class VendorController {
         return vendorService.getApprovalAccount(Role);
     }
 
+    @GetMapping("/approved")
+    public boolean isApproved(@RequestHeader("X-User-Id") String userId){
+        System.out.println(userId);
+        return vendorService.isApproved(userId);
+    }
+
 //    @GetMapping("/profile")
 //    public ResponseEntity<?> getMyprofile(@RequestHeader("X-Auth-User") String username){
 //        return vendorService.getMyprofile(username);
