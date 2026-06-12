@@ -2,6 +2,7 @@ package com.example.repair_service.dto;
 
 import com.example.repair_service.enums.RepairStatus;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class RepairEventDTO {
 
@@ -9,8 +10,8 @@ public class RepairEventDTO {
     private String eventType;
     private long repairId;
     private long deviceId;
-    private long companyId;
-    private long raisedBy;
+    private UUID companyId;
+    private UUID raisedBy;
     private Long companyAdminId;
     private Long vendorId;
     private String issueDescription;
@@ -52,19 +53,19 @@ public class RepairEventDTO {
         this.deviceId = deviceId;
     }
 
-    public long getCompanyId() {
+    public UUID getCompanyId() {
         return companyId;
     }
 
-    public void setCompanyId(long companyId) {
+    public void setCompanyId(UUID companyId) {
         this.companyId = companyId;
     }
 
-    public long getRaisedBy() {
+    public UUID getRaisedBy() {
         return raisedBy;
     }
 
-    public void setRaisedBy(long raisedBy) {
+    public void setRaisedBy(UUID raisedBy) {
         this.raisedBy = raisedBy;
     }
 

@@ -2,7 +2,6 @@ package com.example.repair_service.service;
 
 import com.example.repair_service.dto.*;
 import com.example.repair_service.entity.RepairRequest;
-import com.example.repair_service.enums.RecipientRole;
 import com.example.repair_service.enums.RepairStatus;
 import com.example.repair_service.feign.CustomerServiceClient;
 import com.example.repair_service.feign.DeviceServiceClient;
@@ -10,8 +9,6 @@ import com.example.repair_service.feign.VendorServiceClient;
 import com.example.repair_service.kafka.RepairEventProducer;
 import com.example.repair_service.publisher.NotificationPublisher;
 import com.example.repair_service.repository.RepairRequestRepository;
-import org.jspecify.annotations.Nullable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -75,7 +72,7 @@ public class RepairService {
     public RepairRequest acknowledgeRequest(long requestId, String userId) {
         RepairRequest request = getById(requestId);
         CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
-        if(response.getId()!=request.getCompanyId()){
+        if (!response.getId().equals(request.getCompanyId())){
             throw new RuntimeException(
                     "Only the company employee belongs to can acknowledge the repair request"
             );
@@ -160,7 +157,7 @@ public class RepairService {
     public RepairRequest closeRequest(long repairId,String userId) {
         RepairRequest request = getById(repairId);
         CompanyResponse response=customerServiceClient.getCompanyByUserId(userId).getBody();
-        if(response.getId()!=request.getCompanyId()){
+        if (!response.getId().equals(request.getCompanyId())){
             throw new RuntimeException(
                     "Only the company employee belongs to can acknowledge the repair request"
             );
@@ -279,7 +276,7 @@ private void publishRepairEvent(
     event.setEventType(eventType);
     event.setRepairId(request.getId());
     event.setDeviceId(request.getDeviceInstanceId());
-    event.setRaisedBy(request.getRaisedBy().getMostSignificantBits()); // UUID → long
+    event.setRaisedBy(request.getRaisedBy());
     event.setVendorId(request.getVendorId());
     event.setIssueDescription(request.getIssueDescription());
     event.setPreviousStatus(previousStatus);

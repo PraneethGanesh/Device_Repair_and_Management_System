@@ -587,8 +587,8 @@
     const routes = {
       VENDOR: '/vendor_dashboard.html',
       COMPANY_ADMIN: '',
-      COMPANY_EMPLOYEE: '',
-      ADMIN: ''
+      COMPANY_EMPLOYEE: '/company_employee_dashboard.html',
+      ADMIN: '/creator_dashboard.html',
     };
     const path = routes[role?.toUpperCase()] || '';
     window.location.href = path;
