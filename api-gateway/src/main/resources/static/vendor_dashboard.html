@@ -34,14 +34,12 @@
       min-height: 100vh;
       display: flex;
       font-size: 13px;
-      /* subtle grid overlay */
       background-image:
         linear-gradient(rgba(0,245,200,0.012) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0,245,200,0.012) 1px, transparent 1px);
       background-size: 40px 40px;
     }
 
-    /* ── scanline overlay ── */
     body::before {
       content: '';
       position: fixed;
@@ -95,7 +93,6 @@
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       box-shadow: 0 0 14px rgba(0,245,200,0.2), inset 0 0 10px rgba(0,245,200,0.05);
-      position: relative;
     }
     .brand-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
 
@@ -136,14 +133,12 @@
       color: var(--vendor); margin-top: 2px;
     }
 
-    /* approval status pill in sidebar */
     .sidebar-approval {
-      margin: 0 18px 0;
+      margin: 10px 18px 0;
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
       display: flex; align-items: center; gap: 6px;
-      margin-top: 10px;
     }
     .sidebar-approval.pending {
       background: rgba(255,179,71,0.07);
@@ -160,12 +155,18 @@
       border: 1px solid rgba(255,77,106,0.2);
       color: var(--error);
     }
+    .sidebar-approval.not-registered {
+      background: rgba(61,139,255,0.07);
+      border: 1px solid rgba(61,139,255,0.2);
+      color: var(--accent2);
+    }
     .approval-dot {
       width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
     }
     .pending .approval-dot { background: var(--vendor); box-shadow: 0 0 5px var(--vendor); animation: blink 1.4s ease-in-out infinite; }
     .approved .approval-dot { background: var(--accent); box-shadow: 0 0 5px var(--accent); }
     .rejected .approval-dot { background: var(--error); }
+    .not-registered .approval-dot { background: var(--accent2); animation: blink 1.4s ease-in-out infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     .nav { flex: 1; padding: 10px 10px; display: flex; flex-direction: column; gap: 1px; margin-top: 8px; }
@@ -205,7 +206,6 @@
       border-radius: 0 2px 2px 0;
       box-shadow: 0 0 6px var(--vendor);
     }
-    /* locked nav items */
     .nav-item.locked { opacity: 0.4; cursor: not-allowed; }
     .nav-item.locked:hover { color: var(--text2); background: transparent; }
 
@@ -255,7 +255,6 @@
       backdrop-filter: blur(8px);
       position: sticky; top: 0; z-index: 10;
     }
-    /* corner accent */
     .topbar::after {
       content: '';
       position: absolute;
@@ -278,7 +277,6 @@
       border: 1px solid rgba(255,179,71,0.15);
     }
 
-    /* system time display */
     .topbar-clock {
       font-size: 10px; color: var(--text2); letter-spacing: 0.08em;
       font-family: 'DM Mono', monospace;
@@ -290,7 +288,6 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     .page-header { margin-bottom: 22px; display: flex; align-items: flex-start; justify-content: space-between; }
-    .page-header-left {}
     .page-title {
       font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
       letter-spacing: 0.06em; text-transform: uppercase;
@@ -314,7 +311,6 @@
       top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, var(--border2), transparent);
     }
-    /* corner tick */
     .stat-card::after {
       content: '';
       position: absolute;
@@ -345,7 +341,6 @@
       padding: 20px;
       position: relative;
     }
-    /* corner brackets */
     .card::before, .card::after {
       content: '';
       position: absolute;
@@ -364,6 +359,16 @@
       border-right: 2px solid var(--accent);
       border-radius: 0 0 8px 0;
       opacity: 0.3;
+    }
+
+    /* Registration card — accent2 (blue) corner brackets */
+    .card.reg-card::before {
+      border-top-color: var(--accent2);
+      border-left-color: var(--accent2);
+    }
+    .card.reg-card::after {
+      border-bottom-color: var(--accent2);
+      border-right-color: var(--accent2);
     }
 
     .card-header {
@@ -488,6 +493,18 @@
     }
     .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    .btn-accent2 {
+      background: transparent;
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+      box-shadow: 0 0 12px rgba(61,139,255,0.1), inset 0 0 12px rgba(61,139,255,0.03);
+    }
+    .btn-accent2:hover {
+      background: rgba(61,139,255,0.07);
+      box-shadow: 0 0 20px rgba(61,139,255,0.2);
+    }
+    .btn-accent2:disabled { opacity: 0.3; cursor: not-allowed; }
+
     .btn-ghost {
       background: transparent;
       color: var(--text2);
@@ -520,6 +537,7 @@
     .alert.show { display: flex; align-items: center; gap: 8px; }
     .alert.error   { background: rgba(255,77,106,0.06); border: 1px solid rgba(255,77,106,0.2); color: var(--error); }
     .alert.success { background: rgba(0,245,200,0.05); border: 1px solid rgba(0,245,200,0.18); color: var(--accent); }
+    .alert.info    { background: rgba(61,139,255,0.05); border: 1px solid rgba(61,139,255,0.18); color: var(--accent2); }
 
     /* ─── Account layout ──────────────────────────── */
     .acct-row {
@@ -531,6 +549,38 @@
     .acct-row:last-child { border-bottom: none; }
     .acct-key { color: var(--text2); letter-spacing: 0.06em; }
     .acct-val { color: var(--text); text-align: right; max-width: 220px; word-break: break-word; }
+
+    /* ─── Registration banner ─────────────────────── */
+    .reg-banner {
+      background: rgba(61,139,255,0.05);
+      border: 1px solid rgba(61,139,255,0.18);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .reg-banner-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .reg-banner-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 4px;
+    }
+    .reg-banner-msg {
+      font-size: 11px;
+      color: var(--text2);
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
 
     /* ─── Empty states ────────────────────────────── */
     .empty {
@@ -567,9 +617,7 @@
     }
 
     /* ─── APPROVAL GATE OVERLAY ───────────────────── */
-    .gate-wrap {
-      position: relative;
-    }
+    .gate-wrap { position: relative; }
     .gate-blur {
       filter: blur(5px);
       pointer-events: none;
@@ -594,7 +642,6 @@
       box-shadow: 0 0 40px rgba(255,179,71,0.08), 0 0 80px rgba(0,0,0,0.5);
       position: relative;
     }
-    /* corner brackets on gate box */
     .gate-box::before {
       content: '';
       position: absolute;
@@ -613,11 +660,7 @@
       border-right: 2px solid var(--vendor);
       border-radius: 0 0 10px 0;
     }
-    .gate-icon {
-      font-size: 30px;
-      margin-bottom: 14px;
-      display: block;
-    }
+    .gate-icon { font-size: 30px; margin-bottom: 14px; display: block; }
     .gate-title {
       font-family: 'Syne', sans-serif;
       font-size: 14px; font-weight: 700;
@@ -625,10 +668,7 @@
       color: var(--vendor);
       margin-bottom: 8px;
     }
-    .gate-msg {
-      font-size: 11px; color: var(--text2);
-      line-height: 1.7; letter-spacing: 0.03em;
-    }
+    .gate-msg { font-size: 11px; color: var(--text2); line-height: 1.7; letter-spacing: 0.03em; }
     .gate-status {
       margin-top: 16px;
       display: inline-flex; align-items: center; gap: 6px;
@@ -674,9 +714,9 @@
     </div>
   </div>
 
-  <div id="sidebar-approval-chip" class="sidebar-approval pending">
+  <div id="sidebar-approval-chip" class="sidebar-approval not-registered">
     <span class="approval-dot"></span>
-    <span id="sidebar-approval-text">Checking status…</span>
+    <span id="sidebar-approval-text">Checking…</span>
   </div>
 
   <nav class="nav">
@@ -794,13 +834,11 @@
     <!-- ── Add Device page ── -->
     <div id="page-add-device" class="page">
       <div class="alert" id="al-add"></div>
-
       <div class="gate-wrap" id="gate-add-device">
         <div class="card" style="max-width:560px;">
           <div class="card-header">
             <div class="card-title">Device Details</div>
           </div>
-
           <div class="form-grid">
             <div class="field">
               <label>Device Name</label>
@@ -831,14 +869,11 @@
               <input type="date" id="d-warranty"/>
             </div>
           </div>
-
           <div class="form-divider"></div>
-
           <div class="field">
             <label>Description <span style="color:var(--text2);font-size:8px;letter-spacing:0;">(optional)</span></label>
             <textarea id="d-desc" placeholder="Model specs, included accessories, etc."></textarea>
           </div>
-
           <button class="btn btn-primary" id="add-device-btn" onclick="handleAddDevice()">
             ◈ Add to Catalogue
           </button>
@@ -929,11 +964,10 @@
   const GATEWAY   = 'http://localhost:8085';
   const TOKEN_KEY = 'devicesupply_token';
 
-  // which pages require approval
   const GATED_PAGES = ['devices', 'add-device', 'orders', 'repairs-assigned', 'repairs-inprogress'];
 
-  // global approval state
-  let isVendorApproved = false;
+  // three possible states: 'unregistered' | 'pending' | 'approved'
+  let vendorState = 'unregistered';
 
   // ── Auth helper ──────────────────────────────────────────
   function authHeaders() {
@@ -948,48 +982,53 @@
 
   // ── Clock ────────────────────────────────────────────────
   function updateClock() {
-    const now = new Date();
     document.getElementById('topbar-clock').textContent =
-      now.toLocaleTimeString('en-GB', { hour12: false });
+      new Date().toLocaleTimeString('en-GB', { hour12: false });
   }
   updateClock();
   setInterval(updateClock, 1000);
 
   // ── Page titles ──────────────────────────────────────────
   const PAGE_TITLES = {
-    'account':             'My Account',
-    'devices':             'My Devices',
-    'add-device':          'Add Device',
-    'orders':              'Orders',
-    'repairs-assigned':    'Assigned Repairs',
-    'repairs-inprogress':  'In Progress',
+    'account':            'My Account',
+    'devices':            'My Devices',
+    'add-device':         'Add Device',
+    'orders':             'Orders',
+    'repairs-assigned':   'Assigned Repairs',
+    'repairs-inprogress': 'In Progress',
   };
 
-  // ── Apply approval gates to UI ───────────────────────────
-  function applyApprovalGates() {
-    const gatedNavIds = ['nav-devices','nav-add-device','nav-orders','nav-repairs-assigned','nav-repairs-inprogress'];
+  // ── Sidebar chip ─────────────────────────────────────────
+  function updateSidebarChip() {
+    const chip = document.getElementById('sidebar-approval-chip');
+    const txt  = document.getElementById('sidebar-approval-text');
+    if (vendorState === 'approved') {
+      chip.className = 'sidebar-approval approved';
+      txt.textContent = 'Account Approved';
+    } else if (vendorState === 'pending') {
+      chip.className = 'sidebar-approval pending';
+      txt.textContent = 'Pending Approval';
+    } else {
+      chip.className = 'sidebar-approval not-registered';
+      txt.textContent = 'Registration Required';
+    }
+  }
 
-    if (isVendorApproved) {
-      // unlock nav items (CSS hides locks automatically)
-      gatedNavIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('locked');
-      });
-      // remove any existing gate overlays
+  // ── Apply gate overlays based on vendorState ─────────────
+  function applyGates() {
+    const isApproved = vendorState === 'approved';
+    const gatedNavIds = [
+      'nav-devices','nav-add-device','nav-orders',
+      'nav-repairs-assigned','nav-repairs-inprogress'
+    ];
+
+    if (isApproved) {
+      gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
       document.querySelectorAll('.gate-overlay').forEach(el => el.remove());
       document.querySelectorAll('.gate-blur').forEach(el => el.classList.remove('gate-blur'));
-
-      // update sidebar chip
-      const chip = document.getElementById('sidebar-approval-chip');
-      chip.className = 'sidebar-approval approved';
-      document.getElementById('sidebar-approval-text').textContent = 'Account Approved';
     } else {
-      // lock nav items (CSS shows locks automatically)
-      gatedNavIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('locked');
-      });
-      // apply blur + overlay to each gated page's gate-wrap
+      gatedNavIds.forEach(id => document.getElementById(id)?.classList.add('locked'));
+
       GATED_PAGES.forEach(pageName => {
         const wrap = document.getElementById('gate-' + pageName);
         if (!wrap) return;
@@ -1000,56 +1039,60 @@
         }
 
         if (!wrap.querySelector('.gate-overlay')) {
+          const isPending = vendorState === 'pending';
           const overlay = document.createElement('div');
           overlay.className = 'gate-overlay';
-          overlay.innerHTML = `
-            <div class="gate-box">
-              <span class="gate-icon">🔐</span>
-              <div class="gate-title">Access Restricted</div>
-              <div class="gate-msg">
-                Your vendor account hasn't been approved yet.<br>
-                All features will unlock once an admin approves your account.
-              </div>
-              <div class="gate-status">
-                <span class="gate-status-dot"></span>
-                Pending Admin Approval
-              </div>
-            </div>`;
+          overlay.innerHTML = isPending
+            ? `<div class="gate-box">
+                <span class="gate-icon">🔐</span>
+                <div class="gate-title">Access Restricted</div>
+                <div class="gate-msg">
+                  Your vendor account hasn't been approved yet.<br>
+                  All features will unlock once an admin approves your account.
+                </div>
+                <div class="gate-status">
+                  <span class="gate-status-dot"></span>
+                  Pending Admin Approval
+                </div>
+              </div>`
+            : `<div class="gate-box">
+                <span class="gate-icon">📋</span>
+                <div class="gate-title">Registration Required</div>
+                <div class="gate-msg">
+                  Complete your company profile on the<br>
+                  My Account page to unlock these features.
+                </div>
+                <div class="gate-status">
+                  <span class="gate-status-dot"></span>
+                  Profile Not Registered
+                </div>
+              </div>`;
           wrap.appendChild(overlay);
         }
       });
-
-      // update sidebar chip
-      const chip = document.getElementById('sidebar-approval-chip');
-      chip.className = 'sidebar-approval pending';
-      document.getElementById('sidebar-approval-text').textContent = 'Pending Approval';
     }
+
+    updateSidebarChip();
   }
 
-  // ── Check approval status ────────────────────────────────
+  // ── checkApproval — called ONLY when profile exists ──────
   async function checkApproval() {
     try {
       const res = await fetch(GATEWAY + '/api/vendors/approved', { headers: authHeaders() });
       if (res.ok) {
-        isVendorApproved = await res.json(); // boolean
+        const approved = await res.json(); // boolean
+        vendorState = approved ? 'approved' : 'pending';
       } else {
-        isVendorApproved = false;
+        vendorState = 'pending';
       }
     } catch {
-      isVendorApproved = false;
+      vendorState = 'pending';
     }
-    applyApprovalGates();
+    applyGates();
   }
 
   // ── Navigation ───────────────────────────────────────────
-  // For gated pages: block navigation and show toast if not approved
   function navGuarded(name, el) {
-    if (GATED_PAGES.includes(name) && !isVendorApproved) {
-      // still navigate to the page (they'll see the gate overlay)
-      // but give a small hint
-      showPage(name, el);
-      return;
-    }
     showPage(name, el);
   }
 
@@ -1060,13 +1103,14 @@
     if (el) el.classList.add('active');
     document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
 
-    if (!isVendorApproved && GATED_PAGES.includes(name)) return; // don't fetch data behind gate
+    // Don't fetch data for gated pages when not approved
+    if (vendorState !== 'approved' && GATED_PAGES.includes(name)) return;
 
-    if (name === 'account')             loadAccount();
-    if (name === 'devices')             loadDevices();
-    if (name === 'orders')              loadOrders();
-    if (name === 'repairs-assigned')    loadRepairsAssigned();
-    if (name === 'repairs-inprogress')  loadRepairsInProgress();
+    if (name === 'account')            loadAccount();
+    if (name === 'devices')            loadDevices();
+    if (name === 'orders')             loadOrders();
+    if (name === 'repairs-assigned')   loadRepairsAssigned();
+    if (name === 'repairs-inprogress') loadRepairsInProgress();
   }
 
   // ── Helpers ──────────────────────────────────────────────
@@ -1093,7 +1137,112 @@
     window.location.href = '/auth.html';
   }
 
+  // ── Show Registration Form ───────────────────────────────
+  // Rendered inline in account-body when GET /api/vendors/me returns 404
+  function showRegistrationForm() {
+    vendorState = 'unregistered';
+    applyGates();
+
+    document.getElementById('stat-status').innerHTML =
+      `<span class="badge badge-blue">Not Registered</span>`;
+    document.getElementById('sidebar-vendor-name').textContent = 'New Vendor';
+
+    document.getElementById('account-body').innerHTML = `
+      <div class="reg-banner">
+        <div class="reg-banner-icon">📋</div>
+        <div>
+          <div class="reg-banner-title">Complete Your Profile</div>
+          <div class="reg-banner-msg">
+            You've logged in successfully but haven't set up your vendor profile yet.
+            Fill in your company details below — an admin will review and approve your account.
+          </div>
+        </div>
+      </div>
+
+      <div class="card reg-card" style="max-width:560px;">
+        <div class="card-header">
+          <div class="card-title">Company Registration</div>
+          <span class="badge badge-blue">First-time setup</span>
+        </div>
+
+        <div class="alert" id="al-reg"></div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Company Name</label>
+            <input type="text" id="reg-company" placeholder="e.g. Acme Corp Pvt Ltd"/>
+          </div>
+          <div class="field">
+            <label>GST Number</label>
+            <input type="text" id="reg-gst" placeholder="e.g. 22AAAAA0000A1Z5"/>
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" id="reg-phone" placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Address</label>
+          <textarea id="reg-address" placeholder="Registered business address…" style="min-height:64px;"></textarea>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <button class="btn btn-accent2" id="reg-submit-btn" onclick="handleRegister()">
+          ◈ Submit Registration
+        </button>
+      </div>`;
+  }
+
+  // ── Handle Registration Submit ───────────────────────────
+  async function handleRegister() {
+    document.getElementById('al-reg').classList.remove('show');
+
+    const payload = {
+      companyName: document.getElementById('reg-company').value.trim(),
+      gstNumber:   document.getElementById('reg-gst').value.trim(),
+      phone:       document.getElementById('reg-phone').value.trim(),
+      address:     document.getElementById('reg-address').value.trim(),
+    };
+
+    if (!payload.companyName) { showAlert('al-reg', '⚠ Company name is required.', 'error'); return; }
+    if (!payload.gstNumber)   { showAlert('al-reg', '⚠ GST number is required.', 'error'); return; }
+    if (!payload.phone)       { showAlert('al-reg', '⚠ Phone number is required.', 'error'); return; }
+    if (!payload.address)     { showAlert('al-reg', '⚠ Address is required.', 'error'); return; }
+
+    const btn = document.getElementById('reg-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+    try {
+      const res = await fetch(GATEWAY + '/api/vendors/register', {
+        method:  'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        showAlert('al-reg', '✗ ' + await bodyText(res), 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◈ Submit Registration';
+        return;
+      }
+
+      // Registration successful — re-call loadAccount().
+      // It will now get a 200, call checkApproval(), get false (new vendor),
+      // set vendorState = 'pending', and show the pending gate.
+      loadAccount();
+
+    } catch (e) {
+      showAlert('al-reg', '✗ Network error: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '◈ Submit Registration';
+    }
+  }
+
   // ── Load Account ─────────────────────────────────────────
+  // Entry point: checks for 404 (not registered) first, then checks approval.
   async function loadAccount() {
     document.getElementById('al-account').classList.remove('show');
     document.getElementById('account-body').innerHTML = `
@@ -1103,49 +1252,84 @@
         </div>
       </div>`;
 
+    let res;
     try {
-      const res = await fetch(GATEWAY + '/api/vendors/me', { headers: authHeaders() });
-
-      if (!res.ok) {
-        showAlert('al-account', '✗ ' + await bodyText(res), 'error');
-        document.getElementById('account-body').innerHTML = '';
-        return;
-      }
-
-      const data = await res.json();
-      const v = data['Vendor Account:'] || data;
-      const statusStr = data['Approval status:'] || '';
-      const isApproved = statusStr.toLowerCase().includes('approved') && !statusStr.toLowerCase().includes('not');
-      const isRejected = statusStr.toLowerCase().includes('reject');
-      const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
-      const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
-
-      if (v.companyName) document.getElementById('sidebar-vendor-name').textContent = v.companyName;
-      document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
-
-      document.getElementById('account-body').innerHTML = `
-        <div class="card">
-          <div class="card-header">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:38px;height:38px;border-radius:6px;background:var(--vendor-dim);
-                border:1px solid rgba(255,179,71,0.2);display:flex;align-items:center;
-                justify-content:center;font-size:16px;">🏭</div>
-              <div>
-                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">${v.companyName || '—'}</div>
-                <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">${v.email || ''}</div>
-              </div>
-            </div>
-            <span class="badge ${badgeCls}">${badgeTxt}</span>
-          </div>
-          <div class="acct-row"><span class="acct-key">Phone</span><span class="acct-val">${v.phone || '—'}</span></div>
-          <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${v.gstNumber || '—'}</span></div>
-          <div class="acct-row"><span class="acct-key">Address</span><span class="acct-val">${v.address || '—'}</span></div>
-          <div class="acct-row"><span class="acct-key">Onboarded</span><span class="acct-val">${v.onboardedAt || '—'}</span></div>
-        </div>`;
+      res = await fetch(GATEWAY + '/api/vendors/me', { headers: authHeaders() });
     } catch (e) {
       showAlert('al-account', '✗ Network error: ' + e.message, 'error');
       document.getElementById('account-body').innerHTML = '';
+      return;
     }
+
+    // ── 404 → vendor hasn't registered yet ──────────────────
+    if (res.status === 404) {
+      showRegistrationForm();
+      return;
+    }
+
+    // ── Other non-OK responses ───────────────────────────────
+    if (!res.ok) {
+      showAlert('al-account', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('account-body').innerHTML = '';
+      return;
+    }
+
+    // ── 200 → profile exists, now check approval ─────────────
+    const data = await res.json();
+    await checkApproval(); // sets vendorState to 'pending' or 'approved'
+
+    // Render profile card
+    const v = data['Vendor Account:'] || data;
+    const isApproved = vendorState === 'approved';
+    const isRejected = (data['Approval status:'] || '').toLowerCase().includes('reject');
+    const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
+    const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
+
+    if (v.companyName) document.getElementById('sidebar-vendor-name').textContent = v.companyName;
+    document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
+
+    document.getElementById('account-body').innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:6px;background:var(--vendor-dim);
+              border:1px solid rgba(255,179,71,0.2);display:flex;align-items:center;
+              justify-content:center;font-size:16px;">🏭</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">${v.companyName || '—'}</div>
+              <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">${v.email || ''}</div>
+            </div>
+          </div>
+          <span class="badge ${badgeCls}">${badgeTxt}</span>
+        </div>
+        <div class="acct-row"><span class="acct-key">Phone</span><span class="acct-val">${v.phone || '—'}</span></div>
+        <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${v.gstNumber || '—'}</span></div>
+        <div class="acct-row"><span class="acct-key">Address</span><span class="acct-val">${v.address || '—'}</span></div>
+        <div class="acct-row"><span class="acct-key">Onboarded</span><span class="acct-val">${v.onboardedAt || '—'}</span></div>
+      </div>
+
+      ${!isApproved && !isRejected ? `
+      <div class="reg-banner" style="margin-top:16px;border-color:rgba(255,179,71,0.18);background:rgba(255,179,71,0.04);">
+        <div class="reg-banner-icon">⏳</div>
+        <div>
+          <div class="reg-banner-title" style="color:var(--vendor);">Awaiting Admin Approval</div>
+          <div class="reg-banner-msg">
+            Your profile has been submitted. An admin will review and approve your account.
+            All dashboard features will unlock once approved.
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${isRejected ? `
+      <div class="reg-banner" style="margin-top:16px;border-color:rgba(255,77,106,0.18);background:rgba(255,77,106,0.04);">
+        <div class="reg-banner-icon">✗</div>
+        <div>
+          <div class="reg-banner-title" style="color:var(--error);">Account Rejected</div>
+          <div class="reg-banner-msg">
+            Your vendor account was not approved. Please contact the platform administrator.
+          </div>
+        </div>
+      </div>` : ''}`;
   }
 
   // ── Load Devices ─────────────────────────────────────────
@@ -1182,11 +1366,11 @@
   async function handleAddDevice() {
     document.getElementById('al-add').classList.remove('show');
     const payload = {
-      deviceName:     document.getElementById('d-name').value.trim(),
-      deviceType:     document.getElementById('d-type').value,
-      stockQuantity:  parseInt(document.getElementById('d-stock').value) || 0,
-      warrantyExpiry: document.getElementById('d-warranty').value || null,
-      description:    document.getElementById('d-desc').value.trim(),
+      deviceName:    document.getElementById('d-name').value.trim(),
+      deviceType:    document.getElementById('d-type').value,
+      stockQuantity: parseInt(document.getElementById('d-stock').value) || 0,
+      warrantyExpiry:document.getElementById('d-warranty').value || null,
+      description:   document.getElementById('d-desc').value.trim(),
     };
     if (!payload.deviceName) { showAlert('al-add', '⚠ Device name is required.', 'error'); return; }
     if (!payload.deviceType) { showAlert('al-add', '⚠ Please select a device type.', 'error'); return; }
@@ -1356,7 +1540,8 @@
   }
 
   // ── Init ─────────────────────────────────────────────────
-  checkApproval();   // sets isVendorApproved then calls applyApprovalGates()
+  // Start with loadAccount() — it decides everything from there.
+  // checkApproval() is NOT called here directly anymore.
   loadAccount();
 </script>
 </body>
