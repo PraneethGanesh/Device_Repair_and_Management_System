@@ -9,6 +9,7 @@ import com.example.customer_service.entity.Company;
 import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -109,5 +110,12 @@ public class CompanyService {
                 .retrieve()
                 .toEntity(String.class);
         return response;
+    }
+
+    public CompanyResponse getMyAccount(String userId) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()->new RuntimeException("Company Not found")
+        );
+        return CompanyResponse.from(company);
     }
 }

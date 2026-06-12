@@ -343,7 +343,7 @@
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
         <div>
-            <div class="brand-name">ASSET<span>MD</span></div>
+            <div class="brand-name">Device<span>Supply</span></div>
             <div class="brand-sub">Company Portal</div>
         </div>
     </div>
@@ -593,6 +593,38 @@
       if (name === 'my-orders')   loadMyOrders();
     }
 
+    // ── Decode role from JWT (runs once at startup) ───────────
+    function decodeRoleFromJWT() {
+      try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // handle all common Spring Security JWT claim shapes:
+        //   role: "COMPANY_ADMIN"
+        //   role: "ROLE_COMPANY_ADMIN"
+        //   roles: ["COMPANY_ADMIN"]
+        //   authorities: ["ROLE_COMPANY_ADMIN"]
+        let r = payload.role || payload.roles || payload.authorities || payload.authority || null;
+        if (Array.isArray(r)) r = r[0];
+        if (typeof r === 'string') r = r.replace('ROLE_', '');
+        return r; // "COMPANY_ADMIN" or "EMPLOYEE" or null
+      } catch { return null; }
+    }
+
+    // ── Render role-specific UI ───────────────────────────────
+    function renderRoleUI(role) {
+      const isAdmin = role === 'COMPANY_ADMIN';
+      const label   = isAdmin ? 'Company Admin' : 'Employee';
+      document.getElementById('sidebar-role-label').textContent = label;
+      document.getElementById('topbar-role-badge').textContent  = label;
+      document.getElementById('stat-role').textContent          = label.toUpperCase();
+      // Employees cannot place orders — hide that nav item entirely
+      if (!isAdmin) {
+        const navOrder = document.getElementById('nav-place-order');
+        if (navOrder) navOrder.style.display = 'none';
+      }
+    }
+
     // ── Load Account ─────────────────────────────────────────
     async function loadAccount() {
       document.getElementById('al-account').classList.remove('show');
@@ -603,43 +635,50 @@
           </div>
         </div>`;
 
-      // ── Decode role from JWT ──────────────────────────────
-      try {
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          userRole = payload.role || payload.roles || null;
-          if (Array.isArray(userRole)) userRole = userRole[0];
-          renderRoleUI(userRole);
-        }
-      } catch {}
+      // Decode role first — needed to decide what to show on 404
+      userRole = decodeRoleFromJWT();
+      renderRoleUI(userRole);
 
       try {
-        // Use userId from JWT to get company (gateway forwards X-Auth-Id)
         const res = await fetch(GATEWAY + '/api/companies/me', { headers: authHeaders() });
 
-        // ── First-time: no profile yet ────────────────────
+        // ── STATE 1 & 2: 404 — no profile exists yet ─────────
         if (res.status === 404) {
-          // Only COMPANY_ADMIN can register
-          if (userRole && userRole.includes('EMPLOYEE')) {
+          document.getElementById('stat-status').innerHTML =
+            `<span class="badge badge-pending">Unregistered</span>`;
+          const chip = document.getElementById('sidebar-approval-chip');
+          chip.className = 'sidebar-approval unregistered';
+          document.getElementById('sidebar-approval-text').textContent = 'Not Registered';
+
+          // STATE 2: EMPLOYEE — can't register, just inform them
+          if (userRole === 'EMPLOYEE') {
+            document.getElementById('sidebar-company-name').textContent = 'No Company';
             document.getElementById('account-body').innerHTML = `
               <div class="card">
-                <div style="padding:24px;text-align:center;color:var(--text2);">
-                  <div style="font-size:28px;margin-bottom:12px;opacity:0.4;">🏢</div>
-                  <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text);margin-bottom:8px;">No Company Found</div>
-                  <div style="font-size:11px;line-height:1.7;">Your account isn't linked to a company yet.<br>Ask your Company Admin to register the company.</div>
+                <div style="padding:36px 24px;text-align:center;">
+                  <div style="font-size:32px;margin-bottom:16px;opacity:0.25;">🏢</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+                    letter-spacing:0.08em;text-transform:uppercase;color:var(--text);margin-bottom:10px;">
+                    No Company Registered
+                  </div>
+                  <div style="font-size:11px;color:var(--text2);line-height:1.8;max-width:320px;margin:0 auto;">
+                    Your account isn't linked to a company yet.<br>
+                    Please ask your <span style="color:var(--company);">Company Admin</span>
+                    to complete the company registration.
+                  </div>
+                  <div style="margin-top:20px;padding:10px 16px;border-radius:6px;
+                    background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.15);
+                    display:inline-flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);letter-spacing:0.06em;">
+                    <span style="color:var(--company);">◈</span>
+                    Contact your admin to get started
+                  </div>
                 </div>
               </div>`;
             return;
           }
 
-          // COMPANY_ADMIN → show registration form
+          // STATE 1: COMPANY_ADMIN — show registration form
           document.getElementById('sidebar-company-name').textContent = 'New Company';
-          document.getElementById('stat-status').innerHTML = `<span class="badge badge-pending">Unregistered</span>`;
-          const chip = document.getElementById('sidebar-approval-chip');
-          chip.className = 'sidebar-approval unregistered';
-          document.getElementById('sidebar-approval-text').textContent = 'Not Registered';
-
           document.getElementById('account-body').innerHTML = `
             <div class="reg-card">
               <div class="reg-eyebrow">First time setup</div>
@@ -656,14 +695,6 @@
                 <div class="field">
                   <label>Company Name</label>
                   <input type="text" id="reg-name" placeholder="e.g. Infosys Technologies Ltd"/>
-                </div>
-                <div class="field">
-                  <label>Industry</label>
-                  <input type="text" id="reg-industry" placeholder="e.g. Information Technology"/>
-                </div>
-                <div class="field">
-                  <label>Phone</label>
-                  <input type="tel" id="reg-phone" placeholder="e.g. 9876543210"/>
                 </div>
                 <div class="field">
                   <label>GST Number</label>
@@ -687,21 +718,24 @@
           return;
         }
 
+        // Other non-OK errors
         if (!res.ok) {
           showAlert('al-account', '✗ ' + await bodyText(res), 'error');
           document.getElementById('account-body').innerHTML = '';
           return;
         }
 
-        // ── Profile exists ────────────────────────────────
+        // ── STATE 3 & 4: Profile exists ───────────────────────
         const c = await res.json();
         companyId = c.id;
 
         const isApproved = c.approvalStatus === 'APPROVED';
         const isRejected = c.approvalStatus === 'REJECTED';
-        const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
-        const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
+        const badgeCls   = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
+        const badgeTxt   = isApproved ? 'Approved'       : isRejected ? 'Rejected'       : 'Pending';
 
+        // STATE 3: PENDING — render profile but gate pages
+        // STATE 4: APPROVED — render profile + unlock everything
         isCompanyApproved = isApproved;
 
         document.getElementById('sidebar-company-name').textContent = c.companyName || 'Company';
@@ -715,39 +749,28 @@
                   border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;
                   justify-content:center;font-size:16px;">🏢</div>
                 <div>
-                  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">${c.companyName || '—'}</div>
-                  <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">${c.email || c.contactEmail || ''}</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">
+                    ${c.companyName || '—'}
+                  </div>
+                  <div style="font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:0.06em;">
+                    ${c.email || c.contactEmail || ''}
+                  </div>
                 </div>
               </div>
               <span class="badge ${badgeCls}">${badgeTxt}</span>
             </div>
-            <div class="acct-row"><span class="acct-key">Industry</span><span class="acct-val">${c.industry || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">Phone</span><span class="acct-val">${c.phone || c.contactPhone || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${c.gstNumber || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">Address</span><span class="acct-val">${c.address || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Email</span><span class="acct-val">${c.email    || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${c.gstNumber    || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Address</span>   <span class="acct-val">${c.address      || '—'}</span></div>
             <div class="acct-row"><span class="acct-key">Registered</span><span class="acct-val">${c.createdAt || c.registeredAt || '—'}</span></div>
           </div>`;
 
+        // This single call handles both STATE 3 (locks pages) and STATE 4 (unlocks pages)
         applyApprovalGates();
 
       } catch (e) {
         showAlert('al-account', '✗ Network error: ' + e.message, 'error');
         document.getElementById('account-body').innerHTML = '';
-      }
-    }
-
-    // ── Render role-specific UI ───────────────────────────────
-    function renderRoleUI(role) {
-      const isAdmin = role && (role.includes('COMPANY_ADMIN') || role.includes('ADMIN'));
-      const label = isAdmin ? 'Company Admin' : 'Employee';
-      document.getElementById('sidebar-role-label').textContent = label;
-      document.getElementById('topbar-role-badge').textContent  = label;
-      document.getElementById('stat-role').textContent = label.toUpperCase();
-
-      // hide place-order nav for employees
-      if (!isAdmin) {
-        const navOrder = document.getElementById('nav-place-order');
-        if (navOrder) navOrder.style.display = 'none';
       }
     }
 

@@ -37,8 +37,13 @@ public class CompanyController {
 
     // GET /api/companies — Get all companies
     @GetMapping
-    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies(@RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(companyService.getAllCompanies());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<CompanyResponse> getMyAccount(@RequestHeader("X-User-Id") String userId){
+       return ResponseEntity.ok(companyService.getMyAccount(userId));
     }
 
     // GET /api/companies/{id} — Get company by ID
