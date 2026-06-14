@@ -46,6 +46,11 @@ public class CompanyController {
        return ResponseEntity.ok(companyService.getMyAccount(userId));
     }
 
+    @GetMapping("/status")
+    public boolean isApproved(@RequestHeader("X-User-Id") String userId){
+        return companyService.isApproved(userId);
+    }
+
     // GET /api/companies/{id} — Get company by ID
     @GetMapping("/{id}")
     public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable UUID id) {

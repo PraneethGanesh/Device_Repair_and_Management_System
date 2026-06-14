@@ -6,6 +6,7 @@ import com.example.device_service.Enum.DeviceType;
 import java.time.LocalDate;
 
 public class DeviceDTO {
+    private long deviceId;
     private String deviceName;
     private int stockQuantity;
     private DeviceType deviceType;
@@ -43,5 +44,11 @@ public class DeviceDTO {
         this.warrantyExpiry = warrantyExpiry;
     }
 
+    public long getDeviceId() {
+        return deviceId;
+    }
 
+    public void setDeviceId(long deviceId) {
+        this.deviceId = deviceId;
+    }
 }

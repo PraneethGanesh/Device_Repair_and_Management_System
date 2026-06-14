@@ -72,6 +72,7 @@ public class DeviceService {
 
     private DeviceDTO toDeviceDto(Device device) {
         DeviceDTO deviceDTO = new DeviceDTO();
+        deviceDTO.setDeviceId(device.getId());
         deviceDTO.setDeviceName(device.getDeviceName());
         deviceDTO.setDeviceType(device.getDeviceType());
         deviceDTO.setStockQuantity(device.getStockQuantity());

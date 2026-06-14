@@ -1,24 +1,24 @@
 package com.example.customer_service.dto;
 
 public class OrderRequest {
-    private long vendor_id;
-    private long device_id;
+    private long vendorId;
+    private long deviceId;
     private int quantity;
 
-    public long getVendor_id() {
-        return vendor_id;
+    public long getVendorId() {
+        return vendorId;
     }
 
-    public void setVendor_id(long vendor_id) {
-        this.vendor_id = vendor_id;
+    public void setVendorId(long vendorId) {
+        this.vendorId = vendorId;
     }
 
-    public long getDevice_id() {
-        return device_id;
+    public long getDeviceId() {
+        return deviceId;
     }
 
-    public void setDevice_id(long device_id) {
-        this.device_id = device_id;
+    public void setDeviceId(long deviceId) {
+        this.deviceId = deviceId;
     }
 
     public int getQuantity() {

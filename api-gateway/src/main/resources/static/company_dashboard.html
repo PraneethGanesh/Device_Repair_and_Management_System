@@ -437,13 +437,21 @@
                     </div>
 
                     <div class="form-grid">
-                        <div class="field">
-                            <label>Vendor ID</label>
-                            <input type="number" id="o-vendor" placeholder="Enter vendor ID"/>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Vendor</label>
+                            <div class="select-wrap">
+                                <select id="o-vendor" onchange="handleVendorChange(this.value)">
+                                    <option value="" disabled selected>Select a vendor…</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="field">
-                            <label>Device ID</label>
-                            <input type="number" id="o-device" placeholder="Enter device ID"/>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Device</label>
+                            <div class="select-wrap">
+                                <select id="o-device" disabled>
+                                    <option value="" disabled selected>Select a vendor first…</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="field" style="grid-column:1/-1;">
                             <label>Quantity</label>
@@ -494,8 +502,8 @@
     const GATED_PAGES = ['place-order', 'my-orders'];
 
     let isCompanyApproved = false;
-    let companyId = null;   // UUID — needed for update
-    let userRole  = null;   // COMPANY_ADMIN or EMPLOYEE
+    let companyId = null;
+    let userRole  = null;
 
     // ── Auth ─────────────────────────────────────────────────
     function authHeaders() {
@@ -535,6 +543,28 @@
       return `<tr><td colspan="${colspan}"><div class="empty"><div class="empty-icon">◈</div><div class="empty-text">${msg}</div></div></td></tr>`;
     }
     function logout() { localStorage.removeItem(TOKEN_KEY); window.location.href = '/auth.html'; }
+
+    // ── Check approval via dedicated endpoint ─────────────────
+    // Calls GET /api/companies/status — returns boolean from backend.
+    // Only called after /me confirms a profile exists (avoids the
+    // CompanyNotFoundException the service throws on 404).
+    async function checkApproval() {
+      try {
+        const res = await fetch(GATEWAY + '/api/companies/status', {
+          headers: authHeaders()
+        });
+        if (res.ok) {
+          const approved = await res.json(); // boolean: true | false
+          isCompanyApproved = approved;
+        } else {
+          // Non-OK (e.g. 404 if somehow called before profile exists) — treat as not approved
+          isCompanyApproved = false;
+        }
+      } catch {
+        // Network error — fail safe: keep locked
+        isCompanyApproved = false;
+      }
+    }
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
@@ -590,24 +620,20 @@
       document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
       if (!isCompanyApproved && GATED_PAGES.includes(name)) return;
       if (name === 'account')     loadAccount();
+      if (name === 'place-order')  loadVendors();
       if (name === 'my-orders')   loadMyOrders();
     }
 
-    // ── Decode role from JWT (runs once at startup) ───────────
+    // ── Decode role from JWT ──────────────────────────────────
     function decodeRoleFromJWT() {
       try {
         const token = localStorage.getItem(TOKEN_KEY);
         if (!token) return null;
         const payload = JSON.parse(atob(token.split('.')[1]));
-        // handle all common Spring Security JWT claim shapes:
-        //   role: "COMPANY_ADMIN"
-        //   role: "ROLE_COMPANY_ADMIN"
-        //   roles: ["COMPANY_ADMIN"]
-        //   authorities: ["ROLE_COMPANY_ADMIN"]
         let r = payload.role || payload.roles || payload.authorities || payload.authority || null;
         if (Array.isArray(r)) r = r[0];
         if (typeof r === 'string') r = r.replace('ROLE_', '');
-        return r; // "COMPANY_ADMIN" or "EMPLOYEE" or null
+        return r;
       } catch { return null; }
     }
 
@@ -618,7 +644,6 @@
       document.getElementById('sidebar-role-label').textContent = label;
       document.getElementById('topbar-role-badge').textContent  = label;
       document.getElementById('stat-role').textContent          = label.toUpperCase();
-      // Employees cannot place orders — hide that nav item entirely
       if (!isAdmin) {
         const navOrder = document.getElementById('nav-place-order');
         if (navOrder) navOrder.style.display = 'none';
@@ -626,6 +651,12 @@
     }
 
     // ── Load Account ─────────────────────────────────────────
+    // Flow:
+    //   GET /api/companies/me
+    //     → 404  : no profile yet → show registration form (admin) or info card (employee)
+    //              applyApprovalGates() immediately so nav stays locked
+    //     → 200  : profile exists → GET /api/companies/status for the boolean
+    //              then render profile card + applyApprovalGates()
     async function loadAccount() {
       document.getElementById('al-account').classList.remove('show');
       document.getElementById('account-body').innerHTML = `
@@ -635,14 +666,13 @@
           </div>
         </div>`;
 
-      // Decode role first — needed to decide what to show on 404
       userRole = decodeRoleFromJWT();
       renderRoleUI(userRole);
 
       try {
         const res = await fetch(GATEWAY + '/api/companies/me', { headers: authHeaders() });
 
-        // ── STATE 1 & 2: 404 — no profile exists yet ─────────
+        // ── 404: no profile ───────────────────────────────────
         if (res.status === 404) {
           document.getElementById('stat-status').innerHTML =
             `<span class="badge badge-pending">Unregistered</span>`;
@@ -650,7 +680,10 @@
           chip.className = 'sidebar-approval unregistered';
           document.getElementById('sidebar-approval-text').textContent = 'Not Registered';
 
-          // STATE 2: EMPLOYEE — can't register, just inform them
+          // Lock all gated pages immediately — no profile = no access
+          // isCompanyApproved is already false; just call the gate function
+          applyApprovalGates();
+
           if (userRole === 'EMPLOYEE') {
             document.getElementById('sidebar-company-name').textContent = 'No Company';
             document.getElementById('account-body').innerHTML = `
@@ -677,7 +710,7 @@
             return;
           }
 
-          // STATE 1: COMPANY_ADMIN — show registration form
+          // COMPANY_ADMIN — show registration form
           document.getElementById('sidebar-company-name').textContent = 'New Company';
           document.getElementById('account-body').innerHTML = `
             <div class="reg-card">
@@ -718,25 +751,25 @@
           return;
         }
 
-        // Other non-OK errors
+        // ── Other non-OK ──────────────────────────────────────
         if (!res.ok) {
           showAlert('al-account', '✗ ' + await bodyText(res), 'error');
           document.getElementById('account-body').innerHTML = '';
           return;
         }
 
-        // ── STATE 3 & 4: Profile exists ───────────────────────
+        // ── 200: profile exists ───────────────────────────────
+        // Now call the dedicated /status endpoint to get the boolean.
         const c = await res.json();
         companyId = c.id;
 
-        const isApproved = c.approvalStatus === 'APPROVED';
-        const isRejected = c.approvalStatus === 'REJECTED';
-        const badgeCls   = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
-        const badgeTxt   = isApproved ? 'Approved'       : isRejected ? 'Rejected'       : 'Pending';
+        await checkApproval(); // sets isCompanyApproved = true | false
 
-        // STATE 3: PENDING — render profile but gate pages
-        // STATE 4: APPROVED — render profile + unlock everything
-        isCompanyApproved = isApproved;
+        // Derive badge from the boolean (isCompanyApproved) +
+        // the approvalStatus string in the profile for the Rejected case
+        const isRejected = c.approvalStatus === 'REJECTED';
+        const badgeCls   = isCompanyApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
+        const badgeTxt   = isCompanyApproved ? 'Approved'       : isRejected ? 'Rejected'       : 'Pending';
 
         document.getElementById('sidebar-company-name').textContent = c.companyName || 'Company';
         document.getElementById('stat-status').innerHTML = `<span class="badge ${badgeCls}">${badgeTxt}</span>`;
@@ -759,13 +792,45 @@
               </div>
               <span class="badge ${badgeCls}">${badgeTxt}</span>
             </div>
-            <div class="acct-row"><span class="acct-key">Email</span><span class="acct-val">${c.email    || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">GST Number</span><span class="acct-val">${c.gstNumber    || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">Address</span>   <span class="acct-val">${c.address      || '—'}</span></div>
-            <div class="acct-row"><span class="acct-key">Registered</span><span class="acct-val">${c.createdAt || c.registeredAt || '—'}</span></div>
-          </div>`;
+            <div class="acct-row"><span class="acct-key">Email</span>      <span class="acct-val">${c.email       || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">GST Number</span> <span class="acct-val">${c.gstNumber   || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Address</span>    <span class="acct-val">${c.address     || '—'}</span></div>
+            <div class="acct-row"><span class="acct-key">Registered</span> <span class="acct-val">${c.createdAt || c.registeredAt || '—'}</span></div>
+          </div>
 
-        // This single call handles both STATE 3 (locks pages) and STATE 4 (unlocks pages)
+          ${!isCompanyApproved && !isRejected ? `
+          <div style="margin-top:16px;padding:16px 20px;border-radius:8px;
+            background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.18);
+            display:flex;align-items:flex-start;gap:14px;">
+            <div style="font-size:22px;flex-shrink:0;margin-top:2px;">⏳</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;
+                letter-spacing:0.06em;text-transform:uppercase;color:var(--company);margin-bottom:4px;">
+                Awaiting Admin Approval
+              </div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.6;letter-spacing:0.02em;">
+                Your profile has been submitted. All dashboard features will unlock once approved.
+              </div>
+            </div>
+          </div>` : ''}
+
+          ${isRejected ? `
+          <div style="margin-top:16px;padding:16px 20px;border-radius:8px;
+            background:rgba(255,77,106,0.04);border:1px solid rgba(255,77,106,0.18);
+            display:flex;align-items:flex-start;gap:14px;">
+            <div style="font-size:22px;flex-shrink:0;margin-top:2px;">✗</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;
+                letter-spacing:0.06em;text-transform:uppercase;color:var(--error);margin-bottom:4px;">
+                Account Rejected
+              </div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.6;letter-spacing:0.02em;">
+                Your company account was not approved. Please contact the platform administrator.
+              </div>
+            </div>
+          </div>` : ''}`;
+
+        // Lock or unlock gated pages based on the /status result
         applyApprovalGates();
 
       } catch (e) {
@@ -779,13 +844,12 @@
       document.getElementById('al-register').classList.remove('show');
 
       const companyName = document.getElementById('reg-name').value.trim();
-      const industry    = document.getElementById('reg-industry').value.trim();
-      const phone       = document.getElementById('reg-phone').value.trim();
       const gstNumber   = document.getElementById('reg-gst').value.trim();
       const address     = document.getElementById('reg-address').value.trim();
 
       if (!companyName) { showAlert('al-register', '⚠ Company name is required.', 'error'); return; }
-      if (!phone)       { showAlert('al-register', '⚠ Phone is required.', 'error'); return; }
+      if (!gstNumber)   { showAlert('al-register', '⚠ GST number is required.', 'error'); return; }
+      if (!address)     { showAlert('al-register', '⚠ Address is required.', 'error'); return; }
 
       const btn = document.getElementById('reg-btn');
       btn.disabled = true;
@@ -795,7 +859,7 @@
         const res = await fetch(GATEWAY + '/api/companies', {
           method: 'POST',
           headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName, industry, phone, gstNumber, address }),
+          body: JSON.stringify({ companyName, gstNumber, address }),
         });
 
         if (!res.ok) {
@@ -805,7 +869,6 @@
           return;
         }
 
-        // Profile created — reload to show pending state
         loadAccount();
 
       } catch (e) {
@@ -816,43 +879,134 @@
     }
 
     // ── Place Order ───────────────────────────────────────────
-    async function handlePlaceOrder() {
-      document.getElementById('al-place-order').classList.remove('show');
+    // ── Load Vendors into dropdown ────────────────────────
+// Called when the Place Order page is shown.
+async function loadVendors() {
+  const select = document.getElementById('o-vendor');
+  select.innerHTML = '<option value="" disabled selected>Loading vendors…</option>';
 
-      const vendorId = parseInt(document.getElementById('o-vendor').value);
-      const deviceId = parseInt(document.getElementById('o-device').value);
-      const quantity = parseInt(document.getElementById('o-qty').value);
+  // Also reset the device dropdown
+  const deviceSelect = document.getElementById('o-device');
+  deviceSelect.innerHTML = '<option value="" disabled selected>Select a vendor first…</option>';
+  deviceSelect.disabled = true;
 
-      if (!vendorId) { showAlert('al-place-order', '⚠ Vendor ID is required.', 'error'); return; }
-      if (!deviceId) { showAlert('al-place-order', '⚠ Device ID is required.', 'error'); return; }
-      if (!quantity || quantity < 1) { showAlert('al-place-order', '⚠ Quantity must be at least 1.', 'error'); return; }
-
-      const btn = document.getElementById('place-order-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Placing…';
-
-      try {
-        const res = await fetch(GATEWAY + '/api/companies/order', {
-          method: 'POST',
-          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ vendorId, deviceId, quantity }),
-        });
-
-        if (!res.ok) {
-          showAlert('al-place-order', '✗ ' + await bodyText(res), 'error');
-          return;
-        }
-
-        showAlert('al-place-order', '✓ Order placed successfully!', 'success');
-        ['o-vendor','o-device','o-qty'].forEach(id => document.getElementById(id).value = '');
-
-      } catch (e) {
-        showAlert('al-place-order', '✗ Network error: ' + e.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '◈ Place Order';
-      }
+  try {
+    const res = await fetch(GATEWAY + '/api/vendors', { headers: authHeaders() });
+    if (!res.ok) {
+      showAlert('al-place-order', '✗ Failed to load vendors.', 'error');
+      select.innerHTML = '<option value="" disabled selected>Failed to load…</option>';
+      return;
     }
+
+    const vendors = await res.json(); // List<VendorDTO>
+
+    if (!vendors.length) {
+      select.innerHTML = '<option value="" disabled selected>No approved vendors available</option>';
+      return;
+    }
+
+    // Populate: option value = vendor.id, label = companyName
+    select.innerHTML = '<option value="" disabled selected>Select a vendor…</option>';
+    vendors.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = v.companyName;
+      select.appendChild(opt);
+    });
+
+  } catch (e) {
+    showAlert('al-place-order', '✗ Network error: ' + e.message, 'error');
+    select.innerHTML = '<option value="" disabled selected>Error loading vendors</option>';
+  }
+}
+
+// ── Vendor selected → load that vendor's devices ──────
+async function handleVendorChange(vendorId) {
+  if (!vendorId) return;
+
+  const deviceSelect = document.getElementById('o-device');
+  deviceSelect.disabled = true;
+  deviceSelect.innerHTML = '<option value="" disabled selected>Loading devices…</option>';
+  document.getElementById('al-place-order').classList.remove('show');
+
+  try {
+    const res = await fetch(GATEWAY + `/api/devices/vendor/${vendorId}`, {
+      headers: authHeaders()
+    });
+
+    if (!res.ok) {
+      showAlert('al-place-order', '✗ Failed to load devices for this vendor.', 'error');
+      deviceSelect.innerHTML = '<option value="" disabled selected>Failed to load…</option>';
+      return;
+    }
+
+    const devices = await res.json(); // List<DeviceDTO>
+
+    if (!devices.length) {
+      deviceSelect.innerHTML = '<option value="" disabled selected>No devices listed by this vendor</option>';
+      return;
+    }
+
+    // Populate: option value = device.deviceId, label = deviceName + type
+    deviceSelect.innerHTML = '<option value="" disabled selected>Select a device…</option>';
+    devices.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.deviceId;
+      // Show name + type so the user has context (e.g. "ThinkPad X1 Carbon — LAPTOP")
+      opt.textContent = `${d.deviceName} — ${d.deviceType}`;
+      deviceSelect.appendChild(opt);
+    });
+    deviceSelect.disabled = false;
+
+  } catch (e) {
+    showAlert('al-place-order', '✗ Network error: ' + e.message, 'error');
+    deviceSelect.innerHTML = '<option value="" disabled selected>Error loading devices</option>';
+  }
+}
+
+// ── Place Order ───────────────────────────────────────
+async function handlePlaceOrder() {
+  document.getElementById('al-place-order').classList.remove('show');
+
+  const vendorId = parseInt(document.getElementById('o-vendor').value);
+  const deviceId = parseInt(document.getElementById('o-device').value);
+  const quantity = parseInt(document.getElementById('o-qty').value);
+
+  if (!vendorId) { showAlert('al-place-order', '⚠ Please select a vendor.', 'error'); return; }
+  if (!deviceId) { showAlert('al-place-order', '⚠ Please select a device.', 'error'); return; }
+  if (!quantity || quantity < 1) { showAlert('al-place-order', '⚠ Quantity must be at least 1.', 'error'); return; }
+
+  const btn = document.getElementById('place-order-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Placing…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/companies/order', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vendorId, deviceId, quantity }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-place-order', '✗ ' + await bodyText(res), 'error');
+      return;
+    }
+
+    showAlert('al-place-order', '✓ Order placed successfully!', 'success');
+
+    // Reset both dropdowns and quantity after success
+    document.getElementById('o-vendor').value = '';
+    document.getElementById('o-device').innerHTML = '<option value="" disabled selected>Select a vendor first…</option>';
+    document.getElementById('o-device').disabled = true;
+    document.getElementById('o-qty').value = '';
+
+  } catch (e) {
+    showAlert('al-place-order', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Place Order';
+  }
+}
 
     // ── Load My Orders ────────────────────────────────────────
     async function loadMyOrders() {

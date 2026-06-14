@@ -119,4 +119,11 @@ public class CompanyService {
         );
         return CompanyResponse.from(company);
     }
+
+    public boolean isApproved(String userId) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()-> new CompanyNotFoundException("Company with ID:"+userId+" is not found")
+        );
+        return company.getApprovalStatus().equals(ApprovalStatus.APPROVED) ? true:false;
+    }
 }
