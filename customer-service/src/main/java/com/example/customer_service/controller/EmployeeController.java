@@ -25,9 +25,13 @@ public class EmployeeController {
 
     // POST /api/employees/invite — Invite an employee
     @PostMapping("/invite")
-    public ResponseEntity<EmployeeResponse> inviteEmployee(@Valid @RequestBody EmployeeRequest request,
-                                                           @RequestHeader("X-Auth-Id") String userId) {
-        EmployeeResponse response = employeeService.inviteEmployee(request,userId);
+    public ResponseEntity<EmployeeResponse> inviteEmployee(
+            @RequestHeader(value = "X-Auth-Role", required = false) String role,
+            @Valid @RequestBody EmployeeRequest request) {
+        if (role == null || !(role.equalsIgnoreCase("COMPANY_ADMIN") || role.equalsIgnoreCase("ADMIN") || role.equalsIgnoreCase("CREATOR") || role.equalsIgnoreCase("SYSTEM_ADMIN"))) {
+            throw new SecurityException("Unauthorized: Only Admins or Company Admins can invite employees.");
+        }
+        EmployeeResponse response = employeeService.inviteEmployee(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -38,14 +42,17 @@ public class EmployeeController {
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<EmployeeResponse> getEmployeeByUserId(@PathVariable String id) {
-        return ResponseEntity.ok(employeeService.getEmployeeByUserId(id));
+    public ResponseEntity<EmployeeResponse> getEmployeeByUserId(
+            @PathVariable String id,
+            @RequestHeader(value = "X-Auth-User", required = false) String email,
+            @RequestHeader(value = "X-Auth-Role", required = false) String role) {
+        return ResponseEntity.ok(employeeService.getEmployeeOrCreate(id, email, role));
     }
 
     // GET /api/employees/company/{companyId} — Get all employees of a company
-    @GetMapping("/company")
-    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@RequestHeader("X-Auth-Id") String userId) {
-        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(userId));
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@PathVariable UUID companyId) {
+        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(companyId));
     }
 
     // GET /api/employees/company/{companyId}/status/{status} — Filter by invite status
