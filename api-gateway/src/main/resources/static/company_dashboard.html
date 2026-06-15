@@ -354,6 +354,64 @@
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:2px; }
         ::-webkit-scrollbar-thumb:hover { background:var(--text2); }
+
+        /* ─── Repair Cards ────────────────────────────── */
+.repair-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+}
+.repair-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px; position: relative;
+    transition: border-color 0.18s;
+}
+.repair-card:hover { border-color: var(--border2); }
+.repair-card::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:10px; height:10px;
+    border-top:2px solid var(--error); border-left:2px solid var(--error);
+    border-radius:8px 0 0 0; opacity:0.5;
+}
+.repair-card-header {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:14px; gap:10px;
+}
+.repair-card-id {
+    font-size:9px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--text2); margin-bottom:4px;
+}
+.repair-card-device {
+    font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:0.03em; color:var(--text);
+}
+.repair-meta {
+    display:flex; flex-direction:column; gap:7px;
+    margin-bottom:16px;
+}
+.repair-meta-row {
+    display:flex; align-items:flex-start; gap:8px;
+    font-size:10px; color:var(--text2); letter-spacing:0.03em;
+}
+.repair-meta-key {
+    min-width:100px; color:var(--text2); flex-shrink:0;
+    text-transform:uppercase; font-size:9px; letter-spacing:0.1em;
+    padding-top:1px;
+}
+.repair-meta-val { color:var(--text); line-height:1.5; }
+.repair-issue {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:5px; padding:10px 12px;
+    font-size:11px; color:var(--text2); line-height:1.6;
+    margin-bottom:16px; letter-spacing:0.02em;
+}
+.repair-card-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:12px; border-top:1px solid var(--border);
+}
+.repair-timestamp {
+    font-size:9px; color:var(--text2); letter-spacing:0.06em;
+}
     </style>
 </head>
 <body>
@@ -423,6 +481,12 @@
         <div class="nav-item" id="nav-my-devices" onclick="navGuarded('my-devices', this)">
             <div class="nav-icon">💻</div>
             <span class="nav-label">Purchased Devices</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-section-label">Support</div>
+        <div class="nav-item" id="nav-repair-requests" onclick="navGuarded('repair-requests', this)">
+            <div class="nav-icon">🔧</div>
+            <span class="nav-label">Repair Requests</span>
             <span class="nav-lock">🔒</span>
         </div>
     </nav>
@@ -722,6 +786,25 @@
             </div>
         </div>
 
+        <!-- ── Repair Requests page ── -->
+        <div id="page-repair-requests" class="page">
+            <div class="alert" id="al-repair-requests"></div>
+            <div class="gate-wrap" id="gate-repair-requests">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                    <div>
+                        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Open Repair Requests</div>
+                        <div style="font-size:10px;color:var(--text2);margin-top:3px;letter-spacing:0.04em;">Requests raised by your employees — acknowledge to send device to vendor</div>
+                    </div>
+                    <button class="btn btn-ghost" style="font-size:10px;padding:6px 14px;" onclick="loadRepairRequests()">↻ Refresh</button>
+                </div>
+                <div id="repair-cards-wrap">
+                    <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+                        <span class="spinner"></span> Loading repair requests…
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
@@ -772,7 +855,7 @@
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog', 'repair-requests'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -805,6 +888,7 @@
         'employees': 'My Team',
         'my-devices': 'My Devices',
         'device-catalog': 'Device Catalog',
+        'repair-requests': 'Repair Requests',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -832,7 +916,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog', 'nav-repair-requests'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -890,6 +974,7 @@
         if (name === 'my-orders')     loadMyOrders();
         if (name === 'my-devices') loadMyDevices();
         if (name === 'device-catalog') loadDeviceCatalogVendors();
+        if (name === 'repair-requests') loadRepairRequests();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -1758,6 +1843,128 @@ async function loadCatalogDevices(vendorId) {
             </div>`;
     } catch (e) {
         showAlert('al-device-catalog', '✗ Network error: ' + e.message, 'error');
+    }
+}
+
+  async function loadRepairRequests() {
+    document.getElementById('al-repair-requests').classList.remove('show');
+    const wrap = document.getElementById('repair-cards-wrap');
+    wrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+        <span class="spinner"></span> Loading repair requests…</div>`;
+
+    try {
+        const res = await fetch(GATEWAY + '/api/repairs/open', { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-repair-requests', '✗ ' + await bodyText(res), 'error');
+            wrap.innerHTML = '';
+            return;
+        }
+        const requests = await res.json();
+
+        if (!requests.length) {
+            wrap.innerHTML = `
+                <div class="empty" style="padding:60px 20px;">
+                    <div class="empty-icon">✅</div>
+                    <div class="empty-text">No open repair requests — all clear!</div>
+                </div>`;
+            return;
+        }
+
+        wrap.innerHTML = `<div class="repair-grid">${requests.map(r => {
+            let createdAt = '—';
+            if (r.createdAt) {
+                try {
+                    createdAt = new Date(r.createdAt).toLocaleString('en-IN', {
+                        dateStyle: 'medium', timeStyle: 'short'
+                    });
+                } catch { createdAt = r.createdAt; }
+            }
+
+            return `
+            <div class="repair-card" id="repair-card-${r.id}">
+                <div class="repair-card-header">
+                    <div>
+                        <div class="repair-card-id">Request #${r.id}</div>
+                        <div class="repair-card-device">Device Instance #${r.deviceInstanceId}</div>
+                    </div>
+                    <span class="badge badge-pending">RAISED</span>
+                </div>
+
+                <div class="repair-issue">
+                    💬 ${r.issueDescription || 'No description provided.'}
+                </div>
+
+                <div class="repair-meta">
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Vendor ID</span>
+                        <span class="repair-meta-val">#${r.vendorId || '—'}</span>
+                    </div>
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Raised By</span>
+                        <span class="repair-meta-val" style="font-size:9px;word-break:break-all;">${r.raisedBy || '—'}</span>
+                    </div>
+                </div>
+
+                <div class="repair-card-footer">
+                    <span class="repair-timestamp">🕐 ${createdAt}</span>
+                    <button class="btn btn-primary" style="font-size:10px;padding:7px 16px;border-color:var(--accent);color:var(--accent);"
+                        id="ack-btn-${r.id}"
+                        onclick="acknowledgeRepair(${r.id}, this)">
+                        ◈ Acknowledge & Send to Vendor
+                    </button>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+
+    } catch (e) {
+        showAlert('al-repair-requests', '✗ Network error: ' + e.message, 'error');
+        wrap.innerHTML = '';
+    }
+}
+
+async function acknowledgeRepair(requestId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Acknowledging…';
+
+    try {
+        const res = await fetch(GATEWAY + `/api/repairs/${requestId}/acknowledge`, {
+            method: 'PUT',
+            headers: authHeaders()
+        });
+
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.innerHTML = '◈ Acknowledge & Send to Vendor';
+            showAlert('al-repair-requests', '✗ ' + await bodyText(res), 'error');
+            return;
+        }
+
+        // Fade out and remove the card smoothly
+        const card = document.getElementById(`repair-card-${requestId}`);
+        if (card) {
+            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-6px)';
+            setTimeout(() => {
+                card.remove();
+                // If no cards left, show empty state
+                const grid = document.getElementById('repair-cards-wrap').querySelector('.repair-grid');
+                if (grid && !grid.children.length) {
+                    document.getElementById('repair-cards-wrap').innerHTML = `
+                        <div class="empty" style="padding:60px 20px;">
+                            <div class="empty-icon">✅</div>
+                            <div class="empty-text">No open repair requests — all clear!</div>
+                        </div>`;
+                }
+            }, 400);
+        }
+
+        showAlert('al-repair-requests', `✓ Request #${requestId} acknowledged — device marked as sent to vendor.`, 'success');
+
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '◈ Acknowledge & Send to Vendor';
+        showAlert('al-repair-requests', '✗ Network error: ' + e.message, 'error');
     }
 }
 
