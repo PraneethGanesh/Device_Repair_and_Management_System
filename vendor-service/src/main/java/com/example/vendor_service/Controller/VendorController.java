@@ -32,6 +32,11 @@ public class VendorController {
         return vendorService.approveVendor(actionDTO,role);
     }
 
+    @GetMapping
+    public List<VendorDTO> getAllVendors(){
+        return vendorService.getAllVendors();
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> myAccount(@RequestHeader("X-Auth-Id") String userId){
         return vendorService.myAccount(userId);

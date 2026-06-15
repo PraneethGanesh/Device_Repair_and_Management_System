@@ -30,25 +30,25 @@ public class OrderService {
 
     public ResponseEntity<String> placeOrder(OrderRequest orderRequest, UUID companyId) {
         ResponseEntity<DeviceResponseDTO> deviceResponseDTOResponseEntity=
-                deviceServiceClient.getDeviceById(orderRequest.getDevice_id());
+                deviceServiceClient.getDeviceById(orderRequest.getDeviceId());
         DeviceResponseDTO deviceResponseDTO=deviceResponseDTOResponseEntity.getBody();
-        if(deviceResponseDTO.getVendorId()!= orderRequest.getVendor_id()){
-            return ResponseEntity.ok("Device is not owned by the vendor:"+orderRequest.getVendor_id());
+        if(deviceResponseDTO.getVendorId()!= orderRequest.getVendorId()){
+            return ResponseEntity.ok("Device is not owned by the vendor:"+orderRequest.getVendorId());
         }
         if(deviceResponseDTO.getStockQuantity()< orderRequest.getQuantity()){
             return ResponseEntity.ok("Insufficient Stock!!");
         }
         Orders orders =new Orders();
         orders.setCompanyId(companyId);
-        orders.setDeviceId(orderRequest.getDevice_id());
-        orders.setVendorId(orderRequest.getVendor_id());
+        orders.setDeviceId(orderRequest.getDeviceId());
+        orders.setVendorId(orderRequest.getVendorId());
         orders.setQuantity(orderRequest.getQuantity());
         orders.setStatus(OrderStatus.REQUESTED);
         orders.setPlacedAt(LocalDateTime.now());
         Orders saved=orderRepository.save(orders);
         OrderDTO orderDTO=toOrderDTO(saved);
         deviceServiceClient.addDeviceInstance(orderDTO);
-        return ResponseEntity.ok("placed order for device:"+orderRequest.getDevice_id()+", Quantity:"+orderRequest.getQuantity());
+        return ResponseEntity.ok("placed order for device:"+orderRequest.getDeviceId()+", Quantity:"+orderRequest.getQuantity());
     }
 
     private OrderDTO toOrderDTO(Orders orders){

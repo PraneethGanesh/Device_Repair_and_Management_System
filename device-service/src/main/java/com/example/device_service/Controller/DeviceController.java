@@ -26,7 +26,6 @@ public class DeviceController {
         return ResponseEntity.ok(deviceService.addDevice(deviceDTO,vendorId));
     }
 
-
     @GetMapping
     public ResponseEntity<List<Device>> getAllDevices() {
         return ResponseEntity.ok(deviceService.getAllDevices());

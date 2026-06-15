@@ -17,6 +17,14 @@ public class CompanyResponse {
     private ApprovalStatus approvalStatus;
     private LocalDateTime createdAt;
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     // Constructors
     public CompanyResponse() {}
 

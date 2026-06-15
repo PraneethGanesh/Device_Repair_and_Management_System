@@ -6,9 +6,11 @@ import com.example.customer_service.dto.CompanyResponse;
 import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
+import com.example.customer_service.exception.CompanyNotFoundException;
 import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -109,5 +111,19 @@ public class CompanyService {
                 .retrieve()
                 .toEntity(String.class);
         return response;
+    }
+
+    public CompanyResponse getMyAccount(String userId) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()->new CompanyNotFoundException("Company Not found")
+        );
+        return CompanyResponse.from(company);
+    }
+
+    public boolean isApproved(String userId) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()-> new CompanyNotFoundException("Company with ID:"+userId+" is not found")
+        );
+        return company.getApprovalStatus().equals(ApprovalStatus.APPROVED) ? true:false;
     }
 }

@@ -203,6 +203,11 @@
             return false;
         }
 
+        public List<VendorDTO> getAllVendors() {
+            List<Vendor> vendors=vendorRepository.findByApproval(ApprovalStatus.APPROVED.name());
+            return vendors.stream().map(vendor -> toVendorDTO(vendor)).toList();
+        }
+
 //        private final VendorRepository vendorRepository;
 //        private final RestClient deviceClient;
 //        private final RestClient notificationClient;
