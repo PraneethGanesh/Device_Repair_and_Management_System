@@ -15,5 +15,7 @@ public interface AuditRecordRepository extends JpaRepository<AuditRecord, Long> 
     List<AuditRecord> findByVendorIdOrderByTimestampDesc(Long vendorId);
 
     List<AuditRecord> findByCompanyIdOrderByTimestampDesc(Long companyId);
+
+    List<AuditRecord> findAllByOrderByTimestampDesc();
 }
 

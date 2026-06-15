@@ -38,5 +38,10 @@ public class AuditController {
     public List<AuditRecord> getByCompanyId(@PathVariable Long companyId) {
         return auditRecordRepository.findByCompanyIdOrderByTimestampDesc(companyId);
     }
+
+    @GetMapping("/records")
+    public List<AuditRecord> getAllRecords() {
+        return auditRecordRepository.findAllByOrderByTimestampDesc();
+    }
 }
 
