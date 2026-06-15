@@ -1,5 +1,6 @@
 package com.example.device_service.Controller;
 
+import com.example.device_service.DTO.DeviceInstanceDTO;
 import com.example.device_service.DTO.OrderDTO;
 import com.example.device_service.DTO.ResponseDTO;
 import com.example.device_service.Entity.DeviceInstance;
@@ -34,9 +35,9 @@ public class DeviceInstanceController {
         return deviceInstanceService.updateDeviceInstance(orderId);
     }
 
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<DeviceInstance>> getDeviceInstancesByCompany(@PathVariable UUID companyId) {
-        return ResponseEntity.ok(deviceInstanceService.getDeviceInstancesByCompany(companyId));
+    @GetMapping("/company")
+    public ResponseEntity<List<DeviceInstanceDTO>> getDeviceInstancesByCompany(@RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(deviceInstanceService.getDeviceInstancesByCompany(userId));
     }
 
     @PutMapping("{status}/{instanceId}")

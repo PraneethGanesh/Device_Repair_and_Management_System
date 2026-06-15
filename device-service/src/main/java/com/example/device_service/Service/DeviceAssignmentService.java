@@ -2,6 +2,7 @@ package com.example.device_service.Service;
 
 import com.example.device_service.Client.CustomerServiceClient;
 import com.example.device_service.DTO.AssignmentRequest;
+import com.example.device_service.DTO.CompanyResponse;
 import com.example.device_service.Entity.DeviceAssignment;
 import com.example.device_service.Entity.DeviceInstance;
 import com.example.device_service.Enum.AssignmentStatus;
@@ -32,10 +33,11 @@ public class DeviceAssignmentService {
     }
 
     @Transactional
-    public DeviceAssignment assignDevice(UUID companyId, AssignmentRequest request) {
+    public DeviceAssignment assignDevice(String userId, AssignmentRequest request) {
+        CompanyResponse companyResponse=customerServiceClient.getCompanyByUserId(userId).getBody();
         DeviceInstance deviceInstance = deviceInstanceRepository.findById(request.getDeviceInstanceId())
                 .orElseThrow(() -> new RuntimeException("Device instance not found: " + request.getDeviceInstanceId()));
-
+        UUID companyId=companyResponse.getId();
         if (!companyId.equals(deviceInstance.getCompany_id())) {
             throw new RuntimeException("Device instance does not belong to company: " + companyId);
         }

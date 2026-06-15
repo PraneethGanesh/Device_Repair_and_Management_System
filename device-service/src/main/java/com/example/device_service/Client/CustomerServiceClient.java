@@ -1,5 +1,6 @@
 package com.example.device_service.Client;
 
+import com.example.device_service.DTO.CompanyResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,4 +14,7 @@ public interface CustomerServiceClient {
     ResponseEntity<Boolean> employeeBelongsToCompany(
             @PathVariable UUID employeeId,
             @PathVariable UUID companyId);
+
+    @GetMapping("/api/companies/user/{userId}")
+    ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable String userId);
 }

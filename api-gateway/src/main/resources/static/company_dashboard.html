@@ -354,6 +354,64 @@
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:2px; }
         ::-webkit-scrollbar-thumb:hover { background:var(--text2); }
+
+        /* ─── Repair Cards ────────────────────────────── */
+.repair-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+}
+.repair-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px; position: relative;
+    transition: border-color 0.18s;
+}
+.repair-card:hover { border-color: var(--border2); }
+.repair-card::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:10px; height:10px;
+    border-top:2px solid var(--error); border-left:2px solid var(--error);
+    border-radius:8px 0 0 0; opacity:0.5;
+}
+.repair-card-header {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:14px; gap:10px;
+}
+.repair-card-id {
+    font-size:9px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--text2); margin-bottom:4px;
+}
+.repair-card-device {
+    font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:0.03em; color:var(--text);
+}
+.repair-meta {
+    display:flex; flex-direction:column; gap:7px;
+    margin-bottom:16px;
+}
+.repair-meta-row {
+    display:flex; align-items:flex-start; gap:8px;
+    font-size:10px; color:var(--text2); letter-spacing:0.03em;
+}
+.repair-meta-key {
+    min-width:100px; color:var(--text2); flex-shrink:0;
+    text-transform:uppercase; font-size:9px; letter-spacing:0.1em;
+    padding-top:1px;
+}
+.repair-meta-val { color:var(--text); line-height:1.5; }
+.repair-issue {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:5px; padding:10px 12px;
+    font-size:11px; color:var(--text2); line-height:1.6;
+    margin-bottom:16px; letter-spacing:0.02em;
+}
+.repair-card-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:12px; border-top:1px solid var(--border);
+}
+.repair-timestamp {
+    font-size:9px; color:var(--text2); letter-spacing:0.06em;
+}
     </style>
 </head>
 <body>
@@ -391,15 +449,15 @@
         </div>
 
         <!-- Admin-only nav items -->
-        <div class="nav-section-label" id="nav-section-team" style="display:none;">Team</div>
-        <div class="nav-item" id="nav-employees" style="display:none;" onclick="navGuarded('employees',this)">
+        <div class="nav-section-label">Team</div>
+        <div class="nav-item" id="nav-invite-employee" onclick="navGuarded('invite-employee', this)">
             <div class="nav-icon">👥</div>
-            <span class="nav-label">Employees</span>
+            <span class="nav-label">Invite Employee</span>
             <span class="nav-lock">🔒</span>
         </div>
-        <div class="nav-item" id="nav-assign-device" style="display:none;" onclick="navGuarded('assign-device',this)">
-            <div class="nav-icon">📦</div>
-            <span class="nav-label">Assign Device</span>
+        <div class="nav-item" id="nav-employees" onclick="navGuarded('employees', this)">
+            <div class="nav-icon">👤</div>
+            <span class="nav-label">My Team</span>
             <span class="nav-lock">🔒</span>
         </div>
 
@@ -414,7 +472,26 @@
             <span class="nav-label">My Orders</span>
             <span class="nav-lock">🔒</span>
         </div>
+        <div class="nav-section-label">Devices</div>
+        <div class="nav-item" id="nav-device-catalog" onclick="navGuarded('device-catalog', this)">
+            <div class="nav-icon">🗂️</div>
+            <span class="nav-label">Device Catalog</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-item" id="nav-my-devices" onclick="navGuarded('my-devices', this)">
+            <div class="nav-icon">💻</div>
+            <span class="nav-label">Purchased Devices</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-section-label">Support</div>
+        <div class="nav-item" id="nav-repair-requests" onclick="navGuarded('repair-requests', this)">
+            <div class="nav-icon">🔧</div>
+            <span class="nav-label">Repair Requests</span>
+            <span class="nav-lock">🔒</span>
+        </div>
     </nav>
+
+
 
     <div class="sidebar-footer">
         <button class="logout-btn" onclick="logout()">
@@ -462,27 +539,67 @@
             </div>
         </div>
 
-        <!-- ── Employees page (Admin only) ── -->
+        <!-- ── Invite Employee page ── -->
+        <div id="page-invite-employee" class="page">
+            <div class="alert" id="al-invite"></div>
+            <div class="gate-wrap" id="gate-invite-employee">
+                <div class="card" style="max-width:560px;">
+                    <div class="card-header">
+                        <div class="card-title">Invite Employee</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Full Name</label>
+                            <input type="text" id="inv-name" placeholder="e.g. Praneeth Ganesh"/>
+                        </div>
+                        <div class="field">
+                            <label>Email</label>
+                            <input type="email" id="inv-email" placeholder="e.g. praneeth@company.com"/>
+                        </div>
+                        <div class="field">
+                            <label>Password</label>
+                            <input type="password" id="inv-password" placeholder="Temporary password"/>
+                        </div>
+                        <div class="field">
+                            <label>Department</label>
+                            <input type="text" id="inv-dept" placeholder="e.g. Engineering"/>
+                        </div>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Designation</label>
+                            <input type="text" id="inv-designation" placeholder="e.g. Software Engineer"/>
+                        </div>
+                    </div>
+                    <div class="form-divider"></div>
+                    <button class="btn btn-primary" id="invite-btn" onclick="handleInviteEmployee()">
+                        ◈ Send Invite
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Employees page ── -->
         <div id="page-employees" class="page">
             <div class="alert" id="al-employees"></div>
             <div class="gate-wrap" id="gate-employees">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">Team Members</div>
-                        <div style="display:flex;gap:8px;">
-                            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadEmployees()">↻ Refresh</button>
-                            <button class="btn btn-primary" style="font-size:10px;padding:6px 14px;" onclick="openInviteModal()">+ Invite Employee</button>
-                        </div>
+                        <div class="card-title">My Team</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadEmployees()">↻ Refresh</button>
                     </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
                             <tr>
-                                <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                                <th>Joined</th>
                             </tr>
                             </thead>
                             <tbody id="employees-body">
-                            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading…</td></tr>
+                            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -613,31 +730,84 @@
             </div>
         </div>
 
+        <!-- ── My Devices page ── -->
+        <div id="page-my-devices" class="page">
+            <div class="alert" id="al-my-devices"></div>
+            <div class="gate-wrap" id="gate-my-devices">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Purchased Devices</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadMyDevices()">↻ Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Instance ID</th>
+                                <th>Device</th>
+                                <th>Serial Number</th>
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th>Action</th>   <!-- was: Acquired At -->
+                            </tr>+
+                            </thead>
+                            <tbody id="my-devices-body">
+                            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Device Catalog page ── -->
+        <div id="page-device-catalog" class="page">
+            <div class="alert" id="al-device-catalog"></div>
+            <div class="gate-wrap" id="gate-device-catalog">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Device Catalog</div>
+                    </div>
+                    <div class="field" style="max-width:360px;margin-bottom:20px;">
+                        <label>Select Vendor</label>
+                        <div class="select-wrap">
+                            <select id="catalog-vendor" onchange="loadCatalogDevices(this.value)">
+                                <option value="" disabled selected>Select a vendor…</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="catalog-devices-wrap">
+                        <div class="empty">
+                            <div class="empty-icon">🗂️</div>
+                            <div class="empty-text">Select a vendor to view their devices</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Repair Requests page ── -->
+        <div id="page-repair-requests" class="page">
+            <div class="alert" id="al-repair-requests"></div>
+            <div class="gate-wrap" id="gate-repair-requests">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                    <div>
+                        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Open Repair Requests</div>
+                        <div style="font-size:10px;color:var(--text2);margin-top:3px;letter-spacing:0.04em;">Requests raised by your employees — acknowledge to send device to vendor</div>
+                    </div>
+                    <button class="btn btn-ghost" style="font-size:10px;padding:6px 14px;" onclick="loadRepairRequests()">↻ Refresh</button>
+                </div>
+                <div id="repair-cards-wrap">
+                    <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+                        <span class="spinner"></span> Loading repair requests…
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- ── Invite Employee Modal ── -->
-<div class="modal-backdrop" id="invite-modal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">Invite Employee</div>
-            <button class="modal-close" onclick="closeInviteModal()">✕</button>
-        </div>
-        <div class="alert" id="al-invite"></div>
-        <div class="field">
-            <label>Employee Email</label>
-            <input type="email" id="invite-email" placeholder="employee@company.com"/>
-        </div>
-        <div class="field">
-            <label>Full Name <span style="color:var(--text2);font-size:9px;">(optional)</span></label>
-            <input type="text" id="invite-name" placeholder="e.g. Rahul Sharma"/>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
-            <button class="btn btn-primary" id="invite-btn" onclick="handleInviteEmployee()">◈ Send Invite</button>
-        </div>
-    </div>
-</div>
 
 <!-- ── Unassign Confirm Modal ── -->
 <div class="modal-backdrop" id="unassign-modal">
@@ -656,10 +826,36 @@
     </div>
 </div>
 
+<!-- ── Assign Device (from table) Modal ── -->
+<div class="modal-backdrop" id="assign-table-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Assign Device</div>
+            <button class="modal-close" onclick="closeAssignTableModal()">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:0.06em;margin-bottom:14px;" id="assign-table-device-label">
+            Device: —
+        </div>
+        <div class="alert" id="al-assign-table"></div>
+        <div class="field">
+            <label>Select Employee</label>
+            <div class="select-wrap">
+                <select id="assign-table-employee">
+                    <option value="" disabled selected>Loading employees…</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeAssignTableModal()">Cancel</button>
+            <button class="btn btn-primary" id="assign-table-confirm-btn" onclick="confirmAssignFromTable()">◈ Assign</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'employees', 'assign-device'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog', 'repair-requests'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -686,10 +882,13 @@
     // ── Page titles ──────────────────────────────────────────
     const PAGE_TITLES = {
         'account':       'My Company',
-        'employees':     'Employees',
-        'assign-device': 'Assign Device',
+        'invite-employee': 'Invite Employee',
         'place-order':   'Place Order',
         'my-orders':     'My Orders',
+        'employees': 'My Team',
+        'my-devices': 'My Devices',
+        'device-catalog': 'Device Catalog',
+        'repair-requests': 'Repair Requests',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -717,7 +916,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-employees', 'nav-assign-device'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog', 'nav-repair-requests'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -769,10 +968,13 @@
         document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
         if (!isCompanyApproved && GATED_PAGES.includes(name)) return;
         if (name === 'account')       loadAccount();
-        if (name === 'employees')     loadEmployees();
-        if (name === 'assign-device') { loadAssignDropdowns(); loadAssignments(); }
+        if (name === 'invite-employee') {}
+        if (name === 'employees') loadEmployees();
         if (name === 'place-order')   loadVendors();
         if (name === 'my-orders')     loadMyOrders();
+        if (name === 'my-devices') loadMyDevices();
+        if (name === 'device-catalog') loadDeviceCatalogVendors();
+        if (name === 'repair-requests') loadRepairRequests();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -789,24 +991,21 @@
     }
 
     // ── Render role-specific UI ───────────────────────────────
-    function renderRoleUI(role) {
-        const isAdmin = role === 'COMPANY_ADMIN';
-        const label   = isAdmin ? 'Company Admin' : 'Employee';
-        document.getElementById('sidebar-role-label').textContent = label;
-        document.getElementById('topbar-role-badge').textContent  = label;
-        document.getElementById('stat-role').textContent          = label.toUpperCase();
-
-        if (isAdmin) {
-            // Show admin-only nav items
-            document.getElementById('nav-section-team').style.display = '';
-            document.getElementById('nav-employees').style.display    = '';
-            document.getElementById('nav-assign-device').style.display = '';
-        } else {
-            // Hide order placement from employees
-            const navOrder = document.getElementById('nav-place-order');
-            if (navOrder) navOrder.style.display = 'none';
-        }
-    }
+   function renderRoleUI(role) {
+  const isAdmin = role === 'COMPANY_ADMIN';
+  const label   = isAdmin ? 'Company Admin' : 'Employee';
+  document.getElementById('sidebar-role-label').textContent = label;
+  document.getElementById('topbar-role-badge').textContent  = label;
+  document.getElementById('stat-role').textContent          = label.toUpperCase();
+  if (!isAdmin) {
+  const navOrder   = document.getElementById('nav-place-order');
+  const navInvite  = document.getElementById('nav-invite-employee');
+  const navEmployees = document.getElementById('nav-employees');
+  if (navOrder)     navOrder.style.display     = 'none';
+  if (navInvite)    navInvite.style.display    = 'none';
+  if (navEmployees) navEmployees.style.display = 'none';
+}
+}
 
     // ── Load Account ─────────────────────────────────────────
     async function loadAccount() {
@@ -974,43 +1173,57 @@
     // ════════════════════════════════════════════
 
     async function loadEmployees() {
-        document.getElementById('al-employees').classList.remove('show');
-        document.getElementById('employees-body').innerHTML =
-            '<tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading…</td></tr>';
-        try {
-            // GET /api/companies/employees  → List of employees belonging to this company
-            const res = await fetch(GATEWAY + '/api/companies/employees', { headers: authHeaders() });
-            if (!res.ok) {
-                showAlert('al-employees', '✗ ' + await bodyText(res), 'error');
-                document.getElementById('employees-body').innerHTML = emptyRow(5, 'Failed to load employees.');
-                return;
-            }
-            const employees = await res.json();
-            if (!employees.length) {
-                document.getElementById('employees-body').innerHTML = emptyRow(5, 'No employees yet. Invite someone to get started.');
-                return;
-            }
-            document.getElementById('employees-body').innerHTML = employees.map(e => {
-                const status = e.inviteStatus || e.status || 'PENDING';
-                const cls = status === 'ACCEPTED' ? 'badge-approved' : status === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
-                const name = e.name || e.fullName || e.username || '—';
-                const email = e.email || '—';
-                const role = (e.role || 'EMPLOYEE').replace('ROLE_', '');
-                return `<tr>
-            <td style="font-weight:500;">${name}</td>
-            <td style="color:var(--text2);">${email}</td>
-            <td><span class="badge badge-blue">${role}</span></td>
-            <td><span class="badge ${cls}">${status}</span></td>
-            <td>
-              <button class="btn-danger-action" onclick="openUnassignEmployeeModal(${e.id || e.userId}, '${name}')">Remove</button>
-            </td>
-          </tr>`;
-            }).join('');
-        } catch (e) {
-            showAlert('al-employees', '✗ Network error: ' + e.message, 'error');
-            document.getElementById('employees-body').innerHTML = emptyRow(5, 'Error loading employees.');
-        }
+  document.getElementById('al-employees').classList.remove('show');
+  document.getElementById('employees-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading team…</td></tr>';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/company', {
+      headers: authHeaders()
+    });
+
+    if (!res.ok) {
+      showAlert('al-employees', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'Failed to load employees.');
+      return;
     }
+
+    const employees = await res.json(); // List<EmployeeResponse>
+
+    if (!employees.length) {
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'No employees yet. Invite your first team member.');
+      return;
+    }
+
+    document.getElementById('employees-body').innerHTML = employees.map(e => {
+      const status = e.inviteStatus || 'ACCEPTED';
+      const statusCls = status === 'ACCEPTED' ? 'badge-approved'
+                      : status === 'PENDING'  ? 'badge-pending'
+                      : 'badge-rejected';
+
+      let joinedAt = '—';
+      if (e.createdAt) {
+        try {
+          joinedAt = new Date(e.createdAt).toLocaleString('en-IN', {
+            dateStyle: 'medium', timeStyle: 'short'
+          });
+        } catch { joinedAt = e.createdAt; }
+      }
+
+      return `<tr>
+        <td style="font-weight:500;">${e.fullName || '—'}</td>
+        <td style="color:var(--text2);">${e.email || '—'}</td>
+        <td>${e.department || '—'}</td>
+        <td>${e.designation || '—'}</td>
+        <td><span class="badge ${statusCls}">${status}</span></td>
+        <td style="color:var(--text2);font-size:10px;">${joinedAt}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('al-employees', '✗ Network error: ' + e.message, 'error');
+  }
+}
 
     // ── Invite Modal ──────────────────────────────────────────
     function openInviteModal() {
@@ -1024,36 +1237,52 @@
     }
 
     async function handleInviteEmployee() {
-        document.getElementById('al-invite').classList.remove('show');
-        const email = document.getElementById('invite-email').value.trim();
-        const name  = document.getElementById('invite-name').value.trim();
-        if (!email) { showAlert('al-invite', '⚠ Email is required.', 'error'); return; }
+  document.getElementById('al-invite').classList.remove('show');
 
-        const btn = document.getElementById('invite-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Sending…';
+  const fullName    = document.getElementById('inv-name').value.trim();
+  const email       = document.getElementById('inv-email').value.trim();
+  const password    = document.getElementById('inv-password').value.trim();
+  const department  = document.getElementById('inv-dept').value.trim();
+  const designation = document.getElementById('inv-designation').value.trim();
 
-        try {
-            // POST /api/companies/invite  → { email, name }
-            const res = await fetch(GATEWAY + '/api/companies/invite', {
-                method: 'POST',
-                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, name }),
-            });
-            if (!res.ok) {
-                showAlert('al-invite', '✗ ' + await bodyText(res), 'error');
-                return;
-            }
-            closeInviteModal();
-            showAlert('al-employees', `✓ Invite sent to ${email}`, 'success');
-            loadEmployees();
-        } catch (e) {
-            showAlert('al-invite', '✗ Network error: ' + e.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '◈ Send Invite';
-        }
+  if (!fullName)    { showAlert('al-invite', '⚠ Full name is required.', 'error'); return; }
+  if (!email)       { showAlert('al-invite', '⚠ Email is required.', 'error'); return; }
+  if (!password)    { showAlert('al-invite', '⚠ Password is required.', 'error'); return; }
+  if (!department)  { showAlert('al-invite', '⚠ Department is required.', 'error'); return; }
+  if (!designation) { showAlert('al-invite', '⚠ Designation is required.', 'error'); return; }
+
+  const btn = document.getElementById('invite-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/invite', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, password, department, designation }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-invite', '✗ ' + await bodyText(res), 'error');
+      return;
     }
+
+    const emp = await res.json(); // EmployeeResponse
+    showAlert('al-invite',
+      `✓ ${emp.fullName} invited successfully — ${emp.email} · ${emp.designation}`,
+      'success');
+
+    // Clear form
+    ['inv-name','inv-email','inv-password','inv-dept','inv-designation']
+      .forEach(id => document.getElementById(id).value = '');
+
+  } catch (e) {
+    showAlert('al-invite', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Send Invite';
+  }
+}
 
     // ── Remove Employee (reuse unassign modal for confirmation) ──
     let pendingRemoveEmployeeId = null;
@@ -1403,13 +1632,341 @@
   }
 }
 
-    // ── Close modals on backdrop click ────────────────────────
-    document.getElementById('invite-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeInviteModal();
+    async function loadMyDevices() {
+  document.getElementById('al-my-devices').classList.remove('show');
+  document.getElementById('my-devices-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading devices…</td></tr>';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/device_instance/company', {
+      headers: authHeaders()
     });
-    document.getElementById('unassign-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeUnassignModal();
+
+    if (!res.ok) {
+      showAlert('al-my-devices', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('my-devices-body').innerHTML = emptyRow(6, 'Failed to load devices.');
+      return;
+    }
+
+    const instances = await res.json();
+
+    if (!instances.length) {
+      document.getElementById('my-devices-body').innerHTML = emptyRow(6, 'No purchased devices yet. Place an order to get started.');
+      return;
+    }
+
+    document.getElementById('my-devices-body').innerHTML = instances.map(d => {
+      const status = d.status || d.instanceStatus || 'PURCHASED';
+      const statusCls = status === 'PURCHASED' ? 'badge-approved'
+                      : status === 'ASSIGNED'  ? 'badge-blue'
+                      : status === 'IN_REPAIR' ? 'badge-pending'
+                      : 'badge-rejected';
+
+     const actionCell = status === 'PURCHASED'
+  ? `<button class="btn-action" onclick="openAssignFromTableModal(${d.id}, '${(d.deviceName || 'Device #' + d.id).replace(/'/g, "\\'")}')">Assign →</button>`
+  : `<span class="badge ${statusCls}">${status}</span>`;
+
+      return `<tr>
+        <td style="color:var(--text2);font-size:10px;">#${d.id ?? '—'}</td>
+        <td style="font-weight:500;">${d.deviceName ?? d.device_id ?? '—'}</td>
+        <td style="color:var(--text2);font-size:10px;">${d.serialNumber || '—'}</td>
+        <td style="color:var(--text2);font-size:10px;">#${d.order_id ?? d.orderId ?? '—'}</td>
+        <td><span class="badge ${statusCls}">${status}</span></td>
+        <td>${actionCell}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('al-my-devices', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+let pendingAssignInstanceId = null;
+
+async function openAssignFromTableModal(instanceId, deviceLabel) {
+  pendingAssignInstanceId = instanceId;
+  document.getElementById('assign-table-device-label').textContent = 'Device: ' + deviceLabel;
+  document.getElementById('al-assign-table').classList.remove('show');
+
+  const empSelect = document.getElementById('assign-table-employee');
+  empSelect.innerHTML = '<option value="" disabled selected>Loading employees…</option>';
+  document.getElementById('assign-table-modal').classList.add('open');
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/company', { headers: authHeaders() });
+    if (!res.ok) {
+      empSelect.innerHTML = '<option value="" disabled selected>Failed to load employees</option>';
+      return;
+    }
+    const employees = await res.json();
+    if (!employees.length) {
+      empSelect.innerHTML = '<option value="" disabled selected>No employees found</option>';
+      return;
+    }
+    empSelect.innerHTML = '<option value="" disabled selected>Select an employee…</option>';
+    employees.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.employeeId || e.id;   // UUID from EmployeeResponse
+      opt.textContent = (e.fullName || e.name || e.email || 'Employee') + ' — ' + (e.department || '');
+      empSelect.appendChild(opt);
     });
+  } catch (err) {
+    empSelect.innerHTML = '<option value="" disabled selected>Error loading employees</option>';
+  }
+}
+
+function closeAssignTableModal() {
+  document.getElementById('assign-table-modal').classList.remove('open');
+  pendingAssignInstanceId = null;
+}
+
+async function confirmAssignFromTable() {
+  const employeeId = document.getElementById('assign-table-employee').value;
+  if (!employeeId) {
+    showAlert('al-assign-table', '⚠ Please select an employee.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('assign-table-confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Assigning…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/assignments/company', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceInstanceId: pendingAssignInstanceId,   // long
+        employeeId: employeeId                        // UUID string
+      }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-assign-table', '✗ ' + await bodyText(res), 'error');
+      return;
+    }
+
+    closeAssignTableModal();
+    showAlert('al-my-devices', '✓ Device assigned successfully!', 'success');
+    loadMyDevices();   // refresh table — button will disappear for this instance
+
+  } catch (e) {
+    showAlert('al-assign-table', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Assign';
+  }
+}
+
+  async function loadDeviceCatalogVendors() {
+    document.getElementById('al-device-catalog').classList.remove('show');
+    const select = document.getElementById('catalog-vendor');
+    select.innerHTML = '<option value="" disabled selected>Loading vendors…</option>';
+    document.getElementById('catalog-devices-wrap').innerHTML = `
+        <div class="empty">
+            <div class="empty-icon">🗂️</div>
+            <div class="empty-text">Select a vendor to view their devices</div>
+        </div>`;
+    try {
+        const res = await fetch(GATEWAY + '/api/vendors', { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-device-catalog', '✗ Failed to load vendors.', 'error');
+            select.innerHTML = '<option value="" disabled selected>Failed to load…</option>';
+            return;
+        }
+        const vendors = await res.json();
+        if (!vendors.length) {
+            select.innerHTML = '<option value="" disabled selected>No vendors available</option>';
+            return;
+        }
+        select.innerHTML = '<option value="" disabled selected>Select a vendor…</option>';
+        vendors.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = v.companyName;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        showAlert('al-device-catalog', '✗ Network error: ' + e.message, 'error');
+    }
+}
+
+async function loadCatalogDevices(vendorId) {
+    if (!vendorId) return;
+    const wrap = document.getElementById('catalog-devices-wrap');
+    wrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
+        <span class="spinner"></span> Loading devices…</div>`;
+    document.getElementById('al-device-catalog').classList.remove('show');
+    try {
+        const res = await fetch(GATEWAY + `/api/devices/vendor/${vendorId}`, { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-device-catalog', '✗ Failed to load devices.', 'error');
+            wrap.innerHTML = emptyRow ? '' : '';
+            wrap.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Failed to load devices.</div></div>`;
+            return;
+        }
+        const devices = await res.json();
+        if (!devices.length) {
+            wrap.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">No devices listed by this vendor.</div></div>`;
+            return;
+        }
+        wrap.innerHTML = `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>In Stock</th>
+                            <th>Warranty Expiry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${devices.map(d => `
+                        <tr>
+                            <td style="color:var(--text2);font-size:10px;">#${d.deviceId}</td>
+                            <td style="font-weight:500;">${d.deviceName || '—'}</td>
+                            <td><span class="badge badge-blue">${d.deviceType || '—'}</span></td>
+                            <td>
+                                <span style="color:${d.stockQuantity > 0 ? 'var(--accent)' : 'var(--error)'}; font-weight:600;">
+                                    ${d.stockQuantity}
+                                </span>
+                                <span style="color:var(--text2);font-size:9px;margin-left:4px;">
+                                    ${d.stockQuantity > 0 ? 'available' : 'out of stock'}
+                                </span>
+                            </td>
+                            <td style="color:var(--text2);font-size:10px;">${d.warrantyExpiry || '—'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (e) {
+        showAlert('al-device-catalog', '✗ Network error: ' + e.message, 'error');
+    }
+}
+
+  async function loadRepairRequests() {
+    document.getElementById('al-repair-requests').classList.remove('show');
+    const wrap = document.getElementById('repair-cards-wrap');
+    wrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+        <span class="spinner"></span> Loading repair requests…</div>`;
+
+    try {
+        const res = await fetch(GATEWAY + '/api/repairs/open', { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-repair-requests', '✗ ' + await bodyText(res), 'error');
+            wrap.innerHTML = '';
+            return;
+        }
+        const requests = await res.json();
+
+        if (!requests.length) {
+            wrap.innerHTML = `
+                <div class="empty" style="padding:60px 20px;">
+                    <div class="empty-icon">✅</div>
+                    <div class="empty-text">No open repair requests — all clear!</div>
+                </div>`;
+            return;
+        }
+
+        wrap.innerHTML = `<div class="repair-grid">${requests.map(r => {
+            let createdAt = '—';
+            if (r.createdAt) {
+                try {
+                    createdAt = new Date(r.createdAt).toLocaleString('en-IN', {
+                        dateStyle: 'medium', timeStyle: 'short'
+                    });
+                } catch { createdAt = r.createdAt; }
+            }
+
+            return `
+            <div class="repair-card" id="repair-card-${r.id}">
+                <div class="repair-card-header">
+                    <div>
+                        <div class="repair-card-id">Request #${r.id}</div>
+                        <div class="repair-card-device">Device Instance #${r.deviceInstanceId}</div>
+                    </div>
+                    <span class="badge badge-pending">RAISED</span>
+                </div>
+
+                <div class="repair-issue">
+                    💬 ${r.issueDescription || 'No description provided.'}
+                </div>
+
+                <div class="repair-meta">
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Vendor ID</span>
+                        <span class="repair-meta-val">#${r.vendorId || '—'}</span>
+                    </div>
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Raised By</span>
+                        <span class="repair-meta-val" style="font-size:9px;word-break:break-all;">${r.raisedBy || '—'}</span>
+                    </div>
+                </div>
+
+                <div class="repair-card-footer">
+                    <span class="repair-timestamp">🕐 ${createdAt}</span>
+                    <button class="btn btn-primary" style="font-size:10px;padding:7px 16px;border-color:var(--accent);color:var(--accent);"
+                        id="ack-btn-${r.id}"
+                        onclick="acknowledgeRepair(${r.id}, this)">
+                        ◈ Acknowledge & Send to Vendor
+                    </button>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+
+    } catch (e) {
+        showAlert('al-repair-requests', '✗ Network error: ' + e.message, 'error');
+        wrap.innerHTML = '';
+    }
+}
+
+async function acknowledgeRepair(requestId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Acknowledging…';
+
+    try {
+        const res = await fetch(GATEWAY + `/api/repairs/${requestId}/acknowledge`, {
+            method: 'PUT',
+            headers: authHeaders()
+        });
+
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.innerHTML = '◈ Acknowledge & Send to Vendor';
+            showAlert('al-repair-requests', '✗ ' + await bodyText(res), 'error');
+            return;
+        }
+
+        // Fade out and remove the card smoothly
+        const card = document.getElementById(`repair-card-${requestId}`);
+        if (card) {
+            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-6px)';
+            setTimeout(() => {
+                card.remove();
+                // If no cards left, show empty state
+                const grid = document.getElementById('repair-cards-wrap').querySelector('.repair-grid');
+                if (grid && !grid.children.length) {
+                    document.getElementById('repair-cards-wrap').innerHTML = `
+                        <div class="empty" style="padding:60px 20px;">
+                            <div class="empty-icon">✅</div>
+                            <div class="empty-text">No open repair requests — all clear!</div>
+                        </div>`;
+                }
+            }, 400);
+        }
+
+        showAlert('al-repair-requests', `✓ Request #${requestId} acknowledged — device marked as sent to vendor.`, 'success');
+
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '◈ Acknowledge & Send to Vendor';
+        showAlert('al-repair-requests', '✗ Network error: ' + e.message, 'error');
+    }
+}
 
     // ── Init ─────────────────────────────────────────────────
     loadAccount();
