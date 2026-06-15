@@ -25,8 +25,9 @@ public class EmployeeController {
 
     // POST /api/employees/invite — Invite an employee
     @PostMapping("/invite")
-    public ResponseEntity<EmployeeResponse> inviteEmployee(@Valid @RequestBody EmployeeRequest request) {
-        EmployeeResponse response = employeeService.inviteEmployee(request);
+    public ResponseEntity<EmployeeResponse> inviteEmployee(@Valid @RequestBody EmployeeRequest request,
+                                                           @RequestHeader("X-Auth-Id") String userId) {
+        EmployeeResponse response = employeeService.inviteEmployee(request,userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -42,9 +43,9 @@ public class EmployeeController {
     }
 
     // GET /api/employees/company/{companyId} — Get all employees of a company
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@PathVariable UUID companyId) {
-        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(companyId));
+    @GetMapping("/company")
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(userId));
     }
 
     // GET /api/employees/company/{companyId}/status/{status} — Filter by invite status

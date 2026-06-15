@@ -379,6 +379,17 @@
             <span class="nav-label">My Orders</span>
             <span class="nav-lock">🔒</span>
         </div>
+        <div class="nav-section-label">Team</div>
+        <div class="nav-item" id="nav-invite-employee" onclick="navGuarded('invite-employee', this)">
+            <div class="nav-icon">👥</div>
+            <span class="nav-label">Invite Employee</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-item" id="nav-employees" onclick="navGuarded('employees', this)">
+            <div class="nav-icon">👤</div>
+            <span class="nav-label">My Team</span>
+            <span class="nav-lock">🔒</span>
+        </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -498,13 +509,81 @@
             </div>
         </div>
 
+        <!-- ── Invite Employee page ── -->
+        <div id="page-invite-employee" class="page">
+            <div class="alert" id="al-invite"></div>
+            <div class="gate-wrap" id="gate-invite-employee">
+                <div class="card" style="max-width:560px;">
+                    <div class="card-header">
+                        <div class="card-title">Invite Employee</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Full Name</label>
+                            <input type="text" id="inv-name" placeholder="e.g. Praneeth Ganesh"/>
+                        </div>
+                        <div class="field">
+                            <label>Email</label>
+                            <input type="email" id="inv-email" placeholder="e.g. praneeth@company.com"/>
+                        </div>
+                        <div class="field">
+                            <label>Password</label>
+                            <input type="password" id="inv-password" placeholder="Temporary password"/>
+                        </div>
+                        <div class="field">
+                            <label>Department</label>
+                            <input type="text" id="inv-dept" placeholder="e.g. Engineering"/>
+                        </div>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Designation</label>
+                            <input type="text" id="inv-designation" placeholder="e.g. Software Engineer"/>
+                        </div>
+                    </div>
+                    <div class="form-divider"></div>
+                    <button class="btn btn-primary" id="invite-btn" onclick="handleInviteEmployee()">
+                        ◈ Send Invite
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Employees page ── -->
+        <div id="page-employees" class="page">
+            <div class="alert" id="al-employees"></div>
+            <div class="gate-wrap" id="gate-employees">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">My Team</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadEmployees()">↻ Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                            </tr>
+                            </thead>
+                            <tbody id="employees-body">
+                            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -532,6 +611,8 @@
       'account':     'My Company',
       'place-order': 'Place Order',
       'my-orders':   'My Orders',
+      'invite-employee': 'Invite Employee',
+      'employees': 'My Team',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -573,7 +654,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-      const gatedNavIds = ['nav-place-order', 'nav-my-orders'];
+      const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees'];
 
       if (isCompanyApproved) {
         gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -627,6 +708,7 @@
       if (name === 'account')     loadAccount();
       if (name === 'place-order')  loadVendors();
       if (name === 'my-orders')   loadMyOrders();
+      if (name === 'employees') loadEmployees();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -644,16 +726,20 @@
 
     // ── Render role-specific UI ───────────────────────────────
     function renderRoleUI(role) {
-      const isAdmin = role === 'COMPANY_ADMIN';
-      const label   = isAdmin ? 'Company Admin' : 'Employee';
-      document.getElementById('sidebar-role-label').textContent = label;
-      document.getElementById('topbar-role-badge').textContent  = label;
-      document.getElementById('stat-role').textContent          = label.toUpperCase();
-      if (!isAdmin) {
-        const navOrder = document.getElementById('nav-place-order');
-        if (navOrder) navOrder.style.display = 'none';
-      }
-    }
+  const isAdmin = role === 'COMPANY_ADMIN';
+  const label   = isAdmin ? 'Company Admin' : 'Employee';
+  document.getElementById('sidebar-role-label').textContent = label;
+  document.getElementById('topbar-role-badge').textContent  = label;
+  document.getElementById('stat-role').textContent          = label.toUpperCase();
+ if (!isAdmin) {
+  const navOrder   = document.getElementById('nav-place-order');
+  const navInvite  = document.getElementById('nav-invite-employee');
+  const navEmployees = document.getElementById('nav-employees');
+  if (navOrder)     navOrder.style.display     = 'none';
+  if (navInvite)    navInvite.style.display    = 'none';
+  if (navEmployees) navEmployees.style.display = 'none';
+}
+}
 
     // ── Load Account ─────────────────────────────────────────
     // Flow:
@@ -1054,6 +1140,106 @@ async function handlePlaceOrder() {
     }).join('');
   } catch (e) {
     showAlert('al-my-orders', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+async function handleInviteEmployee() {
+  document.getElementById('al-invite').classList.remove('show');
+
+  const fullName    = document.getElementById('inv-name').value.trim();
+  const email       = document.getElementById('inv-email').value.trim();
+  const password    = document.getElementById('inv-password').value.trim();
+  const department  = document.getElementById('inv-dept').value.trim();
+  const designation = document.getElementById('inv-designation').value.trim();
+
+  if (!fullName)    { showAlert('al-invite', '⚠ Full name is required.', 'error'); return; }
+  if (!email)       { showAlert('al-invite', '⚠ Email is required.', 'error'); return; }
+  if (!password)    { showAlert('al-invite', '⚠ Password is required.', 'error'); return; }
+  if (!department)  { showAlert('al-invite', '⚠ Department is required.', 'error'); return; }
+  if (!designation) { showAlert('al-invite', '⚠ Designation is required.', 'error'); return; }
+
+  const btn = document.getElementById('invite-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/invite', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, password, department, designation }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-invite', '✗ ' + await bodyText(res), 'error');
+      return;
+    }
+
+    const emp = await res.json(); // EmployeeResponse
+    showAlert('al-invite',
+      `✓ ${emp.fullName} invited successfully — ${emp.email} · ${emp.designation}`,
+      'success');
+
+    // Clear form
+    ['inv-name','inv-email','inv-password','inv-dept','inv-designation']
+      .forEach(id => document.getElementById(id).value = '');
+
+  } catch (e) {
+    showAlert('al-invite', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Send Invite';
+  }
+}
+async function loadEmployees() {
+  document.getElementById('al-employees').classList.remove('show');
+  document.getElementById('employees-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading team…</td></tr>';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/company', {
+      headers: authHeaders()
+    });
+
+    if (!res.ok) {
+      showAlert('al-employees', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'Failed to load employees.');
+      return;
+    }
+
+    const employees = await res.json(); // List<EmployeeResponse>
+
+    if (!employees.length) {
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'No employees yet. Invite your first team member.');
+      return;
+    }
+
+    document.getElementById('employees-body').innerHTML = employees.map(e => {
+      const status = e.inviteStatus || 'ACCEPTED';
+      const statusCls = status === 'ACCEPTED' ? 'badge-approved'
+                      : status === 'PENDING'  ? 'badge-pending'
+                      : 'badge-rejected';
+
+      let joinedAt = '—';
+      if (e.createdAt) {
+        try {
+          joinedAt = new Date(e.createdAt).toLocaleString('en-IN', {
+            dateStyle: 'medium', timeStyle: 'short'
+          });
+        } catch { joinedAt = e.createdAt; }
+      }
+
+      return `<tr>
+        <td style="font-weight:500;">${e.fullName || '—'}</td>
+        <td style="color:var(--text2);">${e.email || '—'}</td>
+        <td>${e.department || '—'}</td>
+        <td>${e.designation || '—'}</td>
+        <td><span class="badge ${statusCls}">${status}</span></td>
+        <td style="color:var(--text2);font-size:10px;">${joinedAt}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('al-employees', '✗ Network error: ' + e.message, 'error');
   }
 }
 

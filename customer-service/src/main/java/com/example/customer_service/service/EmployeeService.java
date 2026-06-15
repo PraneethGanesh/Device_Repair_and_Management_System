@@ -6,6 +6,7 @@ import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
 import com.example.customer_service.entity.Employee;
 import com.example.customer_service.entity.InviteStatus;
+import com.example.customer_service.exception.CompanyNotFoundException;
 import com.example.customer_service.exception.DuplicateResourceException;
 import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
@@ -33,13 +34,13 @@ public class EmployeeService {
         this.userServiceClient = userServiceClient;
     }
 
-    public EmployeeResponse inviteEmployee(EmployeeRequest request) {
+    public EmployeeResponse inviteEmployee(EmployeeRequest request,String userId) {
         if (employeeRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Employee already invited with email: " + request.getEmail());
         }
 
-        Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + request.getCompanyId()));
+        Company company = companyRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + userId));
 
         if (company.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new IllegalStateException("Company must be approved before employees can be registered");
@@ -85,11 +86,14 @@ public class EmployeeService {
        return EmployeeResponse.from(employee);
     }
 
-    public List<EmployeeResponse> getEmployeesByCompanyId(UUID companyId) {
-        if (!companyRepository.existsById(companyId)) {
-            throw new ResourceNotFoundException("Company not found with id: " + companyId);
+    public List<EmployeeResponse> getEmployeesByCompanyId(String userId) {
+        Company company=companyRepository.findByUserId(userId).orElseThrow(
+                ()->new CompanyNotFoundException("Company with id:"+userId+" Not found")
+        );
+        if (!companyRepository.existsById(company.getId())) {
+            throw new ResourceNotFoundException("Company not found with id: " + company.getId());
         }
-        return employeeRepository.findByCompanyId(companyId)
+        return employeeRepository.findByCompanyId(company.getId())
                 .stream()
                 .map(EmployeeResponse::from)
                 .collect(Collectors.toList());

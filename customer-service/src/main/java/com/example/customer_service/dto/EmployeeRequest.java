@@ -7,9 +7,6 @@ import java.util.UUID;
 
 public class EmployeeRequest {
 
-    @NotNull(message = "Company ID is required")
-    private UUID companyId;
-
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;
@@ -28,7 +25,6 @@ public class EmployeeRequest {
     public EmployeeRequest() {}
 
     public EmployeeRequest(UUID companyId, String email, String fullName, String password, String department, String designation) {
-        this.companyId = companyId;
         this.email = email;
         this.fullName = fullName;
         this.password = password;
@@ -37,7 +33,6 @@ public class EmployeeRequest {
     }
 
     // Getters
-    public UUID getCompanyId() { return companyId; }
     public String getEmail() { return email; }
     public String getFullName() { return fullName; }
     public String getPassword() { return password; }
@@ -45,7 +40,6 @@ public class EmployeeRequest {
     public String getDesignation() { return designation; }
 
     // Setters
-    public void setCompanyId(UUID companyId) { this.companyId = companyId; }
     public void setEmail(String email) { this.email = email; }
     public void setFullName(String fullName) { this.fullName = fullName; }
     public void setPassword(String password) { this.password = password; }
