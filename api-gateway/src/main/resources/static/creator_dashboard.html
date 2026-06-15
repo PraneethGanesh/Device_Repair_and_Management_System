@@ -129,7 +129,7 @@
   .u-role { font-size: 11px; color: var(--text-muted); }
   .u-status { margin-left: auto; }
 
-  .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+  .mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
   .mini-stat { background: var(--surface); padding: 16px 20px; }
   .mini-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
   .mini-stat-val { font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; }
@@ -176,9 +176,7 @@
       <a class="nav-item" onclick="showPage('companies')">
         <span class="icon">🏢</span> Companies
       </a>
-      <a class="nav-item" onclick="showPage('employees')">
-        <span class="icon">👥</span> Employees
-      </a>
+
       <a class="nav-item" onclick="showPage('vendors')">
         <span class="icon">🔩</span> Vendors
       </a>
@@ -294,7 +292,6 @@
           </div>
           <div class="mini-stats" id="overview-summary">
             <div class="mini-stat"><div class="mini-stat-label">Companies</div><div class="mini-stat-val" id="sum-companies" style="color:var(--accent)">—</div></div>
-            <div class="mini-stat"><div class="mini-stat-label">Employees</div><div class="mini-stat-val" id="sum-employees" style="color:var(--green)">—</div></div>
             <div class="mini-stat"><div class="mini-stat-label">Vendors</div><div class="mini-stat-val" id="sum-vendors">—</div></div>
             <div class="mini-stat"><div class="mini-stat-label">In Progress</div><div class="mini-stat-val" id="sum-inprogress" style="color:var(--amber)">—</div></div>
           </div>
@@ -335,17 +332,7 @@
       </div>
     </div>
 
-    <!-- EMPLOYEES PAGE -->
-    <div class="page-section" id="page-employees">
-      <div class="page-header">
-        <h1>Employees</h1>
-        <p>All employees across all companies</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Employee List</span></div>
-        <div id="employees-wrap"><div class="loading"><span class="spinner"></span>Loading...</div></div>
-      </div>
-    </div>
+
 
     <!-- VENDORS PAGE -->
     <div class="page-section" id="page-vendors">
@@ -429,7 +416,7 @@ function showPage(id) {
 
   if (id === 'repair-requests') loadAllRepairs();
   if (id === 'companies') loadCompanies();
-  if (id === 'employees') loadEmployees();
+
   if (id === 'vendors') loadVendors();
   if (id === 'audit') loadAudit();
   if (id === 'service-health') loadServiceHealth();
@@ -637,37 +624,7 @@ async function loadCompanies() {
   }
 }
 
-async function loadEmployees() {
-  const wrap = document.getElementById('employees-wrap');
-  wrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
-  try {
-    const res = await fetch('/api/employees', { headers: AUTH });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.content || []);
-    if (!list.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No employees found</div>`; return; }
-    const rows = list.map(e => `
-      <tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#0077A8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${initials(e.fullName)}</div>
-            <span>${e.fullName || '—'}</span>
-          </div>
-        </td>
-        <td style="color:var(--text-muted)">${e.email || '—'}</td>
-        <td style="color:var(--text-muted)">${e.department || '—'}</td>
-        <td style="color:var(--text-muted)">${e.designation || '—'}</td>
-        <td style="font-size:11px;color:var(--text-muted)">${e.companyId || '—'}</td>
-        <td>${e.inviteStatus === 'ACCEPTED' ? '<span class="pill green">Active</span>' : `<span class="pill amber">${e.inviteStatus || 'Pending'}</span>`}</td>
-      </tr>`).join('');
-    wrap.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Company</th><th>Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
-  } catch {
-    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load employees</div>`;
-  }
-}
+
 
 async function loadVendors() {
   const wrap = document.getElementById('vendors-wrap');
@@ -810,13 +767,7 @@ function signOut() {
 // ── BOOT ───────────────────────────────────────────────────────────────────
 initCreatorIdentity();
 loadOverview();
-// Also load employee count separately
-fetch('/api/employees', { headers: AUTH })
-  .then(r => r.ok ? r.json() : [])
-  .then(data => {
-    const list = Array.isArray(data) ? data : (data.content || []);
-    document.getElementById('sum-employees').textContent = list.length;
-  }).catch(() => {});
+
 </script>
 </body>
 </html>
