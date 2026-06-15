@@ -18,11 +18,11 @@ public class DeviceAssignmentController {
         this.deviceAssignmentService = deviceAssignmentService;
     }
 
-    @PostMapping("/company/{companyId}")
+    @PostMapping("/company")
     public ResponseEntity<DeviceAssignment> assignDevice(
-            @PathVariable UUID companyId,
+            @RequestHeader("X-Auth-Id") String userId,
             @RequestBody AssignmentRequest request) {
-        return ResponseEntity.ok(deviceAssignmentService.assignDevice(companyId, request));
+        return ResponseEntity.ok(deviceAssignmentService.assignDevice(userId, request));
     }
 
     @GetMapping("/employee/{employeeId}")

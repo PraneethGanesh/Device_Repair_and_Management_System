@@ -1,11 +1,12 @@
 package com.example.device_service.Service;
 
-import com.example.device_service.DTO.DeviceResponseDTO;
-import com.example.device_service.DTO.OrderDTO;
-import com.example.device_service.DTO.ResponseDTO;
+import com.example.device_service.Client.CustomerServiceClient;
+import com.example.device_service.DTO.*;
+import com.example.device_service.Entity.Device;
 import com.example.device_service.Entity.DeviceInstance;
 import com.example.device_service.Enum.InstanceStatus;
 import com.example.device_service.Repository.DeviceInstanceRepository;
+import com.example.device_service.Repository.DeviceRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,13 @@ import java.util.UUID;
 public class DeviceInstanceService {
     private final DeviceInstanceRepository deviceInstanceRepository;
     private final DeviceService deviceService;
-    public DeviceInstanceService(DeviceInstanceRepository deviceInstanceRepository, DeviceService deviceService) {
+    private final CustomerServiceClient customerServiceClient;
+    private final DeviceRepository deviceRepository;
+    public DeviceInstanceService(DeviceInstanceRepository deviceInstanceRepository, DeviceService deviceService, CustomerServiceClient customerServiceClient, DeviceRepository deviceRepository) {
         this.deviceInstanceRepository = deviceInstanceRepository;
         this.deviceService = deviceService;
+        this.customerServiceClient = customerServiceClient;
+        this.deviceRepository = deviceRepository;
     }
 
     public ResponseEntity<String> addDeviceInstance(OrderDTO orderDTO) {
@@ -52,8 +57,21 @@ public class DeviceInstanceService {
         return ResponseEntity.ok("update the device status to purchased");
     }
 
-    public List<DeviceInstance> getDeviceInstancesByCompany(UUID companyId) {
-        return deviceInstanceRepository.findByCompanyId(companyId);
+    public List<DeviceInstanceDTO> getDeviceInstancesByCompany(String userId) {
+        CompanyResponse companyResponse=customerServiceClient.getCompanyByUserId(userId).getBody();
+        List<DeviceInstance> deviceInstances=deviceInstanceRepository.findByCompanyIdAndInstanceStatus(companyResponse.getId(),InstanceStatus.PURCHASED);
+        return deviceInstances.stream().map(deviceInstance -> deviceInstanceDTO(deviceInstance)).toList();
+    }
+    private DeviceInstanceDTO deviceInstanceDTO(DeviceInstance deviceInstance){
+        DeviceInstanceDTO deviceInstanceDTO=new DeviceInstanceDTO();
+        deviceInstanceDTO.setId(deviceInstance.getId());
+        Device device=deviceRepository.findById(deviceInstance.getDevice_id()).orElseThrow();
+        deviceInstanceDTO.setDeviceName(device.getDeviceName());
+        deviceInstanceDTO.setSerialNumber(deviceInstance.getSerialNumber());
+        deviceInstanceDTO.setOrder_id(deviceInstance.getOrder_id());
+        deviceInstanceDTO.setStatus(deviceInstance.getStatus());
+        deviceInstanceDTO.setCreatedAt(deviceInstance.getCreatedAt());
+        return deviceInstanceDTO;
     }
 
     public ResponseEntity<ResponseDTO> getVendorId(long instanceId) {

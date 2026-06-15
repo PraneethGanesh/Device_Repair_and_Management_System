@@ -416,6 +416,13 @@
         </div>
     </nav>
 
+    <div class="nav-section-label">Devices</div>
+    <div class="nav-item" id="nav-my-devices" onclick="navGuarded('my-devices', this)">
+        <div class="nav-icon">💻</div>
+        <span class="nav-label">My Devices</span>
+        <span class="nav-lock">🔒</span>
+    </div>
+
     <div class="sidebar-footer">
         <button class="logout-btn" onclick="logout()">
             <span style="color:var(--error);">◈</span> Sign out
@@ -653,6 +660,36 @@
             </div>
         </div>
 
+        <!-- ── My Devices page ── -->
+        <div id="page-my-devices" class="page">
+            <div class="alert" id="al-my-devices"></div>
+            <div class="gate-wrap" id="gate-my-devices">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Purchased Devices</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadMyDevices()">↻ Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Instance ID</th>
+                                <th>Device</th>
+                                <th>Serial Number</th>
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th>Action</th>   <!-- was: Acquired At -->
+                            </tr>+
+                            </thead>
+                            <tbody id="my-devices-body">
+                            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
@@ -674,10 +711,36 @@
     </div>
 </div>
 
+<!-- ── Assign Device (from table) Modal ── -->
+<div class="modal-backdrop" id="assign-table-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Assign Device</div>
+            <button class="modal-close" onclick="closeAssignTableModal()">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:0.06em;margin-bottom:14px;" id="assign-table-device-label">
+            Device: —
+        </div>
+        <div class="alert" id="al-assign-table"></div>
+        <div class="field">
+            <label>Select Employee</label>
+            <div class="select-wrap">
+                <select id="assign-table-employee">
+                    <option value="" disabled selected>Loading employees…</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeAssignTableModal()">Cancel</button>
+            <button class="btn btn-primary" id="assign-table-confirm-btn" onclick="confirmAssignFromTable()">◈ Assign</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -708,6 +771,7 @@
         'place-order':   'Place Order',
         'my-orders':     'My Orders',
         'employees': 'My Team',
+        'my-devices': 'My Devices',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -735,7 +799,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -791,6 +855,7 @@
         if (name === 'employees') loadEmployees();
         if (name === 'place-order')   loadVendors();
         if (name === 'my-orders')     loadMyOrders();
+        if (name === 'my-devices') loadMyDevices();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -1448,13 +1513,131 @@
   }
 }
 
-    // ── Close modals on backdrop click ────────────────────────
-    document.getElementById('invite-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeInviteModal();
+    async function loadMyDevices() {
+  document.getElementById('al-my-devices').classList.remove('show');
+  document.getElementById('my-devices-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading devices…</td></tr>';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/device_instance/company', {
+      headers: authHeaders()
     });
-    document.getElementById('unassign-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeUnassignModal();
+
+    if (!res.ok) {
+      showAlert('al-my-devices', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('my-devices-body').innerHTML = emptyRow(6, 'Failed to load devices.');
+      return;
+    }
+
+    const instances = await res.json();
+
+    if (!instances.length) {
+      document.getElementById('my-devices-body').innerHTML = emptyRow(6, 'No purchased devices yet. Place an order to get started.');
+      return;
+    }
+
+    document.getElementById('my-devices-body').innerHTML = instances.map(d => {
+      const status = d.status || d.instanceStatus || 'PURCHASED';
+      const statusCls = status === 'PURCHASED' ? 'badge-approved'
+                      : status === 'ASSIGNED'  ? 'badge-blue'
+                      : status === 'IN_REPAIR' ? 'badge-pending'
+                      : 'badge-rejected';
+
+     const actionCell = status === 'PURCHASED'
+  ? `<button class="btn-action" onclick="openAssignFromTableModal(${d.id}, '${(d.deviceName || 'Device #' + d.id).replace(/'/g, "\\'")}')">Assign →</button>`
+  : `<span class="badge ${statusCls}">${status}</span>`;
+
+      return `<tr>
+        <td style="color:var(--text2);font-size:10px;">#${d.id ?? '—'}</td>
+        <td style="font-weight:500;">${d.deviceName ?? d.device_id ?? '—'}</td>
+        <td style="color:var(--text2);font-size:10px;">${d.serialNumber || '—'}</td>
+        <td style="color:var(--text2);font-size:10px;">#${d.order_id ?? d.orderId ?? '—'}</td>
+        <td><span class="badge ${statusCls}">${status}</span></td>
+        <td>${actionCell}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('al-my-devices', '✗ Network error: ' + e.message, 'error');
+  }
+}
+
+let pendingAssignInstanceId = null;
+
+async function openAssignFromTableModal(instanceId, deviceLabel) {
+  pendingAssignInstanceId = instanceId;
+  document.getElementById('assign-table-device-label').textContent = 'Device: ' + deviceLabel;
+  document.getElementById('al-assign-table').classList.remove('show');
+
+  const empSelect = document.getElementById('assign-table-employee');
+  empSelect.innerHTML = '<option value="" disabled selected>Loading employees…</option>';
+  document.getElementById('assign-table-modal').classList.add('open');
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/company', { headers: authHeaders() });
+    if (!res.ok) {
+      empSelect.innerHTML = '<option value="" disabled selected>Failed to load employees</option>';
+      return;
+    }
+    const employees = await res.json();
+    if (!employees.length) {
+      empSelect.innerHTML = '<option value="" disabled selected>No employees found</option>';
+      return;
+    }
+    empSelect.innerHTML = '<option value="" disabled selected>Select an employee…</option>';
+    employees.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.employeeId || e.id;   // UUID from EmployeeResponse
+      opt.textContent = (e.fullName || e.name || e.email || 'Employee') + ' — ' + (e.department || '');
+      empSelect.appendChild(opt);
     });
+  } catch (err) {
+    empSelect.innerHTML = '<option value="" disabled selected>Error loading employees</option>';
+  }
+}
+
+function closeAssignTableModal() {
+  document.getElementById('assign-table-modal').classList.remove('open');
+  pendingAssignInstanceId = null;
+}
+
+async function confirmAssignFromTable() {
+  const employeeId = document.getElementById('assign-table-employee').value;
+  if (!employeeId) {
+    showAlert('al-assign-table', '⚠ Please select an employee.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('assign-table-confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Assigning…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/assignments/company', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceInstanceId: pendingAssignInstanceId,   // long
+        employeeId: employeeId                        // UUID string
+      }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-assign-table', '✗ ' + await bodyText(res), 'error');
+      return;
+    }
+
+    closeAssignTableModal();
+    showAlert('al-my-devices', '✓ Device assigned successfully!', 'success');
+    loadMyDevices();   // refresh table — button will disappear for this instance
+
+  } catch (e) {
+    showAlert('al-assign-table', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Assign';
+  }
+}
 
     // ── Init ─────────────────────────────────────────────────
     loadAccount();
