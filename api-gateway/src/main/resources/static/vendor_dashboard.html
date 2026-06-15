@@ -1414,8 +1414,9 @@
         return;
       }
       document.getElementById('orders-body').innerHTML = orders.map(o => {
-        const statusCls = o.status === 'ACCEPTED' ? 'badge-approved'
-                        : o.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
+        const statusCls = (o.status === 'ACCEPTED' || o.status === 'APPROVED') ? 'badge-approved'
+                : (o.status === 'REJECTED') ? 'badge-rejected'
+                : 'badge-pending'; // covers PENDING, REQUESTED, null
         return `
         <tr>
           <td style="color:var(--text2);font-size:10px;">#${o.orderId || o.order_id || '—'}</td>
@@ -1423,8 +1424,8 @@
           <td>${o.quantity || '—'}</td>
           <td>${o.company_id || '—'}</td>
           <td><span class="badge ${statusCls}">${o.status || 'PENDING'}</span></td>
-          <td>${(!o.status || o.status === 'PENDING')
-            ? `<button class="btn-accept" onclick="acceptOrder(${o.order_id || o.id})">Accept</button>`
+          <td>${(!o.status || o.status === 'PENDING'|| o.status === 'REQUESTED')
+            ? `<button class="btn-accept" onclick="acceptOrder(${o.order_id || o.id}, event)">Accept</button>`
             : '—'}</td>
         </tr>`;
       }).join('');
@@ -1434,19 +1435,31 @@
   }
 
   // ── Accept Order ─────────────────────────────────────────
-  async function acceptOrder(orderId) {
-    try {
-      const res = await fetch(`${GATEWAY}/api/vendors/review/${orderId}`, {
-        method: 'PUT', headers: authHeaders()
-      });
-      const message = await res.text();
-      if (!res.ok) { showAlert('al-orders', `✗ ${message}`, 'error'); return; }
-      showAlert('al-orders', `✓ ${message}`, 'success');
-      loadOrders();
-    } catch (e) {
-      showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
+  async function acceptOrder(orderId, event) {
+  // Disable the button immediately
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res = await fetch(`${GATEWAY}/api/vendors/review/${orderId}`, {
+      method: 'PUT', headers: authHeaders()
+    });
+    const message = await res.text();
+    if (!res.ok) {
+      showAlert('al-orders', `✗ ${message || 'Failed to accept order.'}`, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Accept';
+      return;
     }
+    showAlert('al-orders', `✓ ${message || 'Order accepted.'}`, 'success');
+    setTimeout(() => loadOrders(), 2500); // refreshes the table, button row disappears naturally
+  } catch (e) {
+    showAlert('al-orders', '✗ Network error: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Accept';
   }
+}
 
   // ── Repair row builder ───────────────────────────────────
   function buildRepairRow(r, actionHtml) {

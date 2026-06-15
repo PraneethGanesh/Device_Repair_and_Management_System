@@ -30,14 +30,15 @@ public class OrderController {
         return orderService.acceptOrder(orderId,vendorId);
     }
 
-    @GetMapping("/{vendorId}")
-    public List<OrderDTO> getOrdersByVendor(@PathVariable long vendorId){
-        return orderService.getOrdersByVendor(vendorId);
-    }
-
     @GetMapping("/company/{companyId}")
     public List<OrderDTO> getOrdersByCompany(@PathVariable UUID companyId){
         return orderService.getOrdersByCompany(companyId);
+    }
+
+
+    @GetMapping("/vendor/{vendorId}")
+    public List<OrderDTO> getOrdersByVendor(@PathVariable long vendorId){
+        return orderService.getOrdersByVendor(vendorId);
     }
 
 }

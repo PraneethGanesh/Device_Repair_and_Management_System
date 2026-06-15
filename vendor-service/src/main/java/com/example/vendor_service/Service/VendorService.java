@@ -162,7 +162,7 @@
             );
             List<OrderDTO> orderDTOS=orderClient
                     .get()
-                    .uri("/api/order/{vendorId}",vendor.getId())
+                    .uri("/api/order/vendor/{vendorId}",vendor.getId())
                     .retrieve()
                     .body(List.class);
             return orderDTOS;
