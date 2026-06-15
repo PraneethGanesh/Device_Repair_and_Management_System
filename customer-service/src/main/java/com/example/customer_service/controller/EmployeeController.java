@@ -26,12 +26,9 @@ public class EmployeeController {
     // POST /api/employees/invite — Invite an employee
     @PostMapping("/invite")
     public ResponseEntity<EmployeeResponse> inviteEmployee(
-            @RequestHeader(value = "X-Auth-Role", required = false) String role,
+            @RequestHeader("X-Auth-Id") String userId,
             @Valid @RequestBody EmployeeRequest request) {
-        if (role == null || !(role.equalsIgnoreCase("COMPANY_ADMIN") || role.equalsIgnoreCase("ADMIN") || role.equalsIgnoreCase("CREATOR") || role.equalsIgnoreCase("SYSTEM_ADMIN"))) {
-            throw new SecurityException("Unauthorized: Only Admins or Company Admins can invite employees.");
-        }
-        EmployeeResponse response = employeeService.inviteEmployee(request);
+        EmployeeResponse response = employeeService.inviteEmployee(request,userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -50,9 +47,9 @@ public class EmployeeController {
     }
 
     // GET /api/employees/company/{companyId} — Get all employees of a company
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@PathVariable UUID companyId) {
-        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(companyId));
+    @GetMapping("/company")
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByCompanyId(@RequestHeader("X-Auth-Id") String userId) {
+        return ResponseEntity.ok(employeeService.getEmployeesByCompanyId(userId));
     }
 
     // GET /api/employees/company/{companyId}/status/{status} — Filter by invite status

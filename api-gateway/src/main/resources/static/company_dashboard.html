@@ -391,15 +391,15 @@
         </div>
 
         <!-- Admin-only nav items -->
-        <div class="nav-section-label" id="nav-section-team" style="display:none;">Team</div>
-        <div class="nav-item" id="nav-employees" style="display:none;" onclick="navGuarded('employees',this)">
+        <div class="nav-section-label">Team</div>
+        <div class="nav-item" id="nav-invite-employee" onclick="navGuarded('invite-employee', this)">
             <div class="nav-icon">👥</div>
-            <span class="nav-label">Employees</span>
+            <span class="nav-label">Invite Employee</span>
             <span class="nav-lock">🔒</span>
         </div>
-        <div class="nav-item" id="nav-assign-device" style="display:none;" onclick="navGuarded('assign-device',this)">
-            <div class="nav-icon">📦</div>
-            <span class="nav-label">Assign Device</span>
+        <div class="nav-item" id="nav-employees" onclick="navGuarded('employees', this)">
+            <div class="nav-icon">👤</div>
+            <span class="nav-label">My Team</span>
             <span class="nav-lock">🔒</span>
         </div>
 
@@ -462,27 +462,67 @@
             </div>
         </div>
 
-        <!-- ── Employees page (Admin only) ── -->
+        <!-- ── Invite Employee page ── -->
+        <div id="page-invite-employee" class="page">
+            <div class="alert" id="al-invite"></div>
+            <div class="gate-wrap" id="gate-invite-employee">
+                <div class="card" style="max-width:560px;">
+                    <div class="card-header">
+                        <div class="card-title">Invite Employee</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Full Name</label>
+                            <input type="text" id="inv-name" placeholder="e.g. Praneeth Ganesh"/>
+                        </div>
+                        <div class="field">
+                            <label>Email</label>
+                            <input type="email" id="inv-email" placeholder="e.g. praneeth@company.com"/>
+                        </div>
+                        <div class="field">
+                            <label>Password</label>
+                            <input type="password" id="inv-password" placeholder="Temporary password"/>
+                        </div>
+                        <div class="field">
+                            <label>Department</label>
+                            <input type="text" id="inv-dept" placeholder="e.g. Engineering"/>
+                        </div>
+                        <div class="field" style="grid-column:1/-1;">
+                            <label>Designation</label>
+                            <input type="text" id="inv-designation" placeholder="e.g. Software Engineer"/>
+                        </div>
+                    </div>
+                    <div class="form-divider"></div>
+                    <button class="btn btn-primary" id="invite-btn" onclick="handleInviteEmployee()">
+                        ◈ Send Invite
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Employees page ── -->
         <div id="page-employees" class="page">
             <div class="alert" id="al-employees"></div>
             <div class="gate-wrap" id="gate-employees">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">Team Members</div>
-                        <div style="display:flex;gap:8px;">
-                            <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadEmployees()">↻ Refresh</button>
-                            <button class="btn btn-primary" style="font-size:10px;padding:6px 14px;" onclick="openInviteModal()">+ Invite Employee</button>
-                        </div>
+                        <div class="card-title">My Team</div>
+                        <button class="btn btn-ghost" style="font-size:10px;padding:6px 12px;" onclick="loadEmployees()">↻ Refresh</button>
                     </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
                             <tr>
-                                <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                                <th>Joined</th>
                             </tr>
                             </thead>
                             <tbody id="employees-body">
-                            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading…</td></tr>
+                            <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -616,28 +656,6 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- ── Invite Employee Modal ── -->
-<div class="modal-backdrop" id="invite-modal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">Invite Employee</div>
-            <button class="modal-close" onclick="closeInviteModal()">✕</button>
-        </div>
-        <div class="alert" id="al-invite"></div>
-        <div class="field">
-            <label>Employee Email</label>
-            <input type="email" id="invite-email" placeholder="employee@company.com"/>
-        </div>
-        <div class="field">
-            <label>Full Name <span style="color:var(--text2);font-size:9px;">(optional)</span></label>
-            <input type="text" id="invite-name" placeholder="e.g. Rahul Sharma"/>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
-            <button class="btn btn-primary" id="invite-btn" onclick="handleInviteEmployee()">◈ Send Invite</button>
-        </div>
-    </div>
-</div>
 
 <!-- ── Unassign Confirm Modal ── -->
 <div class="modal-backdrop" id="unassign-modal">
@@ -659,7 +677,7 @@
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'employees', 'assign-device'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -686,10 +704,10 @@
     // ── Page titles ──────────────────────────────────────────
     const PAGE_TITLES = {
         'account':       'My Company',
-        'employees':     'Employees',
-        'assign-device': 'Assign Device',
+        'invite-employee': 'Invite Employee',
         'place-order':   'Place Order',
         'my-orders':     'My Orders',
+        'employees': 'My Team',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -717,7 +735,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-employees', 'nav-assign-device'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -769,8 +787,8 @@
         document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
         if (!isCompanyApproved && GATED_PAGES.includes(name)) return;
         if (name === 'account')       loadAccount();
-        if (name === 'employees')     loadEmployees();
-        if (name === 'assign-device') { loadAssignDropdowns(); loadAssignments(); }
+        if (name === 'invite-employee') {}
+        if (name === 'employees') loadEmployees();
         if (name === 'place-order')   loadVendors();
         if (name === 'my-orders')     loadMyOrders();
     }
@@ -789,24 +807,21 @@
     }
 
     // ── Render role-specific UI ───────────────────────────────
-    function renderRoleUI(role) {
-        const isAdmin = role === 'COMPANY_ADMIN';
-        const label   = isAdmin ? 'Company Admin' : 'Employee';
-        document.getElementById('sidebar-role-label').textContent = label;
-        document.getElementById('topbar-role-badge').textContent  = label;
-        document.getElementById('stat-role').textContent          = label.toUpperCase();
-
-        if (isAdmin) {
-            // Show admin-only nav items
-            document.getElementById('nav-section-team').style.display = '';
-            document.getElementById('nav-employees').style.display    = '';
-            document.getElementById('nav-assign-device').style.display = '';
-        } else {
-            // Hide order placement from employees
-            const navOrder = document.getElementById('nav-place-order');
-            if (navOrder) navOrder.style.display = 'none';
-        }
-    }
+   function renderRoleUI(role) {
+  const isAdmin = role === 'COMPANY_ADMIN';
+  const label   = isAdmin ? 'Company Admin' : 'Employee';
+  document.getElementById('sidebar-role-label').textContent = label;
+  document.getElementById('topbar-role-badge').textContent  = label;
+  document.getElementById('stat-role').textContent          = label.toUpperCase();
+  if (!isAdmin) {
+  const navOrder   = document.getElementById('nav-place-order');
+  const navInvite  = document.getElementById('nav-invite-employee');
+  const navEmployees = document.getElementById('nav-employees');
+  if (navOrder)     navOrder.style.display     = 'none';
+  if (navInvite)    navInvite.style.display    = 'none';
+  if (navEmployees) navEmployees.style.display = 'none';
+}
+}
 
     // ── Load Account ─────────────────────────────────────────
     async function loadAccount() {
@@ -974,43 +989,57 @@
     // ════════════════════════════════════════════
 
     async function loadEmployees() {
-        document.getElementById('al-employees').classList.remove('show');
-        document.getElementById('employees-body').innerHTML =
-            '<tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading…</td></tr>';
-        try {
-            // GET /api/companies/employees  → List of employees belonging to this company
-            const res = await fetch(GATEWAY + '/api/companies/employees', { headers: authHeaders() });
-            if (!res.ok) {
-                showAlert('al-employees', '✗ ' + await bodyText(res), 'error');
-                document.getElementById('employees-body').innerHTML = emptyRow(5, 'Failed to load employees.');
-                return;
-            }
-            const employees = await res.json();
-            if (!employees.length) {
-                document.getElementById('employees-body').innerHTML = emptyRow(5, 'No employees yet. Invite someone to get started.');
-                return;
-            }
-            document.getElementById('employees-body').innerHTML = employees.map(e => {
-                const status = e.inviteStatus || e.status || 'PENDING';
-                const cls = status === 'ACCEPTED' ? 'badge-approved' : status === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
-                const name = e.name || e.fullName || e.username || '—';
-                const email = e.email || '—';
-                const role = (e.role || 'EMPLOYEE').replace('ROLE_', '');
-                return `<tr>
-            <td style="font-weight:500;">${name}</td>
-            <td style="color:var(--text2);">${email}</td>
-            <td><span class="badge badge-blue">${role}</span></td>
-            <td><span class="badge ${cls}">${status}</span></td>
-            <td>
-              <button class="btn-danger-action" onclick="openUnassignEmployeeModal(${e.id || e.userId}, '${name}')">Remove</button>
-            </td>
-          </tr>`;
-            }).join('');
-        } catch (e) {
-            showAlert('al-employees', '✗ Network error: ' + e.message, 'error');
-            document.getElementById('employees-body').innerHTML = emptyRow(5, 'Error loading employees.');
-        }
+  document.getElementById('al-employees').classList.remove('show');
+  document.getElementById('employees-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading team…</td></tr>';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/company', {
+      headers: authHeaders()
+    });
+
+    if (!res.ok) {
+      showAlert('al-employees', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'Failed to load employees.');
+      return;
     }
+
+    const employees = await res.json(); // List<EmployeeResponse>
+
+    if (!employees.length) {
+      document.getElementById('employees-body').innerHTML = emptyRow(6, 'No employees yet. Invite your first team member.');
+      return;
+    }
+
+    document.getElementById('employees-body').innerHTML = employees.map(e => {
+      const status = e.inviteStatus || 'ACCEPTED';
+      const statusCls = status === 'ACCEPTED' ? 'badge-approved'
+                      : status === 'PENDING'  ? 'badge-pending'
+                      : 'badge-rejected';
+
+      let joinedAt = '—';
+      if (e.createdAt) {
+        try {
+          joinedAt = new Date(e.createdAt).toLocaleString('en-IN', {
+            dateStyle: 'medium', timeStyle: 'short'
+          });
+        } catch { joinedAt = e.createdAt; }
+      }
+
+      return `<tr>
+        <td style="font-weight:500;">${e.fullName || '—'}</td>
+        <td style="color:var(--text2);">${e.email || '—'}</td>
+        <td>${e.department || '—'}</td>
+        <td>${e.designation || '—'}</td>
+        <td><span class="badge ${statusCls}">${status}</span></td>
+        <td style="color:var(--text2);font-size:10px;">${joinedAt}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('al-employees', '✗ Network error: ' + e.message, 'error');
+  }
+}
 
     // ── Invite Modal ──────────────────────────────────────────
     function openInviteModal() {
@@ -1024,36 +1053,52 @@
     }
 
     async function handleInviteEmployee() {
-        document.getElementById('al-invite').classList.remove('show');
-        const email = document.getElementById('invite-email').value.trim();
-        const name  = document.getElementById('invite-name').value.trim();
-        if (!email) { showAlert('al-invite', '⚠ Email is required.', 'error'); return; }
+  document.getElementById('al-invite').classList.remove('show');
 
-        const btn = document.getElementById('invite-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Sending…';
+  const fullName    = document.getElementById('inv-name').value.trim();
+  const email       = document.getElementById('inv-email').value.trim();
+  const password    = document.getElementById('inv-password').value.trim();
+  const department  = document.getElementById('inv-dept').value.trim();
+  const designation = document.getElementById('inv-designation').value.trim();
 
-        try {
-            // POST /api/companies/invite  → { email, name }
-            const res = await fetch(GATEWAY + '/api/companies/invite', {
-                method: 'POST',
-                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, name }),
-            });
-            if (!res.ok) {
-                showAlert('al-invite', '✗ ' + await bodyText(res), 'error');
-                return;
-            }
-            closeInviteModal();
-            showAlert('al-employees', `✓ Invite sent to ${email}`, 'success');
-            loadEmployees();
-        } catch (e) {
-            showAlert('al-invite', '✗ Network error: ' + e.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '◈ Send Invite';
-        }
+  if (!fullName)    { showAlert('al-invite', '⚠ Full name is required.', 'error'); return; }
+  if (!email)       { showAlert('al-invite', '⚠ Email is required.', 'error'); return; }
+  if (!password)    { showAlert('al-invite', '⚠ Password is required.', 'error'); return; }
+  if (!department)  { showAlert('al-invite', '⚠ Department is required.', 'error'); return; }
+  if (!designation) { showAlert('al-invite', '⚠ Designation is required.', 'error'); return; }
+
+  const btn = document.getElementById('invite-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending…';
+
+  try {
+    const res = await fetch(GATEWAY + '/api/employees/invite', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, password, department, designation }),
+    });
+
+    if (!res.ok) {
+      showAlert('al-invite', '✗ ' + await bodyText(res), 'error');
+      return;
     }
+
+    const emp = await res.json(); // EmployeeResponse
+    showAlert('al-invite',
+      `✓ ${emp.fullName} invited successfully — ${emp.email} · ${emp.designation}`,
+      'success');
+
+    // Clear form
+    ['inv-name','inv-email','inv-password','inv-dept','inv-designation']
+      .forEach(id => document.getElementById(id).value = '');
+
+  } catch (e) {
+    showAlert('al-invite', '✗ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '◈ Send Invite';
+  }
+}
 
     // ── Remove Employee (reuse unassign modal for confirmation) ──
     let pendingRemoveEmployeeId = null;
