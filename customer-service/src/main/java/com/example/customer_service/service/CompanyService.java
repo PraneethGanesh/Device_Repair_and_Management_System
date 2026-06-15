@@ -12,11 +12,13 @@ import com.example.customer_service.exception.ResourceNotFoundException;
 import com.example.customer_service.repository.CompanyRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -125,5 +127,16 @@ public class CompanyService {
                 ()-> new CompanyNotFoundException("Company with ID:"+userId+" is not found")
         );
         return company.getApprovalStatus().equals(ApprovalStatus.APPROVED) ? true:false;
+    }
+
+    public List<Map<String, Object>> getMyOrders(String userId) {
+        Company company = companyRepository.findByUserId(userId).orElseThrow(
+                () -> new CompanyNotFoundException("Company with ID:" + userId + " is not found")
+        );
+
+        return orderClient.get()
+                .uri("/api/order/company/{companyId}", company.getId())
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
     }
 }

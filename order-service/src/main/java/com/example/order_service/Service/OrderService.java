@@ -56,7 +56,10 @@ public class OrderService {
         orderDTO.setOrder_id(orders.getId());
         orderDTO.setCompany_id(orders.getCompanyId());
         orderDTO.setDevice_id(orders.getDeviceId());
+        orderDTO.setVendor_id(orders.getVendorId());
         orderDTO.setQuantity(orders.getQuantity());
+        orderDTO.setStatus(orders.getStatus());
+        orderDTO.setPlacedAt(orders.getPlacedAt());
         return orderDTO;
     }
 
@@ -93,5 +96,12 @@ public class OrderService {
         List<OrderDTO> orderDTOS=orders.stream().map(orders1 -> toOrderDTO(orders1))
                 .toList();
         return orderDTOS;
+    }
+
+    public List<OrderDTO> getOrdersByCompany(UUID companyId) {
+        return orderRepository.findByCompanyId(companyId)
+                .stream()
+                .map(this::toOrderDTO)
+                .toList();
     }
 }

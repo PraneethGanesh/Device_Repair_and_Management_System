@@ -7,10 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Orders,Long> {
     @Query("SELECT o FROM Orders o WHERE o.vendorId = :vendorId AND o.status = :status")
     List<Orders> findOrders(
             @Param("vendorId") long vendorId,
             @Param("status") OrderStatus status);
+
+    List<Orders> findByCompanyId(UUID companyId);
 }

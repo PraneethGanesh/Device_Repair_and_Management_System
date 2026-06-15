@@ -1027,7 +1027,7 @@ async function handlePlaceOrder() {
         }
         document.getElementById('my-orders-body').innerHTML = orders.map(o => {
           const s = o.status || 'PENDING';
-          const cls = s === 'ACCEPTED' ? 'badge-approved' : s === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
+          const cls = (s === 'APPROVED' || s === 'ACCEPTED') ? 'badge-approved' : s === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
           return `<tr>
             <td style="color:var(--text2);font-size:10px;">#${o.orderId || o.id || '—'}</td>
             <td style="font-weight:500;">${o.deviceId || o.device_id || '—'}</td>
