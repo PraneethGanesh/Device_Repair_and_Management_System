@@ -3,6 +3,7 @@ package com.example.customer_service.service;
 
 import com.example.customer_service.dto.CompanyRequest;
 import com.example.customer_service.dto.CompanyResponse;
+import com.example.customer_service.dto.OrderDTO;
 import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.entity.Company;
@@ -129,7 +130,7 @@ public class CompanyService {
         return company.getApprovalStatus().equals(ApprovalStatus.APPROVED) ? true:false;
     }
 
-    public List<Map<String, Object>> getMyOrders(String userId) {
+    public List<OrderDTO> getMyOrders(String userId) {
         Company company = companyRepository.findByUserId(userId).orElseThrow(
                 () -> new CompanyNotFoundException("Company with ID:" + userId + " is not found")
         );
@@ -137,6 +138,6 @@ public class CompanyService {
         return orderClient.get()
                 .uri("/api/order/company/{companyId}", company.getId())
                 .retrieve()
-                .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
+                .body(new ParameterizedTypeReference<List<OrderDTO>>() {});
     }
 }

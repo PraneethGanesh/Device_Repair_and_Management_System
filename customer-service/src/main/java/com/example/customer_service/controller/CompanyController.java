@@ -3,6 +3,7 @@ package com.example.customer_service.controller;
 
 import com.example.customer_service.dto.CompanyRequest;
 import com.example.customer_service.dto.CompanyResponse;
+import com.example.customer_service.dto.OrderDTO;
 import com.example.customer_service.dto.OrderRequest;
 import com.example.customer_service.entity.ApprovalStatus;
 import com.example.customer_service.service.CompanyService;
@@ -98,7 +99,7 @@ public class CompanyController {
     }
 
     @GetMapping("/orders/my")
-    public ResponseEntity<?> getMyOrders(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<List<OrderDTO>> getMyOrders(@RequestHeader("X-Auth-Id") String userId) {
         return ResponseEntity.ok(companyService.getMyOrders(userId));
     }
 

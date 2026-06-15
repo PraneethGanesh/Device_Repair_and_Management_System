@@ -481,7 +481,12 @@
                         <table>
                             <thead>
                             <tr>
-                                <th>Order ID</th><th>Device</th><th>Vendor</th><th>Qty</th><th>Status</th>
+                                <th>Order ID</th>
+                                <th>Device ID</th>
+                                <th>Vendor ID</th>
+                                <th>Qty</th>
+                                <th>Placed At</th>
+                                <th>Status</th>
                             </tr>
                             </thead>
                             <tbody id="my-orders-body">
@@ -1010,36 +1015,47 @@ async function handlePlaceOrder() {
 
     // ── Load My Orders ────────────────────────────────────────
     async function loadMyOrders() {
-      document.getElementById('al-my-orders').classList.remove('show');
-      document.getElementById('my-orders-body').innerHTML =
-        '<tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading orders…</td></tr>';
-      try {
-        const res = await fetch(GATEWAY + '/api/companies/orders/my', { headers: authHeaders() });
-        if (!res.ok) {
-          showAlert('al-my-orders', '✗ ' + await bodyText(res), 'error');
-          document.getElementById('my-orders-body').innerHTML = emptyRow(5, 'Failed to load orders.');
-          return;
-        }
-        const orders = await res.json();
-        if (!orders.length) {
-          document.getElementById('my-orders-body').innerHTML = emptyRow(5, 'No orders placed yet.');
-          return;
-        }
-        document.getElementById('my-orders-body').innerHTML = orders.map(o => {
-          const s = o.status || 'PENDING';
-          const cls = (s === 'APPROVED' || s === 'ACCEPTED') ? 'badge-approved' : s === 'REJECTED' ? 'badge-rejected' : 'badge-pending';
-          return `<tr>
-            <td style="color:var(--text2);font-size:10px;">#${o.orderId || o.id || '—'}</td>
-            <td style="font-weight:500;">${o.deviceId || o.device_id || '—'}</td>
-            <td>${o.vendorId || o.vendor_id || '—'}</td>
-            <td>${o.quantity || '—'}</td>
-            <td><span class="badge ${cls}">${s}</span></td>
-          </tr>`;
-        }).join('');
-      } catch (e) {
-        showAlert('al-my-orders', '✗ Network error: ' + e.message, 'error');
-      }
+  document.getElementById('al-my-orders').classList.remove('show');
+  document.getElementById('my-orders-body').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading orders…</td></tr>';
+  try {
+    const res = await fetch(GATEWAY + '/api/companies/orders/my', { headers: authHeaders() });
+    if (!res.ok) {
+      showAlert('al-my-orders', '✗ ' + await bodyText(res), 'error');
+      document.getElementById('my-orders-body').innerHTML = emptyRow(6, 'Failed to load orders.');
+      return;
     }
+    const orders = await res.json();
+    if (!orders.length) {
+      document.getElementById('my-orders-body').innerHTML = emptyRow(6, 'No orders placed yet.');
+      return;
+    }
+    document.getElementById('my-orders-body').innerHTML = orders.map(o => {
+      const s   = o.status || 'PENDING';
+      const cls = (s === 'APPROVED' || s === 'ACCEPTED') ? 'badge-approved'
+                : s === 'REJECTED' ? 'badge-rejected'
+                : 'badge-pending';
+
+      // Format ISO datetime → readable local string, fallback to raw value
+      let placedAt = '—';
+      if (o.placedAt) {
+        try { placedAt = new Date(o.placedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); }
+        catch { placedAt = o.placedAt; }
+      }
+
+      return `<tr>
+        <td style="color:var(--text2);font-size:10px;">#${o.order_id ?? o.orderId ?? '—'}</td>
+        <td style="font-weight:500;">${o.device_id ?? o.deviceId ?? '—'}</td>
+        <td>${o.vendor_id ?? o.vendorId ?? '—'}</td>
+        <td>${o.quantity ?? '—'}</td>
+        <td style="color:var(--text2);font-size:10px;">${placedAt}</td>
+        <td><span class="badge ${cls}">${s}</span></td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    showAlert('al-my-orders', '✗ Network error: ' + e.message, 'error');
+  }
+}
 
     // ── Init ─────────────────────────────────────────────────
     loadAccount();
