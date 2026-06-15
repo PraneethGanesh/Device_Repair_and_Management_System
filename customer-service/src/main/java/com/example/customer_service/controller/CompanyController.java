@@ -97,5 +97,9 @@ public class CompanyController {
         return companyService.placeOrder(userId,orderRequest);
     }
 
+    @GetMapping("/orders/my")
+    public ResponseEntity<?> getMyOrders(@RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(companyService.getMyOrders(userId));
+    }
 
 }

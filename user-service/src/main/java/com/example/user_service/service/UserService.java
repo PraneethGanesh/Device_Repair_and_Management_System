@@ -27,7 +27,7 @@ public class UserService {
     }
 
     public AuthResponse registerUser(UserDTO userDTO,String role){
-       User user=new User();
+       var user=new User();
        user.setName(userDTO.getName());
        user.setEmail(userDTO.getEmail());
        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));

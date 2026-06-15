@@ -35,5 +35,9 @@ public class OrderController {
         return orderService.getOrdersByVendor(vendorId);
     }
 
+    @GetMapping("/company/{companyId}")
+    public List<OrderDTO> getOrdersByCompany(@PathVariable UUID companyId){
+        return orderService.getOrdersByCompany(companyId);
+    }
 
 }
