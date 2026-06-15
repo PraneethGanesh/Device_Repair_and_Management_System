@@ -414,14 +414,20 @@
             <span class="nav-label">My Orders</span>
             <span class="nav-lock">🔒</span>
         </div>
+        <div class="nav-section-label">Devices</div>
+        <div class="nav-item" id="nav-device-catalog" onclick="navGuarded('device-catalog', this)">
+            <div class="nav-icon">🗂️</div>
+            <span class="nav-label">Device Catalog</span>
+            <span class="nav-lock">🔒</span>
+        </div>
+        <div class="nav-item" id="nav-my-devices" onclick="navGuarded('my-devices', this)">
+            <div class="nav-icon">💻</div>
+            <span class="nav-label">Purchased Devices</span>
+            <span class="nav-lock">🔒</span>
+        </div>
     </nav>
 
-    <div class="nav-section-label">Devices</div>
-    <div class="nav-item" id="nav-my-devices" onclick="navGuarded('my-devices', this)">
-        <div class="nav-icon">💻</div>
-        <span class="nav-label">My Devices</span>
-        <span class="nav-lock">🔒</span>
-    </div>
+
 
     <div class="sidebar-footer">
         <button class="logout-btn" onclick="logout()">
@@ -690,6 +696,32 @@
             </div>
         </div>
 
+        <!-- ── Device Catalog page ── -->
+        <div id="page-device-catalog" class="page">
+            <div class="alert" id="al-device-catalog"></div>
+            <div class="gate-wrap" id="gate-device-catalog">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Device Catalog</div>
+                    </div>
+                    <div class="field" style="max-width:360px;margin-bottom:20px;">
+                        <label>Select Vendor</label>
+                        <div class="select-wrap">
+                            <select id="catalog-vendor" onchange="loadCatalogDevices(this.value)">
+                                <option value="" disabled selected>Select a vendor…</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="catalog-devices-wrap">
+                        <div class="empty">
+                            <div class="empty-icon">🗂️</div>
+                            <div class="empty-text">Select a vendor to view their devices</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
@@ -740,7 +772,7 @@
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -772,6 +804,7 @@
         'my-orders':     'My Orders',
         'employees': 'My Team',
         'my-devices': 'My Devices',
+        'device-catalog': 'Device Catalog',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -799,7 +832,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -856,6 +889,7 @@
         if (name === 'place-order')   loadVendors();
         if (name === 'my-orders')     loadMyOrders();
         if (name === 'my-devices') loadMyDevices();
+        if (name === 'device-catalog') loadDeviceCatalogVendors();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -1637,6 +1671,94 @@ async function confirmAssignFromTable() {
     btn.disabled = false;
     btn.innerHTML = '◈ Assign';
   }
+}
+
+  async function loadDeviceCatalogVendors() {
+    document.getElementById('al-device-catalog').classList.remove('show');
+    const select = document.getElementById('catalog-vendor');
+    select.innerHTML = '<option value="" disabled selected>Loading vendors…</option>';
+    document.getElementById('catalog-devices-wrap').innerHTML = `
+        <div class="empty">
+            <div class="empty-icon">🗂️</div>
+            <div class="empty-text">Select a vendor to view their devices</div>
+        </div>`;
+    try {
+        const res = await fetch(GATEWAY + '/api/vendors', { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-device-catalog', '✗ Failed to load vendors.', 'error');
+            select.innerHTML = '<option value="" disabled selected>Failed to load…</option>';
+            return;
+        }
+        const vendors = await res.json();
+        if (!vendors.length) {
+            select.innerHTML = '<option value="" disabled selected>No vendors available</option>';
+            return;
+        }
+        select.innerHTML = '<option value="" disabled selected>Select a vendor…</option>';
+        vendors.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = v.companyName;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        showAlert('al-device-catalog', '✗ Network error: ' + e.message, 'error');
+    }
+}
+
+async function loadCatalogDevices(vendorId) {
+    if (!vendorId) return;
+    const wrap = document.getElementById('catalog-devices-wrap');
+    wrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:16px;">
+        <span class="spinner"></span> Loading devices…</div>`;
+    document.getElementById('al-device-catalog').classList.remove('show');
+    try {
+        const res = await fetch(GATEWAY + `/api/devices/vendor/${vendorId}`, { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-device-catalog', '✗ Failed to load devices.', 'error');
+            wrap.innerHTML = emptyRow ? '' : '';
+            wrap.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Failed to load devices.</div></div>`;
+            return;
+        }
+        const devices = await res.json();
+        if (!devices.length) {
+            wrap.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">No devices listed by this vendor.</div></div>`;
+            return;
+        }
+        wrap.innerHTML = `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>In Stock</th>
+                            <th>Warranty Expiry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${devices.map(d => `
+                        <tr>
+                            <td style="color:var(--text2);font-size:10px;">#${d.deviceId}</td>
+                            <td style="font-weight:500;">${d.deviceName || '—'}</td>
+                            <td><span class="badge badge-blue">${d.deviceType || '—'}</span></td>
+                            <td>
+                                <span style="color:${d.stockQuantity > 0 ? 'var(--accent)' : 'var(--error)'}; font-weight:600;">
+                                    ${d.stockQuantity}
+                                </span>
+                                <span style="color:var(--text2);font-size:9px;margin-left:4px;">
+                                    ${d.stockQuantity > 0 ? 'available' : 'out of stock'}
+                                </span>
+                            </td>
+                            <td style="color:var(--text2);font-size:10px;">${d.warrantyExpiry || '—'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (e) {
+        showAlert('al-device-catalog', '✗ Network error: ' + e.message, 'error');
+    }
 }
 
     // ── Init ─────────────────────────────────────────────────
