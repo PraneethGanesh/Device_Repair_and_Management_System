@@ -1136,10 +1136,10 @@
 
         try {
             // POST /api/companies/assign-device  → { employeeId, deviceId }
-            const res = await fetch(GATEWAY + '/api/companies/assign-device', {
+            const res = await fetch(GATEWAY + '/api/assignments/company/{companyId}', {
                 method: 'POST',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ employeeId: parseInt(employeeId), deviceId: parseInt(deviceId) }),
+                body: JSON.stringify({ employeeId: employeeId, deviceId: parseInt(deviceId) }),
             });
 
             if (!res.ok) {
