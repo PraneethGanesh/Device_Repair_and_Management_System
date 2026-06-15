@@ -85,6 +85,46 @@ public class EmployeeService {
        return EmployeeResponse.from(employee);
     }
 
+    public EmployeeResponse getEmployeeOrCreate(String userId, String email, String role) {
+        return employeeRepository.findByUserId(userId)
+                .map(EmployeeResponse::from)
+                .orElseGet(() -> {
+                    if (role != null && role.equalsIgnoreCase("COMPANY_EMPLOYEE")) {
+                        Company company = companyRepository.findAll().stream().findFirst().orElseGet(() -> {
+                            Company newCompany = new Company();
+                            newCompany.setUserId("system");
+                            newCompany.setCompanyName("Default Company");
+                            newCompany.setGstNumber("00AAAAA0000A0Z0");
+                            newCompany.setAddress("Default Address");
+                            newCompany.setApprovalStatus(ApprovalStatus.APPROVED);
+                            return companyRepository.save(newCompany);
+                        });
+
+                        Employee employee = new Employee();
+                        employee.setUserId(userId);
+                        employee.setEmail(email != null ? email : "employee@company.com");
+
+                        String derivedName = "Employee";
+                        if (email != null && email.contains("@")) {
+                            String firstPart = email.split("@")[0];
+                            derivedName = java.util.Arrays.stream(firstPart.split("[._]"))
+                                    .filter(s -> !s.isEmpty())
+                                    .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+                                    .collect(Collectors.joining(" "));
+                        }
+                        employee.setFullName(derivedName);
+                        employee.setCompany(company);
+                        employee.setInviteStatus(InviteStatus.ACCEPTED);
+                        employee.setDepartment("Engineering");
+                        employee.setDesignation("Software Engineer");
+
+                        Employee saved = employeeRepository.save(employee);
+                        return EmployeeResponse.from(saved);
+                    }
+                    throw new ResourceNotFoundException("Employee not found with user id: " + userId);
+                });
+    }
+
     public List<EmployeeResponse> getEmployeesByCompanyId(UUID companyId) {
         if (!companyRepository.existsById(companyId)) {
             throw new ResourceNotFoundException("Company not found with id: " + companyId);
