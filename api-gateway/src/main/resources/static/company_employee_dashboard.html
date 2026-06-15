@@ -501,11 +501,11 @@ async function loadProfile() {
 
     const name  = employeeProfile.fullName || userInfo.name || 'Employee';
     const dept  = employeeProfile.department || '';
-    const desig = employeeProfile.designation || '';
+    const design = employeeProfile.designation || '';
 
     document.getElementById('welcome-name').textContent = `Welcome, ${name.split(' ')[0]} 👋`;
     document.getElementById('welcome-sub').textContent =
-      `${desig}${dept ? ' · ' + dept : ''} — Submit a repair request for any device assigned to you`;
+      `${design}${dept ? ' · ' + dept : ''} — Submit a repair request for any device assigned to you`;
     document.getElementById('welcome-avatar').textContent = initials(name);
     document.getElementById('sidebar-avatar').textContent = initials(name);
     document.getElementById('sidebar-name').textContent = name.split(' ')[0];
