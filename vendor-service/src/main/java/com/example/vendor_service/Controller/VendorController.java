@@ -43,7 +43,7 @@ public class VendorController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<VendorDTO> getVendor(String userId){
+    public ResponseEntity<VendorDTO> getVendor(@PathVariable String userId){
         return  vendorService.getVendor(userId);
     }
 
