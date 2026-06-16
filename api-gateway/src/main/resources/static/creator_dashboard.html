@@ -416,7 +416,7 @@ function initCreatorIdentity() {
 
   const now = new Date();
   document.getElementById('overview-subtitle').textContent =
-    `Real-time monitoring across all AssetMD systems — ${now.toLocaleDateString('en-IN',t {weekday:'long', year:'numeric', month:'long', day:'numeric'})}`;
+    `Real-time monitoring across all AssetMD systems — ${now.toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}`;
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
@@ -502,11 +502,12 @@ async function loadOverview() {
 
 async function loadOverviewRepairs() {
   try {
-    // Load raised requests (platform-wide via creator token)
-    const res = await fetch('/api/repairs/open', { headers: AUTH });
-    let raisedList = [];
-    if (res.ok) raisedList = await res.json();
+    const res = await fetch('/api/repairs', { headers: AUTH });
+    let allRequests = [];
+    if (res.ok) allRequests = await res.json();
 
+    const raisedList = allRequests.filter(r => r.status === 'RAISED');
+    const repairedList = allRequests.filter(r => r.status === 'REPAIR_DONE' || r.status === 'CLOSED');
     const raisedCount = raisedList.length;
     document.getElementById('stat-open').textContent = raisedCount;
     if (raisedCount > 0) {
@@ -517,12 +518,7 @@ async function loadOverviewRepairs() {
     // Show in overview table (raised ones)
     renderOverviewRepairs(raisedList.slice(0, 5));
 
-    // For total/completed we try repaired endpoint
-    const resRepaired = await fetch('/api/repairs/repaired', { headers: AUTH });
-    let repairedList = [];
-    if (resRepaired.ok) repairedList = await resRepaired.json();
-
-    document.getElementById('stat-total-repairs').textContent = raisedList.length + repairedList.length;
+    document.getElementById('stat-total-repairs').textContent = allRequests.length;
     document.getElementById('stat-completed').textContent = repairedList.length;
     document.getElementById('sum-inprogress').textContent = raisedList.length;
   } catch (e) {
@@ -599,14 +595,10 @@ async function loadAllRepairs() {
   const wrap = document.getElementById('all-repairs-wrap');
   wrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
   try {
-    // Creator sees raised + repaired repairs
-    const [rRes, rpRes] = await Promise.all([
-      fetch('/api/repairs/open', { headers: AUTH }),
-      fetch('/api/repairs/repaired', { headers: AUTH })
-    ]);
-    const raised   = rRes.ok   ? await rRes.json()   : [];
-    const repaired = rpRes.ok  ? await rpRes.json()  : [];
-    const all = [...raised, ...repaired].sort((a, b) => (b.id || 0) - (a.id || 0));
+    const res = await fetch('/api/repairs', { headers: AUTH });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const all = (Array.isArray(data) ? data : (data.content || [])).sort((a, b) => (b.id || 0) - (a.id || 0));
 
     if (!all.length) {
       wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No repair requests found</div>`;

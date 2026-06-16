@@ -86,6 +86,11 @@ services:
       - "8761:8761"
     networks:
       - devicesupply-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # ── User Service ───────────────────────────────────────────────
   user-service:

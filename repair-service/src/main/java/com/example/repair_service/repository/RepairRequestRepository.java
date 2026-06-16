@@ -13,8 +13,7 @@ import java.util.UUID;
 @Repository
 public interface RepairRequestRepository extends JpaRepository<RepairRequest, Long> {
 
-//    // All requests raised by a specific employee/admin
-//    List<RepairRequest> findByRaisedBy(long raisedBy);
+    List<RepairRequest> findByRaisedBy(UUID raisedBy);
 //
 //    // All requests assigned to a specific vendor
 //    List<RepairRequest> findByVendorId(long vendorId);
@@ -41,4 +40,6 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
             @Param("vendorId") long vendorId);
 
     List<RepairRequest> findByCompanyIdAndStatus(UUID companyId,RepairStatus status);
+
+    List<RepairRequest> findByCompanyId(UUID companyId);
 }

@@ -31,6 +31,14 @@ public class NotificationService {
 
     @Async
     public void sendBulkEmail(List<String> toEmails, String subject, String body) {
+        if (toEmails == null || toEmails.isEmpty()) {
+            LOGGER.warn("Skipping bulk email because recipient list is empty. Subject: {}", subject);
+            return;
+        }
+        if (fromEmail == null || fromEmail.isBlank()) {
+            LOGGER.warn("Skipping bulk email because MAIL_USERNAME is not configured. Subject: {}", subject);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -42,12 +50,20 @@ public class NotificationService {
 
             LOGGER.info("✅ Email sent successfully to {} recipients: {}", toEmails.size(), toEmails);
 
-        } catch (MailException e) {
+        } catch (RuntimeException e) {
             LOGGER.error("❌ Failed to send email: {}", e.getMessage());
         }
     }
     @Async
     public void sendSingleEmail(String toEmail, String subject, String body) {
+        if (toEmail == null || toEmail.isBlank()) {
+            LOGGER.warn("Skipping single email because recipient email is empty. Subject: {}", subject);
+            return;
+        }
+        if (fromEmail == null || fromEmail.isBlank()) {
+            LOGGER.warn("Skipping single email to {} because MAIL_USERNAME is not configured.", toEmail);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -59,7 +75,7 @@ public class NotificationService {
 
             LOGGER.info("✅ Email sent successfully to recipient: {}",toEmail);
 
-        } catch (MailException e) {
+        } catch (RuntimeException e) {
             LOGGER.error("❌ Failed to send email to {}: {}", toEmail, e.getMessage());
         }
     }

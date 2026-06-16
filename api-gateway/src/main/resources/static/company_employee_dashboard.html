@@ -554,11 +554,10 @@ async function loadAssignments() {
 }
 
 // ── LOAD: REPAIR REQUESTS ──────────────────────────────────────────────────
-// The repair endpoint uses X-Auth-Id header to scope results to this employee.
-// We pass the userId so repair-service can filter by raisedBy.
+// The repair endpoint uses X-Auth-Id from the token to scope results to this employee.
 async function loadRequests() {
   try {
-    const res = await fetch('/api/repairs/open', {
+    const res = await fetch('/api/repairs/my', {
       headers: { ...AUTH, 'X-Auth-Id': userInfo.id || '' }
     });
     if (!res.ok) throw new Error();
