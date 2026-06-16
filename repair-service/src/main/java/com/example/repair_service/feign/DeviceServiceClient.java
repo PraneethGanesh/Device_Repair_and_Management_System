@@ -20,7 +20,7 @@ public interface DeviceServiceClient {
 
     @GetMapping("/api/device_instance/{instanceId}")
     ResponseEntity<ResponseDTO> getVendorId(@PathVariable long instanceId);
-    @PutMapping("/api/device_instance/{status}/{instanceId}")
+    @PutMapping("/api/device_instance/device/{status}/{instanceId}")
     ResponseEntity<?> updateDeviceStatus(@PathVariable String status,
                                                              @PathVariable long instanceId);
 }
