@@ -3,9 +3,9 @@ spring:
     name: repair-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/repairdb?createDatabaseIfNotExist=true
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/repairdb?createDatabaseIfNotExist=true}
     username: ${USER_NAME}
-    password: ${PASSWORD}
+    password: ${PASSWORD:drms_pass}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -16,7 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:
       acks: all
       retries: 3
@@ -44,20 +44,20 @@ eureka:
 
 rabbitmq:
   exchange:
-    name: notification_exchange
+    name: notification.exchange
   repair:
     raised:
       routing:
-        key: repair_raised_key
+        key: notification.company.repair-raised
     acknowledged:
       routing:
-        key: repair_acknowledged_key
+        key: notification.broadcast
     completed:
       routing:
-        key: repair_completed_key
+        key: notification.company.repair-completed
     closed:
       routing:
-        key: repair_closed_key
+        key: notification.employee.repair-closed
 feign:
   circuitbreaker:
     enabled: true

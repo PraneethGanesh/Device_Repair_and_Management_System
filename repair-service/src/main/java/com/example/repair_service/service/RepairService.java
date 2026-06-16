@@ -141,6 +141,7 @@ public class RepairService {
         }
 
         request.setStatus(RepairStatus.REPAIR_DONE);
+        request.setResolvedAt(LocalDateTime.now());
         RepairRequest saved = repairRepository.save(request);
 
         deviceServiceClient.updateDeviceStatus("REPAIRED",request.getDeviceInstanceId());
@@ -186,6 +187,20 @@ public class RepairService {
         UUID companyId=response.getId();
         List<RepairRequest> repairRequests=repairRepository.findByCompanyIdAndStatus(companyId,RepairStatus.RAISED);
         return repairRequests;
+    }
+
+    public List<RepairRequest> getRequestsByEmployee(String userId) {
+        EmployeeDTO response = customerServiceClient.getEmployeeByUserId(userId).getBody();
+        return repairRepository.findByRaisedBy(response.getId());
+    }
+
+    public List<RepairRequest> getAllRequestsForCompany(String userId) {
+        CompanyResponse response = customerServiceClient.getCompanyByUserId(userId).getBody();
+        return repairRepository.findByCompanyId(response.getId());
+    }
+
+    public List<RepairRequest> getAllRequests() {
+        return repairRepository.findAll();
     }
 
     public List<RepairRequest> getRequestsAssignedToVendor(String userId) {

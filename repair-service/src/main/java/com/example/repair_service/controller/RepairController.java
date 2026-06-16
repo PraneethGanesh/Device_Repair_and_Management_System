@@ -42,6 +42,21 @@ public class RepairController {
         return repairService.getOpenRequestsByCompany(userId);
     }
 
+    @GetMapping("/my")
+    public List<RepairRequest> getMyRequests(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getRequestsByEmployee(userId);
+    }
+
+    @GetMapping("/company")
+    public List<RepairRequest> getCompanyRequests(@RequestHeader("X-Auth-Id") String userId) {
+        return repairService.getAllRequestsForCompany(userId);
+    }
+
+    @GetMapping
+    public List<RepairRequest> getAllRequests() {
+        return repairService.getAllRequests();
+    }
+
      // Vendor marks repair as IN_PROGRESS
     @PutMapping("{id}/progress")
     public ResponseEntity<RepairRequest> markInProgress(@PathVariable long id,
