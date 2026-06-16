@@ -966,7 +966,7 @@
 
   const GATED_PAGES = ['devices', 'add-device', 'orders', 'repairs-assigned', 'repairs-inprogress'];
 
-  // three possible states: 'unregistered' | 'pending' | 'approved'
+  // four possible states: 'unregistered' | 'pending' | 'approved' | 'rejected'
   let vendorState = 'unregistered';
 
   // ── Auth helper ──────────────────────────────────────────
@@ -1008,6 +1008,9 @@
     } else if (vendorState === 'pending') {
       chip.className = 'sidebar-approval pending';
       txt.textContent = 'Pending Approval';
+    } else if (vendorState === 'rejected') {
+      chip.className = 'sidebar-approval rejected';
+      txt.textContent = 'Account Rejected';
     } else {
       chip.className = 'sidebar-approval not-registered';
       txt.textContent = 'Registration Required';
@@ -1040,6 +1043,7 @@
 
         if (!wrap.querySelector('.gate-overlay')) {
           const isPending = vendorState === 'pending';
+          const isRejected = vendorState === 'rejected';
           const overlay = document.createElement('div');
           overlay.className = 'gate-overlay';
           overlay.innerHTML = isPending
@@ -1053,6 +1057,19 @@
                 <div class="gate-status">
                   <span class="gate-status-dot"></span>
                   Pending Admin Approval
+                </div>
+              </div>`
+            : isRejected
+            ? `<div class="gate-box">
+                <span class="gate-icon">✗</span>
+                <div class="gate-title">Access Restricted</div>
+                <div class="gate-msg">
+                  Your vendor account was not approved.<br>
+                  Please contact the platform administrator.
+                </div>
+                <div class="gate-status">
+                  <span class="gate-status-dot"></span>
+                  Account Rejected
                 </div>
               </div>`
             : `<div class="gate-box">
@@ -1086,6 +1103,18 @@
         vendorState = 'pending';
       }
     } catch {
+      vendorState = 'pending';
+    }
+    applyGates();
+  }
+
+  function applyVendorApprovalStatus(vendor) {
+    const status = String(vendor?.approvalStatus || '').toUpperCase();
+    if (status === 'APPROVED') {
+      vendorState = 'approved';
+    } else if (status === 'REJECTED') {
+      vendorState = 'rejected';
+    } else {
       vendorState = 'pending';
     }
     applyGates();
@@ -1274,14 +1303,14 @@
       return;
     }
 
-    // ── 200 → profile exists, now check approval ─────────────
+    // ── 200 → profile exists, now use its approval status ────
     const data = await res.json();
-    await checkApproval(); // sets vendorState to 'pending' or 'approved'
+    const v = data['Vendor Account:'] || data;
+    applyVendorApprovalStatus(v);
 
     // Render profile card
-    const v = data['Vendor Account:'] || data;
     const isApproved = vendorState === 'approved';
-    const isRejected = (data['Approval status:'] || '').toLowerCase().includes('reject');
+    const isRejected = vendorState === 'rejected';
     const badgeCls = isApproved ? 'badge-approved' : isRejected ? 'badge-rejected' : 'badge-pending';
     const badgeTxt = isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending';
 

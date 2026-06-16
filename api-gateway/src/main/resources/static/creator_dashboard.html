@@ -104,6 +104,15 @@
   .pill.gray { background: rgba(107,140,174,0.12); color: var(--text-muted); }
   .pill::before { content: '●'; font-size: 7px; }
 
+  .inline-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mini-btn { border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--text-muted); padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .mini-btn:hover { background: var(--surface2); color: var(--text); }
+  .mini-btn.approve { border-color: rgba(16,185,129,0.35); color: var(--green); }
+  .mini-btn.approve:hover { background: var(--green-dim); }
+  .mini-btn.reject { border-color: rgba(239,68,68,0.35); color: var(--red); }
+  .mini-btn.reject:hover { background: var(--red-dim); }
+  .mini-btn:disabled { opacity: 0.55; cursor: wait; }
+
   .log-list { padding: 4px 0; }
   .log-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 20px; border-bottom: 1px solid var(--border); font-size: 12px; }
   .log-item:last-child { border-bottom: none; }
@@ -338,10 +347,17 @@
     <div class="page-section" id="page-vendors">
       <div class="page-header">
         <h1>Vendors</h1>
-        <p>All repair vendors registered on the platform</p>
+        <p>Review new vendor registrations and monitor approved vendors</p>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-header">
+          <span class="card-title">Pending Approval</span>
+          <span class="card-action" onclick="loadVendors()">Refresh</span>
+        </div>
+        <div id="pending-vendors-wrap"><div class="loading"><span class="spinner"></span>Loading...</div></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Vendor List</span></div>
+        <div class="card-header"><span class="card-title">Approved Vendors</span></div>
         <div id="vendors-wrap"><div class="loading"><span class="spinner"></span>Loading...</div></div>
       </div>
     </div>
@@ -378,7 +394,7 @@ const token = localStorage.getItem('token');
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
 const role = (userInfo.role || localStorage.getItem('role') || '').toUpperCase();
 
-if (!token || !['CREATOR', 'SYSTEM_ADMIN', 'ADMIN'].includes(role)) {
+if (!token || role !== 'ADMIN') {
   window.location.href = 'auth.html';
 }
 
@@ -449,6 +465,15 @@ function timeAgo(dateStr) {
 function initials(name) {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // ── LOAD OVERVIEW DATA ─────────────────────────────────────────────────────
@@ -628,27 +653,104 @@ async function loadCompanies() {
 
 async function loadVendors() {
   const wrap = document.getElementById('vendors-wrap');
+  const pendingWrap = document.getElementById('pending-vendors-wrap');
   wrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
+  pendingWrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
+
   try {
-    const res = await fetch('/api/vendors', { headers: AUTH });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.content || []);
-    if (!list.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔩</div>No vendors registered</div>`; return; }
-    const rows = list.map(v => `
-      <tr>
-        <td style="color:var(--accent);font-weight:600">${v.id || '—'}</td>
-        <td>${v.companyName || v.name || '—'}</td>
-        <td style="color:var(--text-muted)">${v.email || '—'}</td>
-        <td style="color:var(--text-muted)">${v.serviceType || v.specialty || '—'}</td>
-        <td><span class="pill green">Active</span></td>
-      </tr>`).join('');
-    wrap.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th>ID</th><th>Vendor Name</th><th>Email</th><th>Service Type</th><th>Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
+    const [pendingRes, approvedRes] = await Promise.all([
+      fetch('/api/vendors/pending', { headers: AUTH }),
+      fetch('/api/vendors/approvals', { headers: AUTH })
+    ]);
+
+    if (!pendingRes.ok) throw new Error('Could not load pending vendors');
+    if (!approvedRes.ok) throw new Error('Could not load approved vendors');
+
+    const pendingData = await pendingRes.json();
+    const approvedData = await approvedRes.json();
+    const pending = Array.isArray(pendingData) ? pendingData : (pendingData.content || []);
+    const approved = Array.isArray(approvedData) ? approvedData : (approvedData.content || []);
+
+    renderPendingVendors(pending);
+    renderApprovedVendors(approved);
+    document.getElementById('sum-vendors').textContent = approved.length;
   } catch {
+    pendingWrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load pending vendors — is vendor-service running?</div>`;
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load vendors — is vendor-service running?</div>`;
+  }
+}
+
+function renderPendingVendors(list) {
+  const wrap = document.getElementById('pending-vendors-wrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div>No vendors waiting for approval</div>`;
+    return;
+  }
+
+  const rows = list.map(v => `
+    <tr>
+      <td style="color:var(--accent);font-weight:600">${escapeHtml(v.id || '—')}</td>
+      <td>${escapeHtml(v.companyName || v.name || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.email || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.phone || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.gstNumber || '—')}</td>
+      <td><span class="pill amber">Pending</span></td>
+      <td>
+        <div class="inline-actions">
+          <button class="mini-btn approve" onclick="reviewVendor(${Number(v.id)}, 'APPROVED', this)">Approve</button>
+          <button class="mini-btn reject" onclick="reviewVendor(${Number(v.id)}, 'REJECTED', this)">Reject</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Vendor Name</th><th>Email</th><th>Phone</th><th>GST</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderApprovedVendors(list) {
+  const wrap = document.getElementById('vendors-wrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔩</div>No approved vendors yet</div>`;
+    return;
+  }
+
+  const rows = list.map(v => `
+    <tr>
+      <td style="color:var(--accent);font-weight:600">${escapeHtml(v.id || '—')}</td>
+      <td>${escapeHtml(v.companyName || v.name || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.email || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.phone || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(v.gstNumber || '—')}</td>
+      <td><span class="pill green">Approved</span></td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Vendor Name</th><th>Email</th><th>Phone</th><th>GST</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+async function reviewVendor(vendorId, action, button) {
+  if (!vendorId) return;
+  const rowButtons = button.closest('tr')?.querySelectorAll('button') || [];
+  rowButtons.forEach(btn => btn.disabled = true);
+  button.textContent = action === 'APPROVED' ? 'Approving...' : 'Rejecting...';
+
+  try {
+    const res = await fetch('/api/vendors/review', {
+      method: 'PUT',
+      headers: AUTH,
+      body: JSON.stringify({ vendorId, action })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    await loadVendors();
+    await loadOverviewVendors();
+  } catch (e) {
+    alert(e.message || `Could not ${action.toLowerCase()} vendor`);
+    rowButtons.forEach(btn => btn.disabled = false);
+    button.textContent = action === 'APPROVED' ? 'Approve' : 'Reject';
   }
 }
 
