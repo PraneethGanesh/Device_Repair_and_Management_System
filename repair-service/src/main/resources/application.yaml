@@ -3,9 +3,9 @@ spring:
     name: repair-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/repairdb?createDatabaseIfNotExist=true}
+    url: jdbc:mysql://mysql:3306/repairdb?createDatabaseIfNotExist=true
     username: ${USER_NAME}
-    password: ${PASSWORD:drms_pass}
+    password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -16,7 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     producer:
       acks: all
       retries: 3
@@ -36,7 +36,7 @@ springdoc:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
@@ -44,20 +44,20 @@ eureka:
 
 rabbitmq:
   exchange:
-    name: notification.exchange
+    name: notification_exchange
   repair:
     raised:
       routing:
-        key: notification.company.repair-raised
+        key: repair_raised_key
     acknowledged:
       routing:
-        key: notification.broadcast
+        key: repair_acknowledged_key
     completed:
       routing:
-        key: notification.company.repair-completed
+        key: repair_completed_key
     closed:
       routing:
-        key: notification.employee.repair-closed
+        key: repair_closed_key
 feign:
   circuitbreaker:
     enabled: true

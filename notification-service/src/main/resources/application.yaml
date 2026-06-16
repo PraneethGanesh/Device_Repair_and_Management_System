@@ -3,9 +3,9 @@ spring:
     name: notification-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/notificationdb?createDatabaseIfNotExist=true}
-    username: ${USER_NAME:drms_user}
-    password: ${PASSWORD:drms_pass}
+    url: jdbc:mysql://mysql:3306/device_db?createDatabaseIfNotExist=true
+    username: ${USER_NAME}
+    password: ${PASSWORD}
 
   jpa:
     hibernate:
@@ -15,8 +15,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -29,7 +29,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+      defaultZone: http://eureka-server:8761/eureka/
 
 
 server:
