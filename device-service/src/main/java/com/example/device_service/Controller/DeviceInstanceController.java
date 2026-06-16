@@ -40,7 +40,7 @@ public class DeviceInstanceController {
         return ResponseEntity.ok(deviceInstanceService.getDeviceInstancesByCompany(userId));
     }
 
-    @PutMapping("{status}/{instanceId}")
+    @PutMapping("/device/{status}/{instanceId}")
     public ResponseEntity<DeviceInstance> updateDeviceStatus(@PathVariable String status,
                                                              @PathVariable long instanceId){
         return ResponseEntity.ok(deviceInstanceService.updateDeviceStatus(status,instanceId));
