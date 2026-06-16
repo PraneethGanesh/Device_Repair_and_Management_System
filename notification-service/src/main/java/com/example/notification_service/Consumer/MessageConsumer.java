@@ -30,6 +30,10 @@ public class MessageConsumer {
     @RabbitListener(queues = "queue.company.specific")
     public void consumeCompanyMessage(NotificationMessage message) {
         LOGGER.info("Company notification received: {}", message.getEventType());
+        if (message.getRecipientEmail() == null || message.getRecipientEmail().isBlank()) {
+            LOGGER.warn("Skipping company message — recipientEmail is null. EventType: {}", message.getEventType());
+            return;  // ack and discard, don't crash
+        }
         notificationService.sendSingleEmail(
                 message.getRecipientEmail(),
                 message.getTitle(),
