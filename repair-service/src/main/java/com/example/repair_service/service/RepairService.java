@@ -43,7 +43,7 @@ public class RepairService {
     public RepairRequest raiseRequest(RepairRequestDTO dto,String userId) {
         EmployeeDTO response=customerServiceClient.getEmployeeByUserId(userId).getBody();
         UUID employeeId=deviceServiceClient.getDeviceAssignment(dto.getDeviceInstanceId()).getBody();
-        if(employeeId!=response.getId()){
+        if(!employeeId.equals(response.getId())){
             throw new RuntimeException("Device should be assigned to u to raise a repair request");
         }
         ResponseDTO responseDTO=deviceServiceClient.getVendorId(dto.getDeviceInstanceId()).getBody();
@@ -56,11 +56,11 @@ public class RepairService {
         request.setCreatedAt(LocalDateTime.now());
         request.setStatus(RepairStatus.RAISED);
 
-        publishRepairEvent("REPAIR_CREATED",
-                request,
-                null,
-                RepairStatus.RAISED,
-                false);
+//        publishRepairEvent("REPAIR_CREATED",
+//                request,
+//                null,
+//                RepairStatus.RAISED,
+//                false);
 
 
         return repairRepository.save(request);
