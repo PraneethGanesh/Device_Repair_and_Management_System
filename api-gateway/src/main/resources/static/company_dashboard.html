@@ -489,6 +489,11 @@
             <span class="nav-label">Repair Requests</span>
             <span class="nav-lock">🔒</span>
         </div>
+        <div class="nav-item" id="nav-repaired-requests" onclick="navGuarded('repaired-requests', this)">
+            <div class="nav-icon">✅</div>
+            <span class="nav-label">Update Requests</span>
+            <span class="nav-lock">🔒</span>
+        </div>
     </nav>
 
 
@@ -805,6 +810,25 @@
             </div>
         </div>
 
+        <!-- ── Repaired Requests page ── -->
+        <div id="page-repaired-requests" class="page">
+            <div class="alert" id="al-repaired-requests"></div>
+            <div class="gate-wrap" id="gate-repaired-requests">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                    <div>
+                        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Repaired Devices</div>
+                        <div style="font-size:10px;color:var(--text2);margin-top:3px;letter-spacing:0.04em;">Devices fixed by vendor — close the request to mark them as returned & reassigned</div>
+                    </div>
+                    <button class="btn btn-ghost" style="font-size:10px;padding:6px 14px;" onclick="loadRepairedRequests()">↻ Refresh</button>
+                </div>
+                <div id="repaired-cards-wrap">
+                    <div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+                        <span class="spinner"></span> Loading repaired requests…
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /content -->
 </div><!-- /main -->
 
@@ -855,7 +879,7 @@
 <script>
     const GATEWAY   = 'http://localhost:8085';
     const TOKEN_KEY = 'devicesupply_token';
-    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog', 'repair-requests'];
+    const GATED_PAGES = ['place-order', 'my-orders', 'invite-employee', 'employees', 'my-devices', 'device-catalog', 'repair-requests', 'repaired-requests'];
 
     let isCompanyApproved = false;
     let companyId = null;
@@ -889,6 +913,7 @@
         'my-devices': 'My Devices',
         'device-catalog': 'Device Catalog',
         'repair-requests': 'Repair Requests',
+        'repaired-requests': 'Repaired Devices',
     };
 
     // ── Helpers ──────────────────────────────────────────────
@@ -916,7 +941,7 @@
 
     // ── Approval gate ─────────────────────────────────────────
     function applyApprovalGates() {
-        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog', 'nav-repair-requests'];
+        const gatedNavIds = ['nav-place-order', 'nav-my-orders', 'nav-invite-employee', 'nav-employees', 'nav-my-devices', 'nav-device-catalog', 'nav-repair-requests', 'nav-repaired-requests'];
 
         if (isCompanyApproved) {
             gatedNavIds.forEach(id => document.getElementById(id)?.classList.remove('locked'));
@@ -975,6 +1000,7 @@
         if (name === 'my-devices') loadMyDevices();
         if (name === 'device-catalog') loadDeviceCatalogVendors();
         if (name === 'repair-requests') loadRepairRequests();
+        if (name === 'repaired-requests') loadRepairedRequests();
     }
 
     // ── Decode role from JWT ──────────────────────────────────
@@ -1965,6 +1991,141 @@ async function acknowledgeRepair(requestId, btn) {
         btn.disabled = false;
         btn.innerHTML = '◈ Acknowledge & Send to Vendor';
         showAlert('al-repair-requests', '✗ Network error: ' + e.message, 'error');
+    }
+}
+
+   async function loadRepairedRequests() {
+    document.getElementById('al-repaired-requests').classList.remove('show');
+    const wrap = document.getElementById('repaired-cards-wrap');
+    wrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11px;padding:20px 0;">
+        <span class="spinner"></span> Loading repaired requests…</div>`;
+
+    try {
+        const res = await fetch(GATEWAY + '/api/repairs/repaired', { headers: authHeaders() });
+        if (!res.ok) {
+            showAlert('al-repaired-requests', '✗ ' + await bodyText(res), 'error');
+            wrap.innerHTML = '';
+            return;
+        }
+        const requests = await res.json();
+
+        if (!requests.length) {
+            wrap.innerHTML = `
+                <div class="empty" style="padding:60px 20px;">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-text">No repaired devices waiting to be closed.</div>
+                </div>`;
+            return;
+        }
+
+        wrap.innerHTML = `<div class="repair-grid">${requests.map(r => {
+            let createdAt = '—';
+            if (r.createdAt) {
+                try { createdAt = new Date(r.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); }
+                catch { createdAt = r.createdAt; }
+            }
+
+            let resolvedAt = '—';
+            if (r.resolvedAt) {
+                try { resolvedAt = new Date(r.resolvedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); }
+                catch { resolvedAt = r.resolvedAt; }
+            }
+
+            return `
+            <div class="repair-card" id="repaired-card-${r.id}" style="border-color:rgba(0,245,200,0.12);">
+                <div class="repair-card-header">
+                    <div>
+                        <div class="repair-card-id">Request #${r.id}</div>
+                        <div class="repair-card-device">Device Instance #${r.deviceInstanceId}</div>
+                    </div>
+                    <span class="badge badge-approved">REPAIR DONE</span>
+                </div>
+
+                <div class="repair-issue" style="border-color:rgba(0,245,200,0.1);">
+                    💬 ${r.issueDescription || 'No description provided.'}
+                </div>
+
+                ${r.resolutionNotes ? `
+                <div class="repair-issue" style="background:rgba(0,245,200,0.04);border-color:rgba(0,245,200,0.15);color:var(--accent);">
+                    🔧 ${r.resolutionNotes}
+                </div>` : ''}
+
+                <div class="repair-meta">
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Vendor ID</span>
+                        <span class="repair-meta-val">#${r.vendorId || '—'}</span>
+                    </div>
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Raised By</span>
+                        <span class="repair-meta-val" style="font-size:9px;word-break:break-all;">${r.raisedBy || '—'}</span>
+                    </div>
+                    <div class="repair-meta-row">
+                        <span class="repair-meta-key">Resolved At</span>
+                        <span class="repair-meta-val">${resolvedAt}</span>
+                    </div>
+                </div>
+
+                <div class="repair-card-footer">
+                    <span class="repair-timestamp">🕐 Raised: ${createdAt}</span>
+                    <button class="btn btn-primary" style="font-size:10px;padding:7px 16px;"
+                        id="close-btn-${r.id}"
+                        onclick="closeRepairRequest(${r.id}, this)">
+                        ◈ Close & Return Device
+                    </button>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+
+    } catch (e) {
+        showAlert('al-repaired-requests', '✗ Network error: ' + e.message, 'error');
+        wrap.innerHTML = '';
+    }
+}
+
+async function closeRepairRequest(requestId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Closing…';
+
+    try {
+        const res = await fetch(GATEWAY + `/api/repairs/${requestId}/close`, {
+            method: 'PUT',
+            headers: authHeaders()
+        });
+
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.innerHTML = '◈ Close & Return Device';
+            showAlert('al-repaired-requests', '✗ ' + await bodyText(res), 'error');
+            return;
+        }
+
+        // Fade out and remove card
+        const card = document.getElementById(`repaired-card-${requestId}`);
+        if (card) {
+            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-6px)';
+            setTimeout(() => {
+                card.remove();
+                const grid = document.getElementById('repaired-cards-wrap').querySelector('.repair-grid');
+                if (grid && !grid.children.length) {
+                    document.getElementById('repaired-cards-wrap').innerHTML = `
+                        <div class="empty" style="padding:60px 20px;">
+                            <div class="empty-icon">📭</div>
+                            <div class="empty-text">No repaired devices waiting to be closed.</div>
+                        </div>`;
+                }
+            }, 400);
+        }
+
+        showAlert('al-repaired-requests',
+            `✓ Request #${requestId} closed — device marked as assigned and returned to employee.`,
+            'success');
+
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '◈ Close & Return Device';
+        showAlert('al-repaired-requests', '✗ Network error: ' + e.message, 'error');
     }
 }
 
