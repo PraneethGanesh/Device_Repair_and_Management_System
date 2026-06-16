@@ -333,10 +333,17 @@
     <div class="page-section" id="page-companies">
       <div class="page-header">
         <h1>Companies</h1>
-        <p>All companies registered on the platform</p>
+        <p>Review new company registrations and monitor approved companies</p>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-header">
+          <span class="card-title">Pending Approval</span>
+          <span class="card-action" onclick="loadCompanies()">Refresh</span>
+        </div>
+        <div id="pending-companies-wrap"><div class="loading"><span class="spinner"></span>Loading...</div></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Company List</span></div>
+        <div class="card-header"><span class="card-title">Approved Companies</span></div>
         <div id="companies-wrap"><div class="loading"><span class="spinner"></span>Loading...</div></div>
       </div>
     </div>
@@ -549,7 +556,7 @@ function renderOverviewRepairs(repairs) {
 
 async function loadOverviewCompanies() {
   try {
-    const res = await fetch('/api/companies', { headers: AUTH });
+    const res = await fetch('/api/companies/status/APPROVED', { headers: AUTH });
     if (!res.ok) throw new Error();
     allCompaniesCache = await res.json();
     const list = Array.isArray(allCompaniesCache) ? allCompaniesCache : (allCompaniesCache.content || []);
@@ -564,7 +571,7 @@ async function loadOverviewCompanies() {
           <div class="u-name">${c.name || c.companyName || '—'}</div>
           <div class="u-role">${c.industry || c.email || '—'}</div>
         </div>
-        <div class="u-status"><span class="pill green">Active</span></div>
+        <div class="u-status"><span class="pill green">Approved</span></div>
       </div>`).join('');
     document.getElementById('overview-companies-list').innerHTML = rows || '<div class="empty-state">No companies yet</div>';
   } catch {
@@ -625,27 +632,104 @@ async function loadAllRepairs() {
 
 async function loadCompanies() {
   const wrap = document.getElementById('companies-wrap');
+  const pendingWrap = document.getElementById('pending-companies-wrap');
   wrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
+  pendingWrap.innerHTML = `<div class="loading"><span class="spinner"></span>Loading...</div>`;
+
   try {
-    const res = await fetch('/api/companies', { headers: AUTH });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.content || []);
-    if (!list.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🏢</div>No companies registered</div>`; return; }
-    const rows = list.map(c => `
-      <tr>
-        <td style="color:var(--accent);font-weight:600">${c.id || '—'}</td>
-        <td>${c.name || c.companyName || '—'}</td>
-        <td style="color:var(--text-muted)">${c.email || '—'}</td>
-        <td style="color:var(--text-muted)">${c.industry || '—'}</td>
-        <td><span class="pill green">Active</span></td>
-      </tr>`).join('');
-    wrap.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th>ID</th><th>Company Name</th><th>Email</th><th>Industry</th><th>Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
+    const [pendingRes, approvedRes] = await Promise.all([
+      fetch('/api/companies/status/PENDING', { headers: AUTH }),
+      fetch('/api/companies/status/APPROVED', { headers: AUTH })
+    ]);
+
+    if (!pendingRes.ok) throw new Error('Could not load pending companies');
+    if (!approvedRes.ok) throw new Error('Could not load approved companies');
+
+    const pendingData = await pendingRes.json();
+    const approvedData = await approvedRes.json();
+    const pending = Array.isArray(pendingData) ? pendingData : (pendingData.content || []);
+    const approved = Array.isArray(approvedData) ? approvedData : (approvedData.content || []);
+
+    renderPendingCompanies(pending);
+    renderApprovedCompanies(approved);
+    document.getElementById('stat-companies').textContent = approved.length;
+    document.getElementById('sum-companies').textContent = approved.length;
   } catch {
+    pendingWrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load pending companies — is customer-service running?</div>`;
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load companies — is customer-service running?</div>`;
+  }
+}
+
+function renderPendingCompanies(list) {
+  const wrap = document.getElementById('pending-companies-wrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div>No companies waiting for approval</div>`;
+    return;
+  }
+
+  const rows = list.map(c => `
+    <tr>
+      <td style="color:var(--accent);font-weight:600">${escapeHtml(c.id || '—')}</td>
+      <td>${escapeHtml(c.companyName || c.name || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.email || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.gstNumber || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—')}</td>
+      <td><span class="pill amber">Pending</span></td>
+      <td>
+        <div class="inline-actions">
+          <button class="mini-btn approve" onclick="reviewCompany('${escapeHtml(c.id)}', 'APPROVED', this)">Approve</button>
+          <button class="mini-btn reject" onclick="reviewCompany('${escapeHtml(c.id)}', 'REJECTED', this)">Reject</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Company Name</th><th>Email</th><th>GST</th><th>Created</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderApprovedCompanies(list) {
+  const wrap = document.getElementById('companies-wrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🏢</div>No approved companies yet</div>`;
+    return;
+  }
+
+  const rows = list.map(c => `
+    <tr>
+      <td style="color:var(--accent);font-weight:600">${escapeHtml(c.id || '—')}</td>
+      <td>${escapeHtml(c.companyName || c.name || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.email || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.gstNumber || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—')}</td>
+      <td><span class="pill green">Approved</span></td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Company Name</th><th>Email</th><th>GST</th><th>Created</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+async function reviewCompany(companyId, status, button) {
+  if (!companyId) return;
+  const rowButtons = button.closest('tr')?.querySelectorAll('button') || [];
+  rowButtons.forEach(btn => btn.disabled = true);
+  button.textContent = status === 'APPROVED' ? 'Approving...' : 'Rejecting...';
+
+  try {
+    const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}/status?status=${encodeURIComponent(status)}`, {
+      method: 'PATCH',
+      headers: AUTH
+    });
+    if (!res.ok) throw new Error(await res.text());
+    await loadCompanies();
+    await loadOverviewCompanies();
+  } catch (e) {
+    alert(e.message || `Could not ${status.toLowerCase()} company`);
+    rowButtons.forEach(btn => btn.disabled = false);
+    button.textContent = status === 'APPROVED' ? 'Approve' : 'Reject';
   }
 }
 
