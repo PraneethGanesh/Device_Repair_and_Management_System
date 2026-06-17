@@ -7,7 +7,7 @@ spring:
     url: jdbc:mysql://mysql:3306/device_db?createDatabaseIfNotExist=true
     username: ${USER_NAME}
     password: ${PASSWORD}
-
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
