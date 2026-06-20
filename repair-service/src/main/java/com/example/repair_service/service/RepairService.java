@@ -291,6 +291,7 @@ private void publishRepairEvent(
     event.setEventType(eventType);
     event.setRepairId(request.getId());
     event.setDeviceId(request.getDeviceInstanceId());
+    event.setCompanyId(request.getCompanyId());
     event.setRaisedBy(request.getRaisedBy());
     event.setVendorId(request.getVendorId());
     event.setIssueDescription(request.getIssueDescription());

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class AuditRecord {
@@ -19,8 +20,8 @@ public class AuditRecord {
 
     private Long repairId;
     private Long deviceId;
-    private Long companyId;
-    private Long raisedBy;
+    private UUID companyId;
+    private UUID raisedBy;
     private Long companyAdminId;
     private Long vendorId;
 
@@ -53,11 +54,11 @@ public class AuditRecord {
         return deviceId;
     }
 
-    public Long getCompanyId() {
+    public UUID getCompanyId() {
         return companyId;
     }
 
-    public Long getRaisedBy() {
+    public UUID getRaisedBy() {
         return raisedBy;
     }
 
@@ -113,11 +114,11 @@ public class AuditRecord {
         this.deviceId = deviceId;
     }
 
-    public void setCompanyId(Long companyId) {
+    public void setCompanyId(UUID companyId) {
         this.companyId = companyId;
     }
 
-    public void setRaisedBy(Long raisedBy) {
+    public void setRaisedBy(UUID raisedBy) {
         this.raisedBy = raisedBy;
     }
 
