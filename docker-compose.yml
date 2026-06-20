@@ -243,12 +243,19 @@ services:
   repair-service:
     build: ./repair-service
     container_name: repair-service
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "2.0"
     ports:
       - "8084:8084"
     environment:
+      JAVA_OPTS: -XX:MaxRAMPercentage=65.0 -XX:InitialRAMPercentage=20.0 -XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError
       USER_NAME: devicesupply
       PASSWORD: devicesupply123
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/repairdb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 5
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 1
+      SPRING_JPA_SHOW_SQL: false
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672

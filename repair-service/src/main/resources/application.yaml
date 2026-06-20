@@ -3,15 +3,19 @@ spring:
     name: repair-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/repairdb?createDatabaseIfNotExist=true}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/repairdb?createDatabaseIfNotExist=true}
     username: ${USER_NAME}
     password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:5}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect

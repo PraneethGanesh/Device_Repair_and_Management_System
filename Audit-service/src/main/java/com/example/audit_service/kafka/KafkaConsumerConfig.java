@@ -28,6 +28,7 @@ public class KafkaConsumerConfig {
     @Bean
     public ConsumerFactory<String, RepairEventDTO> consumerFactory() {
         JacksonJsonDeserializer<RepairEventDTO> deserializer = new JacksonJsonDeserializer<>(RepairEventDTO.class);
+        deserializer.setUseTypeHeaders(false);
         deserializer.setRemoveTypeHeaders(true);
         deserializer.addTrustedPackages("*");
 
