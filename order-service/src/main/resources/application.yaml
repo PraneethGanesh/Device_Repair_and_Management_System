@@ -4,7 +4,7 @@ spring:
 
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/device_db?createDatabaseIfNotExist=true}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/device_db?createDatabaseIfNotExist=true}
     username: ${USER_NAME}
     password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
