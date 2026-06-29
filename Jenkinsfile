@@ -7,8 +7,8 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('JenkinsAdminNireeksha')
-        DOCKERHUB_USER        = 'nireekshashekhar'
+        DOCKERHUB_CREDENTIALS = credentials('**')
+        DOCKERHUB_USER        = '***'
     }
 
     stages {
