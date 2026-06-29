@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/audit")
@@ -35,7 +36,7 @@ public class AuditController {
     }
 
     @GetMapping("/company/{companyId}")
-    public List<AuditRecord> getByCompanyId(@PathVariable Long companyId) {
+    public List<AuditRecord> getByCompanyId(@PathVariable UUID companyId) {
         return auditRecordRepository.findByCompanyIdOrderByTimestampDesc(companyId);
     }
 

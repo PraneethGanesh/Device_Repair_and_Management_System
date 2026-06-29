@@ -56,14 +56,14 @@ public class RepairService {
         request.setCreatedAt(LocalDateTime.now());
         request.setStatus(RepairStatus.RAISED);
 
-//        publishRepairEvent("REPAIR_CREATED",
-//                request,
-//                null,
-//                RepairStatus.RAISED,
-//                false);
+        RepairRequest saved = repairRepository.save(request);
+        publishRepairEvent("REPAIR_CREATED",
+                saved,
+                null,
+                RepairStatus.RAISED,
+                false);
 
-
-        return repairRepository.save(request);
+        return saved;
     }
 
 
