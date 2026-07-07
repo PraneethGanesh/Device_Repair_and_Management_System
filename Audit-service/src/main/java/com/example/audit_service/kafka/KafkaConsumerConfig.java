@@ -10,7 +10,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, RepairEventDTO> consumerFactory() {
-        JacksonJsonDeserializer<RepairEventDTO> deserializer = new JacksonJsonDeserializer<>(RepairEventDTO.class);
+        JsonDeserializer<RepairEventDTO> deserializer = new JsonDeserializer<>(RepairEventDTO.class);
         deserializer.setUseTypeHeaders(false);
         deserializer.setRemoveTypeHeaders(true);
         deserializer.addTrustedPackages("*");
