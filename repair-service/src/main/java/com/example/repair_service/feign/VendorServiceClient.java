@@ -9,5 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "vendor-service")
 public interface VendorServiceClient {
     @GetMapping("/api/vendors/{userId}")
-    ResponseEntity<VendorDTO> getVendor(@PathVariable String userId);
+    ResponseEntity<VendorDTO> getVendor(@PathVariable("userId") String userId);
 }
+

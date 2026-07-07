@@ -317,4 +317,4 @@ services:
     depends_on:
       - api-gateway
     networks:
-      - drms-network
+      - devicesupply-network

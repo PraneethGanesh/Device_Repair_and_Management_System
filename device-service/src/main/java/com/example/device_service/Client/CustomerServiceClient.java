@@ -12,9 +12,10 @@ import java.util.UUID;
 public interface CustomerServiceClient {
     @GetMapping("/api/employees/{employeeId}/company/{companyId}/exists")
     ResponseEntity<Boolean> employeeBelongsToCompany(
-            @PathVariable UUID employeeId,
-            @PathVariable UUID companyId);
+            @PathVariable("employeeId") UUID employeeId,
+            @PathVariable("companyId") UUID companyId);
 
     @GetMapping("/api/companies/user/{userId}")
-    ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable String userId);
+    ResponseEntity<CompanyResponse> getCompanyByUserId(@PathVariable("userId") String userId);
 }
+

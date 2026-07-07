@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.*;
 @FeignClient(name = "device-service")
 public interface DeviceServiceClient {
     @GetMapping("/api/devices/{id}")
-    ResponseEntity<DeviceResponseDTO> getDeviceById(@PathVariable long id);
+    ResponseEntity<DeviceResponseDTO> getDeviceById(@PathVariable("id") long id);
     @PostMapping("/api/device_instance")
     ResponseEntity<String> addDeviceInstance(@RequestBody OrderDTO orderDTO);
     @PutMapping("/api/device_instance/{orderId}")
-    ResponseEntity<String> updateDeviceInstance(@PathVariable long orderId);
+    ResponseEntity<String> updateDeviceInstance(@PathVariable("orderId") long orderId);
 }
+

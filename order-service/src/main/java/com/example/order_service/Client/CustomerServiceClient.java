@@ -11,5 +11,6 @@ import java.util.UUID;
 @FeignClient(name = "customer-service")
 public interface CustomerServiceClient {
     @GetMapping("/api/companies/{id}")
-    ResponseEntity<CompanyResponse> getCompanyById(@PathVariable UUID id);
+    ResponseEntity<CompanyResponse> getCompanyById(@PathVariable("id") UUID id);
 }
+

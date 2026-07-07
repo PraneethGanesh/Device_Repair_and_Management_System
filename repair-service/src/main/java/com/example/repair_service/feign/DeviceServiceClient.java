@@ -16,11 +16,12 @@ public interface DeviceServiceClient {
     void assignDevice(@RequestBody AssignmentRequestDTO assignmentRequest);
 
     @GetMapping("/api/assignments/{instanceId}")
-    ResponseEntity<UUID> getDeviceAssignment(@PathVariable long instanceId);
+    ResponseEntity<UUID> getDeviceAssignment(@PathVariable("instanceId") long instanceId);
 
     @GetMapping("/api/device_instance/{instanceId}")
-    ResponseEntity<ResponseDTO> getVendorId(@PathVariable long instanceId);
+    ResponseEntity<ResponseDTO> getVendorId(@PathVariable("instanceId") long instanceId);
     @PutMapping("/api/device_instance/device/{status}/{instanceId}")
-    ResponseEntity<?> updateDeviceStatus(@PathVariable String status,
-                                                             @PathVariable long instanceId);
+    ResponseEntity<?> updateDeviceStatus(@PathVariable("status") String status,
+                                                             @PathVariable("instanceId") long instanceId);
 }
+
