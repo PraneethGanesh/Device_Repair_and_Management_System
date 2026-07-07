@@ -9,19 +9,41 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true              # Auto-discover services from Eureka
+          enabled: true
           lower-case-service-id: true
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+
       routes:
+        # User Service
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**
 
+        # Vendor Service
         - id: vendor-service
           uri: lb://VENDOR-SERVICE
           predicates:
             - Path=/api/vendors/**
 
+        # Device Service
         - id: device-service
           uri: lb://DEVICE-SERVICE
           predicates:
@@ -35,8 +57,9 @@ spring:
         - id: device-instance-service
           uri: lb://DEVICE-SERVICE
           predicates:
-            - Path=/api/device_instance/**
+            - Path=/api/device-instances/**
 
+        # Customer Service
         - id: company-service
           uri: lb://CUSTOMER-SERVICE
           predicates:
@@ -47,15 +70,25 @@ spring:
           predicates:
             - Path=/api/employees/**
 
+        # Repair Service
+        - id: repair-service
+          uri: lb://REPAIR-SERVICE
+          predicates:
+            - Path=/api/repairs/**
+
+        # Notification Service
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
 
-        - id: repair-service
-          uri: lb://REPAIR-SERVICE
+        # Audit Service
+        - id: audit-service
+          uri: lb://AUDIT-SERVICE
           predicates:
-            - Path=/api/repairs/**
+            - Path=/api/audit/**
+
+        # ---------------- Swagger/OpenAPI ----------------
 
         - id: user-service-openapi
           uri: lb://USER-SERVICE
@@ -78,12 +111,12 @@ spring:
           filters:
             - RewritePath=/v3/api-docs/devices,/v3/api-docs
 
-        - id: notification-service-openapi
-          uri: lb://NOTIFICATION-SERVICE
+        - id: customer-service-openapi
+          uri: lb://CUSTOMER-SERVICE
           predicates:
-            - Path=/v3/api-docs/notifications
+            - Path=/v3/api-docs/customer
           filters:
-            - RewritePath=/v3/api-docs/notifications,/v3/api-docs
+            - RewritePath=/v3/api-docs/customer,/v3/api-docs
 
         - id: repair-service-openapi
           uri: lb://REPAIR-SERVICE
@@ -92,17 +125,12 @@ spring:
           filters:
             - RewritePath=/v3/api-docs/repairs,/v3/api-docs
 
-        - id: customer-service-openapi
-          uri: lb://CUSTOMER-SERVICE
+        - id: notification-service-openapi
+          uri: lb://NOTIFICATION-SERVICE
           predicates:
-            - Path=/v3/api-docs/customer
+            - Path=/v3/api-docs/notifications
           filters:
-            - RewritePath=/v3/api-docs/customer,/v3/api-docs
-
-        - id: audit-service
-          uri: lb://AUDIT-SERVICE
-          predicates:
-            - Path=/api/audit/**
+            - RewritePath=/v3/api-docs/notifications,/v3/api-docs
 
         - id: audit-service-openapi
           uri: lb://AUDIT-SERVICE
@@ -110,42 +138,24 @@ spring:
             - Path=/v3/api-docs/audit
           filters:
             - RewritePath=/v3/api-docs/audit,/v3/api-docs
-      # Global CORS config
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            exposedHeaders:
-              - Authorization
 
-      # Default filters applied to all routes
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-
-# Eureka
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
-    fetch-registry: true
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
     register-with-eureka: true
+    fetch-registry: true
+
   instance:
     prefer-ip-address: true
 
-# JWT secret
 jwt:
   secret: drmsSuperSecretKeyForJwtTokenGenerationMustBe32CharsLong
 
 springdoc:
   api-docs:
     path: /v3/api-docs
+
   swagger-ui:
     path: /swagger-ui.html
     urls:
@@ -157,29 +167,30 @@ springdoc:
         url: /v3/api-docs/vendors
       - name: Device Service
         url: /v3/api-docs/devices
-      - name: Notification Service
-        url: /v3/api-docs/notifications
-      - name: Repair Service
-        url: /v3/api-docs/repairs
       - name: Customer Service
         url: /v3/api-docs/customer
+      - name: Repair Service
+        url: /v3/api-docs/repairs
+      - name: Notification Service
+        url: /v3/api-docs/notifications
       - name: Audit Service
         url: /v3/api-docs/audit
 
-# Actuator
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, gateway
+        include: health,info,gateway,metrics,prometheus
+
   endpoint:
     health:
       show-details: always
     gateway:
       enabled: true
 
-# Logging
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway.route.RouteDefinitionLocator: DEBUG
+    org.springframework.security: INFO
     com.example.api_gateway: DEBUG
