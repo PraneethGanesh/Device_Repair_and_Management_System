@@ -25,17 +25,17 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="api-gateway" options="-parameters" />
-      <module name="audit-service" options="-parameters" />
-      <module name="customer-service" options="-parameters" />
-      <module name="device-service" options="-parameters" />
-      <module name="eureka-server" options="-parameters" />
-      <module name="notification-service" options="-parameters" />
+      <module name="api-gateway" options="" />
+      <module name="audit-service" options="" />
+      <module name="customer-service" options="" />
+      <module name="device-service" options="" />
+      <module name="eureka-server" options="" />
+      <module name="notification-service" options="" />
       <module name="order-service" options="-parameters" />
-      <module name="orders-service" options="-parameters" />
-      <module name="repair-service" options="-parameters" />
-      <module name="user-service" options="-parameters" />
-      <module name="vendor-service" options="-parameters" />
+      <module name="orders-service" options="" />
+      <module name="repair-service" options="" />
+      <module name="user-service" options="" />
+      <module name="vendor-service" options="" />
     </option>
   </component>
 </project>
